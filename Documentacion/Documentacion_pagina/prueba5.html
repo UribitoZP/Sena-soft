@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenida | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="variables.css">
+    <link rel="stylesheet" href="codigo.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <span class="version-tag">v1.0.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="index.html">Bienvenida</a></li>
+                        <li><a href="prueba1.html">prueba1</a></li>
+                        <li><a href="prueba2.html">prueba2</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Core</h3>
+                    <ul>
+                        <li><a href="prueba3.html">prueba3</a></li>
+                        <li><a href="prueba4.html">prueba4</a></li>
+                        <li><a href="prueba5.html" class="active">prueba5</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="prueba5">
+                <h1>prueba5</h1>
+
+                <p class="lead">Bienvenido a la seccion de prueba5</p>
+                <hr>
+
+
+                <div class="callout info">
+                    <p><strong>Nota:</strong> Esta seccion es solo un ejemplo de como se veria una seccion de
+                        documentacion.
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="main.js"></script>
+</body>
+
+</html>

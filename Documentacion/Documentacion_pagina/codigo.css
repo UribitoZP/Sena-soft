@@ -1,0 +1,61 @@
+/* 
+    LOGICA DE BLOQUES DE CODIGO Y ENUMERACION
+    Este archivo gestiona la visualizacion de snippets tecnicos.
+*/
+
+pre {
+    background-color: var(--color-text-main);
+    color: #e2e8f0;
+    padding: 1.25rem 0;
+    border-radius: var(--border-radius-md);
+    font-family: var(--font-family-mono);
+    font-size: 0.9rem;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Seguridad responsiva */
+    max-width: 100%;
+    box-sizing: border-box;
+
+    /* Logica del Enumerado */
+    counter-reset: line;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estilo para codigo inline (fuera de pre) */
+code {
+    font-family: var(--font-family-mono);
+    background: #f1f5f9;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--color-primary-dark);
+}
+
+/* Estilos para cada linea de coddigo (dentro de pre) */
+pre code {
+    all: unset;
+    display: block;
+    position: relative;
+    padding-left: 3.5rem;
+    padding-right: 1.25rem;
+    font-family: var(--font-family-mono);
+}
+
+/* Pseudo-elemento para el numero de línea */
+pre code::before {
+    counter-increment: line;
+    content: counter(line);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2.5rem;
+    text-align: right;
+    color: rgba(255, 255, 255, 0.3);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    padding-right: 0.5rem;
+    user-select: none;
+    /* No seleccionable, para no seleccionar los numeros */
+}
