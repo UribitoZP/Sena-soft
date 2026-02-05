@@ -1,0 +1,35 @@
+/* 
+    VARIABLES / DESIGN TOKENS
+    Separamos las variables para facilitar el mantenimiento y posibles cambios de tema (oscuro/claro).
+*/
+
+:root {
+    /* Paleta de Colores - Blues & Slates */
+    --color-primary: #2563eb;
+    --color-primary-dark: #1e40af;
+    --color-primary-light: #eff6ff;
+
+    --color-bg-main: #f8fafc;
+    --color-bg-surface: #ffffff;
+
+    --color-text-main: #1e293b;
+    --color-text-muted: #64748b;
+    --color-text-light: #94a3b8;
+
+    --color-border: #e2e8f0;
+    --color-border-hover: #cbd5e1;
+
+    /* Tipografía */
+    --font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-family-mono: 'Fira Code', monospace;
+
+    /* Dimensiones */
+    --sidebar-width: 280px;
+    --header-height: 64px;
+    --border-radius-sm: 6px;
+    --border-radius-md: 10px;
+
+    /* Sombras y Efectos */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
