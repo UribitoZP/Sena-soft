@@ -38,9 +38,9 @@
                     </ul>
                 </div>
                 <div class="nav-group">
-                    <h3>Core</h3>
+                    <h3>Documentación</h3>
                     <ul>
-                        <li><a href="prueba3.html" class="active">prueba3</a></li>
+                        <li><a href="prueba3.html" class="active">SRS</a></li>
                         <li><a href="prueba4.html">prueba4</a></li>
                         <li><a href="prueba5.html">prueba5</a></li>
                     </ul>
@@ -49,10 +49,101 @@
         </aside>
         <main class="content">
             <section>
-                <h1>Prueba 3</h1>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio, rerum! Distinctio unde, laudantium,
-                    corrupti commodi perferendis illum voluptatum a reiciendis nihil eos recusandae animi expedita
-                    architecto!</p>
+                <h1>SRS – Especificación de Requerimientos</h1>
+
+                <p class="lead">
+                    Documento que describe los requerimientos funcionales y no funcionales de la
+                    <strong>Plataforma de Gestión Hotelera Offline con Dashboard Móvil</strong>
+                    para el Hotel Santa Ana.
+                </p>
+
+                <div class="callout info">
+                    <p>
+                    <strong>Versión:</strong> 1.0<br>
+                    <strong>Proyecto:</strong> HotelSoft<br>
+                    <strong>Equipo:</strong> Grupo 2 – SENA
+                    </p>
+                </div>
+
+                <h2>1. Propósito</h2>
+                <p>
+                    El propósito de este documento es definir de manera clara y detallada los
+                    requerimientos del sistema hotelero, el cual busca optimizar las operaciones
+                    diarias del hotel mediante una aplicación de escritorio offline, complementada
+                    con un dashboard móvil para supervisión administrativa.
+                </p>
+
+                <h2>2. Alcance</h2>
+                <p>
+                    HotelSoft está orientado al Hotel Santa Ana, el cual requiere un sistema confiable
+                    que funcione sin conexión a internet en el área operativa. El sistema está compuesto
+                    por dos módulos principales:
+                </p>
+
+                <ul>
+                    <li><strong>Aplicación de escritorio offline:</strong> destinada al personal operativo
+                    para la gestión de huéspedes, habitaciones, reservas, check-in, check-out,
+                    pagos y facturación.</li>
+                    <li><strong>Dashboard móvil:</strong> orientado al dueño y administradores para la
+                    visualización de métricas, reportes y alertas administrativas.</li>
+                </ul>
+
+                <h2>3. Descripción General del Sistema</h2>
+                <p>
+                    HotelSoft es un sistema integral compuesto por una aplicación de escritorio conectada
+                    a una base de datos local y un dashboard móvil que actúa como módulo complementario
+                    para la supervisión del negocio.
+                </p>
+
+                <h2>4. Actores del Sistema</h2>
+                <ul>
+                    <li><strong>Administrador:</strong> acceso total a gestión de usuarios, backups,
+                    configuración y reportes.</li>
+                    <li><strong>Recepcionista:</strong> gestión de reservas, check-in, check-out y consultas.</li>
+                    <li><strong>Dueño / Administrador General:</strong> acceso a métricas, reportes y alertas
+                    mediante el dashboard móvil.</li>
+                </ul>
+
+                <h2>5. Requerimientos Funcionales (Resumen)</h2>
+                <ul>
+                    <li><strong>RF-001:</strong> Gestión de usuarios (CRUD – solo administrador).</li>
+                    <li><strong>RF-003:</strong> Gestión de habitaciones y estados.</li>
+                    <li><strong>RF-004:</strong> Registro de check-in.</li>
+                    <li><strong>RF-015:</strong> Registro de check-out con generación de factura.</li>
+                    <li><strong>RF-016:</strong> Gestión de reservas manuales.</li>
+                    <li><strong>RF-017:</strong> Registro de pagos.</li>
+                    <li><strong>RF-018:</strong> Visualización de métricas en dashboard móvil.</li>
+                    <li><strong>RF-019:</strong> Generación de reportes administrativos.</li>
+                    <li><strong>RF-020:</strong> Exportación y sincronización de datos al dashboard móvil.</li>
+                </ul>
+
+                <h2>6. Requerimientos No Funcionales (Resumen)</h2>
+                <ul>
+                    <li><strong>RNF-001:</strong> Funcionamiento offline del sistema.</li>
+                    <li><strong>RNF-002:</strong> Tiempo de respuesta menor a 2 segundos.</li>
+                    <li><strong>RNF-003:</strong> Interfaz intuitiva para usuarios no técnicos.</li>
+                    <li><strong>RNF-004:</strong> Cifrado de copias de seguridad (AES-256).</li>
+                    <li><strong>RNF-006:</strong> Compatibilidad con sistema operativo Windows.</li>
+                    <li><strong>RNF-007:</strong> Código modular y mantenible.</li>
+                    <li><strong>RNF-008:</strong> Auditoría mediante registros de logs.</li>
+                </ul>
+
+                <h2>7. Requerimientos de Interfaz de Usuario</h2>
+                <ul>
+                    <li><strong>UI-001:</strong> Login con roles (administrador / recepcionista).</li>
+                    <li><strong>UI-003:</strong> Panel de recepcionista con check-in y check-out.</li>
+                    <li><strong>UI-004:</strong> Panel de administrador para gestión y backups.</li>
+                    <li><strong>UI-005:</strong> Dashboard móvil con métricas y reportes.</li>
+                </ul>
+
+                <div class="callout info">
+                    <p>
+                    <strong>Documento completo:</strong>
+                    <a href="../Documentacion_pagina/archivos/srs de grupo 2.pdf" target="_blank">
+                        Descargar SRS en PDF
+                    </a>
+                    </p>
+                </div>
             </section>
         </main>
     </div>
