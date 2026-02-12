@@ -310,6 +310,97 @@ hr {
     width: 100%;
 }
 
+/* Contenedores De ER y MER */
+.diagrama_er_container,
+.diagrama_mer_container {
+    flex: 1;
+    min-width: 340px;
+    max-width: 720px;
+    background: #1a1a2e;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.45);
+    border: 1px solid #2a2a45;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.diagrama_er_container:hover,
+.diagrama_mer_container:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+}
+
+/* Títulos de los digramas mer y er */
+.diagrama_er,
+.diagrama_mer {
+    margin: 0;
+    padding: 1.1rem 1.5rem;
+    background: linear-gradient(135deg, #25253f, #1a1a2e);
+    color: #d0d0ff;
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid #333355;
+}
+
+/* Imágenes del mer y er*/
+.diagrama_er_img,
+.diagrama_mer_img {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #0d0d1a;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Descripciones (párrafos) de mer y er */
+.descrip_er,
+.descrip_mer {
+    margin: 0;
+    padding: 1.4rem 1.6rem 1.8rem;
+    color: #c8c8e0;
+    font-size: 1.05rem;
+    line-height: 1.65;
+}
+
+/* Layout flex para colocarlos lado a lado */
+.content section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 50px;
+    justify-content: center;
+}
+
+/* En pantallas pequeñas → se apilan verticalmente */
+@media (max-width: 980px) {
+    .content section {
+        flex-direction: column;
+        gap: 2.5rem;
+    }
+
+    .diagrama_er_container,
+    .diagrama_mer_container {
+        max-width: 100%;
+    }
+}
+
+/* Opcional: mejorar legibilidad en móviles muy pequeños */
+@media (max-width: 480px) {
+    .diagrama_er,
+    .diagrama_mer {
+        font-size: 1.4rem;
+        padding: 1rem;
+    }
+
+    .descrip_er,
+    .descrip_mer {
+        font-size: 1rem;
+        padding: 1.2rem 1.4rem;
+    }
+}
+
+
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
     .menu-toggle {
@@ -374,5 +465,82 @@ hr {
             display: none;
             /* Ocultamos versión en pantallas diminutas para priorizar el nombre */
         }
+        
     }
+    
+}
+
+/* GRID */
+.use-cases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* CUADRADO PERFECTO */
+.use-cases figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.use-cases img {
+    width: 100%;
+    aspect-ratio: 1 / 1;       /* 🔥 cuadrado */
+    object-fit: contain;       /* no recorta */
+    background: #fff;
+    padding: 0.5rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* TEXTO */
+.use-cases figcaption {
+    margin-top: 0.6rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* HOVER */
+.zoom-img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== MODAL ===== */
+.image-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.image-modal img {
+    max-width: 90%;
+    max-height: 80vh;
+    border-radius: 12px;
+}
+
+.image-modal p {
+    margin-top: 1rem;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 2rem;
+    color: #fff;
+    cursor: pointer;
 }

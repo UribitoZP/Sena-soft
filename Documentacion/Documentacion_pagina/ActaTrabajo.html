@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenida | Documentación del Sistema</title>
+    <title>Casos de uso | Documentación del Sistema</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
+
     <link rel="stylesheet" href="variables.css">
     <link rel="stylesheet" href="codigo.css">
     <link rel="stylesheet" href="style.css">
@@ -30,6 +32,7 @@
             <span class="version-tag">v1.1.0</span>
         </div>
     </header>
+
     <div class="container">
         <aside class="sidebar">
             <nav class="side-nav">
@@ -46,7 +49,7 @@
                     <ul>
                         <li><a href="SRS.html">SRS</a></li>
                         <li><a href="CasoUso.html">Caso de uso</a></li>
-                        <li><a href="ERMER.html" >ER / MER</a></li>
+                        <li><a href="ERMER.html">ER / MER</a></li>
                         <li><a href="ActaTrabajo.html" class="active">Actas de trabajo</a></li>
                     </ul>
                 </div>
@@ -66,24 +69,111 @@
                 </div>
             </nav>
         </aside>
-        <main class="content">
-            <section id="prueba6">
-                <h1>prueba6</h1>
 
-                <p class="lead">Bienvenido a la seccion de prueba6</p>
+        <main class="content">
+
+            <section id="prueba5">
+                <h1>Casos de uso</h1>
+
+                <p class="lead">
+                    Estos son los casos de uso del proyecto del sistema hotelero.
+                </p>
+
+
                 <hr>
 
-
                 <div class="callout info">
-                    <p><strong>Nota:</strong> Esta seccion es solo un ejemplo de como se veria una seccion de
-                        documentacion.
+                    <p>
+                        <strong>Nota:</strong> Esta sección muestra los diagramas de casos de uso que
+                        describen las principales funcionalidades del sistema.
                     </p>
                 </div>
+
+                <!-- 🔽 SECCIÓN DE IMÁGENES -->
+                <h2>Diagramas de casos de uso</h2>
+
+                <div class="use-cases">
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-1.png" alt="Caso de uso 1" class="zoom-img">
+
+                        <figcaption>Caso de uso 1</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-2.png" alt="Caso de uso 2" class="zoom-img">
+                        <figcaption>Caso de uso 2</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-3.png" alt="Caso de uso 3" class="zoom-img">
+                        <figcaption>Caso de uso 3</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-4.png" alt="Caso de uso 4" class="zoom-img">
+                        <figcaption>Caso de uso 4</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-5.png" alt="Caso de uso 5" class="zoom-img">
+                        <figcaption>Caso de uso 5</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-6.png" alt="Caso de uso 6" class="zoom-img">
+                        <figcaption>Caso de uso 6</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-7.png" alt="Caso de uso 7" class="zoom-img">
+                        <figcaption>Caso de uso 7</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-8.png" alt="Caso de uso 8" class="zoom-img">
+                        <figcaption>Caso de uso 8</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-9.png" alt="Caso de uso 9" class="zoom-img">
+                        <figcaption>Caso de uso 9</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-10.png" alt="Caso de uso 10" class="zoom-img">
+                        <figcaption>Caso de uso 10</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-11.png" alt="Caso de uso 11" class="zoom-img">
+                        <figcaption>Caso de uso 11</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-12.png" alt="Caso de uso 12" class="zoom-img">
+                        <figcaption>Caso de uso 12</figcaption>
+                    </figure>
+
+                    <figure>
+                        <img src="img_casos_usos/caso-uso-13.png" alt="Caso de uso 13" class="zoom-img">
+                        <figcaption>Caso de uso 13</figcaption>
+                    </figure>
+                </div>
+                <!-- 🔼 FIN SECCIÓN IMÁGENES -->
+
             </section>
         </main>
     </div>
+
     <div class="sidebar-overlay"></div>
     <script src="main.js"></script>
+    <!-- MODAL IMAGEN -->
+    <div id="imageModal" class="image-modal">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="modalImage">
+        <p id="modalCaption"></p>
+    </div>
+
 </body>
 
 </html>
