@@ -376,5 +376,82 @@ hr {
             display: none;
             /* Ocultamos versión en pantallas diminutas para priorizar el nombre */
         }
+        
     }
+    
+}
+
+/* GRID */
+.use-cases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+/* CUADRADO PERFECTO */
+.use-cases figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.use-cases img {
+    width: 100%;
+    aspect-ratio: 1 / 1;       /* 🔥 cuadrado */
+    object-fit: contain;       /* no recorta */
+    background: #fff;
+    padding: 0.5rem;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* TEXTO */
+.use-cases figcaption {
+    margin-top: 0.6rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* HOVER */
+.zoom-img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== MODAL ===== */
+.image-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.image-modal img {
+    max-width: 90%;
+    max-height: 80vh;
+    border-radius: 12px;
+}
+
+.image-modal p {
+    margin-top: 1rem;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 2rem;
+    color: #fff;
+    cursor: pointer;
 }
