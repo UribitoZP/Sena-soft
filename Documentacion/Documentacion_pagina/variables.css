@@ -4,7 +4,7 @@
 */
 
 :root {
-    /* Paleta de Colores - Blues & Slates */
+    /* Paleta de Colores - Blues & Slates (Claro tema por defecto) */
     --color-primary: #2563eb;
     --color-primary-dark: #1e40af;
     --color-primary-light: #eff6ff;
@@ -32,4 +32,22 @@
     /* Sombras y Efectos */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+[data-theme="dark"] {
+    /* Paleta de Colores - modo oscuro */
+    --color-bg-main: #0f172a;
+    --color-bg-surface: #1e293b;
+
+    --color-text-main: #f1f5f9;
+    --color-text-muted: #94a3b8;
+    --color-text-light: #64748b;
+
+    --color-border: #334155;
+    --color-border-hover: #475569;
+
+    --color-primary-light: rgba(37, 99, 235, 0.15);
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
 }
