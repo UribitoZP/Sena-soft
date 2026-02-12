@@ -1,9 +1,28 @@
-/* 
-    LÓGICA INTERACTIVA
-    Manejo del menú móvil y otras interacciones de la UI.
-*/
-
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Lógica del modo oscuro ---
+
+    const themeToggle = document.getElementById('themeToggle');
+    const currentTheme = localStorage.getItem('theme') || 'light';
+
+    // Aplicar el tema guardado al cargar
+    if (currentTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            let theme = document.documentElement.getAttribute('data-theme');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    }
+
+    // --- Lógica del Menú Móvil ---
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.querySelector('.sidebar');
     const overlay = document.querySelector('.sidebar-overlay');
@@ -11,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para alternar el menú
     const toggleMenu = () => {
+        if (!sidebar || !overlay) return;
         sidebar.classList.toggle('active');
         overlay.classList.toggle('active');
         // Bloquear scroll del body cuando el menú está abierto
@@ -25,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (overlay) {
         overlay.addEventListener('click', toggleMenu);
     }
+
 
     // Cerrar menú al hacer clic en un enlace (importante en móviles)
     navLinks.forEach(link => {

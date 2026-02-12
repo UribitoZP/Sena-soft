@@ -112,6 +112,68 @@ html {
     /* No permite que se encoja */
 }
 
+/* Theme Toggle Button Styles */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.theme-toggle-btn {
+    background: var(--color-bg-main);
+    border: 1px solid var(--color-border);
+    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: var(--color-text-main);
+}
+
+.theme-toggle-btn:hover {
+    background: var(--color-border);
+}
+
+.theme-toggle-btn .icon-sun,
+.theme-toggle-btn .icon-moon {
+    font-size: 1.1rem;
+}
+
+/* Logic for showing/hiding icons based on theme */
+[data-theme="dark"] .theme-toggle-btn .icon-sun {
+    display: flex;
+}
+
+[data-theme="dark"] .theme-toggle-btn .icon-moon {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle-btn .icon-sun,
+:not([data-theme="dark"]) .theme-toggle-btn .icon-sun {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle-btn .icon-moon,
+:not([data-theme="dark"]) .theme-toggle-btn .icon-moon {
+    display: flex;
+}
+
+/* Smooth transitions for theme switching */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.main-header,
+.sidebar,
+.sidebar a,
+.content,
+.callout {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+
 /* Sidebar */
 .sidebar {
     width: var(--sidebar-width);
