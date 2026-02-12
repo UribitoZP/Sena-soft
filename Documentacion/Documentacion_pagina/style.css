@@ -312,6 +312,97 @@ hr {
     width: 100%;
 }
 
+/* Contenedores De ER y MER */
+.diagrama_er_container,
+.diagrama_mer_container {
+    flex: 1;
+    min-width: 340px;
+    max-width: 720px;
+    background: #1a1a2e;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.45);
+    border: 1px solid #2a2a45;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.diagrama_er_container:hover,
+.diagrama_mer_container:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+}
+
+/* Títulos de los digramas mer y er */
+.diagrama_er,
+.diagrama_mer {
+    margin: 0;
+    padding: 1.1rem 1.5rem;
+    background: linear-gradient(135deg, #25253f, #1a1a2e);
+    color: #d0d0ff;
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-align: center;
+    border-bottom: 1px solid #333355;
+}
+
+/* Imágenes del mer y er*/
+.diagrama_er_img,
+.diagrama_mer_img {
+    width: 100%;
+    height: auto;
+    display: block;
+    background: #0d0d1a;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+
+/* Descripciones (párrafos) de mer y er */
+.descrip_er,
+.descrip_mer {
+    margin: 0;
+    padding: 1.4rem 1.6rem 1.8rem;
+    color: #c8c8e0;
+    font-size: 1.05rem;
+    line-height: 1.65;
+}
+
+/* Layout flex para colocarlos lado a lado */
+.content section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 50px;
+    justify-content: center;
+}
+
+/* En pantallas pequeñas → se apilan verticalmente */
+@media (max-width: 980px) {
+    .content section {
+        flex-direction: column;
+        gap: 2.5rem;
+    }
+
+    .diagrama_er_container,
+    .diagrama_mer_container {
+        max-width: 100%;
+    }
+}
+
+/* Opcional: mejorar legibilidad en móviles muy pequeños */
+@media (max-width: 480px) {
+    .diagrama_er,
+    .diagrama_mer {
+        font-size: 1.4rem;
+        padding: 1rem;
+    }
+
+    .descrip_er,
+    .descrip_mer {
+        font-size: 1rem;
+        padding: 1.2rem 1.4rem;
+    }
+}
+
+
 /* RESPONSIVE DESIGN */
 @media (max-width: 768px) {
     .menu-toggle {
