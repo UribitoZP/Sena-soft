@@ -4,8 +4,8 @@
 */
 
 pre {
-    background-color: var(--color-text-main);
-    color: #e2e8f0;
+    background-color: var(--color-pre-bg);
+    color: #f1f5f9;
     padding: 1.25rem 0;
     border-radius: var(--border-radius-md);
     font-family: var(--font-family-mono);
@@ -27,7 +27,7 @@ pre {
 /* Estilo para codigo inline (fuera de pre) */
 code {
     font-family: var(--font-family-mono);
-    background: #f1f5f9;
+    background: var(--color-code-bg);
     padding: 0.2rem 0.4rem;
     border-radius: 4px;
     font-size: 0.9em;
