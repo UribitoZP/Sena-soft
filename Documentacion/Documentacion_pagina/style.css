@@ -141,23 +141,21 @@ html {
     font-size: 1.1rem;
 }
 
-/* Logic for showing/hiding icons based on theme */
+/* Lógica para mostrar/ocultar íconos según el tema */
+.theme-toggle-btn .icon-sun {
+    display: none;
+}
+
+.theme-toggle-btn .icon-moon {
+    display: flex;
+}
+
 [data-theme="dark"] .theme-toggle-btn .icon-sun {
     display: flex;
 }
 
 [data-theme="dark"] .theme-toggle-btn .icon-moon {
     display: none;
-}
-
-[data-theme="light"] .theme-toggle-btn .icon-sun,
-:not([data-theme="dark"]) .theme-toggle-btn .icon-sun {
-    display: none;
-}
-
-[data-theme="light"] .theme-toggle-btn .icon-moon,
-:not([data-theme="dark"]) .theme-toggle-btn .icon-moon {
-    display: flex;
 }
 
 /* Smooth transitions for theme switching */
