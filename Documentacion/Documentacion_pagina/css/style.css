@@ -364,8 +364,7 @@ hr {
     line-height: 1.65;
 }
 
-/* Layout flex para colocarlos lado a lado */
-.content section {
+.section-diagramas {
     display: flex;
     flex-wrap: wrap;
     gap: 50px;
