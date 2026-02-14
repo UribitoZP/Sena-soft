@@ -11,12 +11,12 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
     <script>
-    (function () {
-    const theme = localStorage.getItem("theme");
-    if (theme === "dark") {
-        document.documentElement.setAttribute("data-theme", "dark");
-    }
-    })();
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
     </script>
 
     <link rel="stylesheet" href="../css/variables.css">
@@ -36,7 +36,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v1.1.0</span>
+            <span class="version-tag">v1.1.1</span>
         </div>
     </header>
     <div class="container">
@@ -80,12 +80,19 @@
                 <div class="diagrama_er_container">
                     <h1 class="diagrama_er">Diagrama ER</h1>
                     <img class="diagrama_er_img" src="../img_Mer_Er/Diagrama_ER.png" alt="Diagrama ER del sistema">
-                    <p class="descrip_er">El diagrama Entidad-Relación (ER) representa de forma conceptual la estructura de la base de datos del sistema. Permite identificar las entidades principales, sus atributos y las relaciones que existen entre ellas. Su función es mostrar cómo se organiza la información dentro del sistema antes de su implementación técnica.</p>
+                    <p class="descrip_er">El diagrama Entidad-Relación (ER) representa de forma conceptual la estructura
+                        de la base de datos del sistema. Permite identificar las entidades principales, sus atributos y
+                        las relaciones que existen entre ellas. Su función es mostrar cómo se organiza la información
+                        dentro del sistema antes de su implementación técnica.</p>
                 </div>
                 <div class="diagrama_mer_container">
                     <h1 class="diagrama_mer">Diagrama MER</h1>
                     <img class="diagrama_mer_img" src="../img_Mer_Er/Diagrama_Mer.png" alt="Diagrama MER del sistema">
-                    <p class="descrip_mer">El diagrama Modelo Entidad-Relación (MER) es una representación más detallada y técnica del diagrama ER. Incluye información adicional sobre las claves primarias, claves foráneas, tipos de datos y restricciones de integridad. Su función es servir como guía para la implementación de la base de datos, asegurando que se cumplan los requisitos de diseño y se mantenga la integridad de los datos.</p>
+                    <p class="descrip_mer">El diagrama Modelo Entidad-Relación (MER) es una representación más detallada
+                        y técnica del diagrama ER. Incluye información adicional sobre las claves primarias, claves
+                        foráneas, tipos de datos y restricciones de integridad. Su función es servir como guía para la
+                        implementación de la base de datos, asegurando que se cumplan los requisitos de diseño y se
+                        mantenga la integridad de los datos.</p>
                 </div>
                 <div class="info er">
                     <p>
