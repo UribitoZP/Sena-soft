@@ -365,7 +365,7 @@ hr {
 }
 
 /* Layout flex para colocarlos lado a lado */
-.flex-grid {
+.section-diagramas {
     display: flex;
     flex-wrap: wrap;
     gap: 50px;
@@ -387,6 +387,7 @@ hr {
 
 /* Opcional: mejorar legibilidad en móviles muy pequeños */
 @media (max-width: 480px) {
+
     .diagrama_er,
     .diagrama_mer {
         font-size: 1.4rem;
@@ -465,9 +466,79 @@ hr {
             display: none;
             /* Ocultamos versión en pantallas diminutas para priorizar el nombre */
         }
-        
+
     }
-    
+}
+
+table {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+
+}
+
+thead {
+    background: rgb(86, 179, 255);
+    color: white;
+}
+
+thead th {
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+tbody tr {
+    border-bottom: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+tbody td {
+    padding: 14px 20px;
+    font-size: 14px;
+    color: #374151;
+}
+
+
+tbody td:first-child {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+tbody td:nth-child(2) {
+    color: #000f52;
+    font-weight: 500;
+}
+
+@media screen and (max-width: 380px) {
+    thead th {
+        padding: 6px 4px;
+        font-size: 9px;
+    }
+
+    tbody td {
+        padding: 6px 4px;
+        font-size: 10px;
+    }
+
+    tbody td:nth-child(3),
+    tbody td:nth-child(4) {
+        font-size: 9px;
+    }
+
 }
 
 /* GRID */
@@ -487,8 +558,10 @@ hr {
 
 .use-cases img {
     width: 100%;
-    aspect-ratio: 1 / 1;       /* 🔥 cuadrado */
-    object-fit: contain;       /* no recorta */
+    aspect-ratio: 1 / 1;
+    /* 🔥 cuadrado */
+    object-fit: contain;
+    /* no recorta */
     background: #fff;
     padding: 0.5rem;
     border-radius: 14px;

@@ -10,9 +10,18 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="variables.css">
-    <link rel="stylesheet" href="codigo.css">
-    <link rel="stylesheet" href="style.css">
+    <script>
+    (function () {
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+    })();
+    </script>
+
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
@@ -36,32 +45,32 @@
                 <div class="nav-group">
                     <h3>Introducción</h3>
                     <ul>
-                        <li><a href="index.html">Bienvenida</a></li>
-                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
-                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="../pages/DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="../pages/EquipoTrabajo.html">Equipo de trabajo</a></li>
                     </ul>
                 </div>
                 <div class="nav-group">
                     <h3>Documentación</h3>
                     <ul>
-                        <li><a href="SRS.html">SRS</a></li>
-                        <li><a href="CasoUso.html">Caso de uso</a></li>
-                        <li><a href="ERMER.html" >ER / MER</a></li>
-                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                        <li><a href="../pages/SRS.html">SRS</a></li>
+                        <li><a href="../pages/CasoUso.html">Caso de uso</a></li>
+                        <li><a href="../pages/ERMER.html" >ER / MER</a></li>
+                        <li><a href="../pages/ActaTrabajo.html">Actas de trabajo</a></li>
                     </ul>
                 </div>
                 <div class="nav-group">
                     <h3>Galería</h3>
                     <ul>
-                        <li><a href="aplicatioEscritorio.html">Aplicativo de ecritorio</a></li>
-                        <li><a href="aplicativoMovil.html">Aplicativo móbil</a></li>
+                        <li><a href="../pages/AplicativoEscritorio.html" class="active">Aplicativo de escritorio</a></li>
+                        <li><a href="../pages/AplicativoMovil.html" >Aplicativo móbil</a></li>
                     </ul>
                 </div>
                 <div class="nav-group">
                     <h3>Soporte</h3>
                     <ul>
-                        <li><a href="Glosario.html" class="active">Glosario</a></li>
-                        <li><a href="Versiones.html">Versiones</a></li>
+                        <li><a href="../pages/Glosario.html">Glosario</a></li>
+                        <li><a href="../pages/Versiones.html">Versiones</a></li>
                     </ul>
                 </div>
             </nav>
@@ -83,7 +92,7 @@
         </main>
     </div>
     <div class="sidebar-overlay"></div>
-    <script src="main.js"></script>
+    <script src="../js/main.js"></script>
 </body>
 
 </html>

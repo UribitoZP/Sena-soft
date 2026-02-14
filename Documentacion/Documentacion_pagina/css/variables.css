@@ -19,6 +19,10 @@
     --color-border: #e2e8f0;
     --color-border-hover: #cbd5e1;
 
+    /* Bloques de Código */
+    --color-pre-bg: #1e293b;
+    --color-code-bg: #f1f5f9;
+
     /* Tipografía */
     --font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
     --font-family-mono: 'Fira Code', monospace;
@@ -50,4 +54,8 @@
 
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+
+    /* Bloques de Código - dark */
+    --color-pre-bg: #020617;
+    --color-code-bg: #334155;
 }

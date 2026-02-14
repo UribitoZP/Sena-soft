@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba 2 | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script>
+    (function () {
+    const theme = localStorage.getItem("theme");
+    if (theme === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+    })();
+    </script>
+
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v1.1.1</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="../pages/DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="../pages/EquipoTrabajo.html" class="active">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="../pages/SRS.html">SRS</a></li>
+                        <li><a href="../pages/CasoUso.html">Caso de uso</a></li>
+                        <li><a href="../pages/ERMER.html">ER / MER</a></li>
+                        <li><a href="../pages/ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="../pages/AplicativoEscritorio.html">Aplicativo de escritorio</a></li>
+                        <li><a href="../pages/AplicativoMovil.html">Aplicativo móbil</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="../pages/Glosario.html">Glosario</a></li>
+                        <li><a href="../pages/Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section>
+                <h1>Roles y organizacion de equipo</h1>
+                <div class="callout info">
+                    <p><strong>Información:</strong>En esta sección se presenta la informacion del equipo encargado del desarrollo del software de gestion hotelera "Sena-soft". Aquí se especifica el rol y los datos de  contacto de cada inntegrante del grupo.</p>
+                </div>
+                <table>  
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Rol</th>
+                            <th>Correo electronico</th>
+                            <th>telefono</th>
+                        </tr>
+                    </thead>
+                    <tbody> 
+                        <tr>
+                            <td>Luis Mendoza</td>
+                            <td>Lider</td>
+                            <td>luis1mendoza2005@gmail.com</td>
+                            <td>3117188518</td>
+                        </tr>
+                        <tr>
+                            <td>Samir leon</td>
+                            <td>Base de datos</td>
+                            <td>Leonsagmail.com</td>
+                            <td>3003388503</td>
+                        </tr>
+                        <tr>
+                            <td>Saimeth Diaz</td>
+                            <td>Interfaz</td>
+                            <td>Saimethdiaz1@gmail.com</td>
+                            <td>308544856</td>
+                        </tr>
+                        <tr>
+                            <td>Yelaines Martinez</td>
+                            <td>Interfaz</td>
+                            <td>yelainesmartinez09@gmail.com</td>
+                            <td>3043492325</td>
+                        </tr>
+                        <tr>
+                            <td>Cesar Cabrera</td>
+                            <td>Programador</td>
+                            <td>Cabreracesar644@gmail.com</td>
+                            <td>3003806238</td>
+                        </tr>
+                        <tr>
+                            <td>Alfred Uribe</td>
+                            <td>Programador</td>
+                            <td>Alfreduriberolong20@gmail.com</td>
+                            <td>3003806238</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+                
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+
+</html>
