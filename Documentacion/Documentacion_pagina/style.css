@@ -365,7 +365,7 @@ hr {
 }
 
 /* Layout flex para colocarlos lado a lado */
-.content section {
+.flex-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 50px;
