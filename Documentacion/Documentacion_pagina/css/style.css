@@ -481,8 +481,8 @@ table {
 }
 
 thead {
-    background: rgb(86, 179, 255);
-    color: white;
+    background: var(--color-code-bg);
+    color:var(--color-text-main)
 }
 
 thead th {
@@ -495,8 +495,7 @@ thead th {
 }
 
 tbody tr {
-    border-bottom: 1px solid #e5e7eb;
-    transition: all 0.3s ease;
+    border-bottom: 1px solid var(--color-border);
 }
 
 
