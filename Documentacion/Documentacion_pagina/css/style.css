@@ -342,38 +342,67 @@ hr {
     width: 100%;
 }
 
-/* Contenedores De ER y MER */
+/* Contenedores mer y er */
+
 .diagrama_er_container,
 .diagrama_mer_container {
     flex: 1;
     min-width: 340px;
     max-width: 720px;
-    background: #1a1a2e;
-    border-radius: 10px;
+
+    background: #ffffff;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.45);
-    border: 1px solid #2a2a45;
-    transition: transform 0.22s ease, box-shadow 0.22s ease;
+
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+
+    transition: all 0.25s ease;
 }
+
+/* Modo oscuro */
+[data-theme="dark"] .diagrama_er_container,
+[data-theme="dark"] .diagrama_mer_container {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.6);
+}
+
+
+/* Hover tarjetas mer y er */
 
 .diagrama_er_container:hover,
 .diagrama_mer_container:hover {
     transform: translateY(-6px);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .diagrama_er_container:hover,
+[data-theme="dark"] .diagrama_mer_container:hover {
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.8);
 }
 
 /* Títulos de los digramas mer y er */
 .diagrama_er,
 .diagrama_mer {
     margin: 0;
-    padding: 1.1rem 1.5rem;
-    background: linear-gradient(135deg, #25253f, #1a1a2e);
-    color: #d0d0ff;
+    padding: 1.2rem 1.5rem;
+    background: #f8fafc;
+    color: #0f172a;
     font-size: 1.6rem;
     font-weight: 600;
     text-align: center;
-    border-bottom: 1px solid #333355;
+    border-bottom: 1px solid #e5e7eb;
 }
+
+[data-theme="dark"] .diagrama_er,
+[data-theme="dark"] .diagrama_mer {
+    background: #0f172a;
+    color: #f1f5f9;
+    border-bottom: 1px solid #334155;
+}
+
 
 /* Imágenes del mer y er*/
 .diagrama_er_img,
@@ -381,19 +410,29 @@ hr {
     width: 100%;
     height: auto;
     display: block;
-    background: #0d0d1a;
-    padding: 1rem;
-    box-sizing: border-box;
+    padding: 1.2rem;
+    background: #f1f5f9;
 }
+
+[data-theme="dark"] .diagrama_er_img,
+[data-theme="dark"] .diagrama_mer_img {
+    background: #0f172a;
+}
+
 
 /* Descripciones (párrafos) de mer y er */
 .descrip_er,
 .descrip_mer {
     margin: 0;
-    padding: 1.4rem 1.6rem 1.8rem;
-    color: #c8c8e0;
+    padding: 1.5rem 1.7rem 1.9rem;
+    color: #334155;
     font-size: 1.05rem;
-    line-height: 1.65;
+    line-height: 1.7;
+}
+
+[data-theme="dark"] .descrip_er,
+[data-theme="dark"] .descrip_mer {
+    color: #cbd5f5;
 }
 
 .section-diagramas {
@@ -402,6 +441,19 @@ hr {
     gap: 50px;
     justify-content: center;
 }
+
+.archivo_mer_er {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+    background: var(--color-primary);
+    color: #fff;
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
 
 /* En pantallas pequeñas → se apilan verticalmente */
 @media (max-width: 980px) {
@@ -505,7 +557,7 @@ table {
     max-width: 1200px;
     margin: 20px auto;
     border-collapse: collapse;
-    background-color: #ffffff;
+    background-color: var(--color-bg-surface);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     overflow: hidden;
@@ -513,8 +565,8 @@ table {
 }
 
 thead {
-    background: rgb(86, 179, 255);
-    color: white;
+    background: var(--color-code-bg);
+    color:var(--color-text-main)
 }
 
 thead th {
@@ -527,8 +579,7 @@ thead th {
 }
 
 tbody tr {
-    border-bottom: 1px solid #e5e7eb;
-    transition: all 0.3s ease;
+    border-bottom: 1px solid var(--color-border);
 }
 
 
@@ -539,20 +590,20 @@ tbody tr:last-child {
 tbody td {
     padding: 14px 20px;
     font-size: 14px;
-    color: #374151;
+    color: var(--color-text-main);
 }
 
 
 tbody td:first-child {
     font-weight: 600;
-    color: #1f2937;
+    color: var(--color-text-main);
 }
 
 tbody td:nth-child(2) {
-    color: #000f52;
+    color: var(--color-text-main);
     font-weight: 500;
 }
-@media screen and (max-width: 380px) {
+@media (max-width: 750px) {
     thead th {
         padding: 6px 4px;
         font-size: 9px;
