@@ -316,13 +316,21 @@ hr {
     flex: 1;
     min-width: 340px;
     max-width: 720px;
-    background: #1a1a2e;
+    background: #adadc2;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.45);
-    border: 1px solid #2a2a45;
+    border: 1px solid #ffffff;
     transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
+
+[data-theme="dark"] .diagrama_er_container,
+[data-theme="dark"] .diagrama_mer_container {
+  background: #1a1a2e;
+  color: #f1f5f9;
+  border: 1px solid #334155;
+}
+
 
 .diagrama_er_container:hover,
 .diagrama_mer_container:hover {
@@ -335,12 +343,19 @@ hr {
 .diagrama_mer {
     margin: 0;
     padding: 1.1rem 1.5rem;
-    background: linear-gradient(135deg, #25253f, #1a1a2e);
-    color: #d0d0ff;
+    background:(#1a1a2e);
+    color: #000000;
     font-size: 1.6rem;
     font-weight: 600;
     text-align: center;
     border-bottom: 1px solid #333355;
+}
+
+[data-theme="dark"] .diagrama_er,
+[data-theme="dark"] .diagrama_mer {
+  background: #1a1a2e;
+  color: #f1f5f9;
+  border: 1px solid #334155;
 }
 
 /* Imágenes del mer y er*/
@@ -359,9 +374,15 @@ hr {
 .descrip_mer {
     margin: 0;
     padding: 1.4rem 1.6rem 1.8rem;
-    color: #c8c8e0;
+    color: #000000;
     font-size: 1.05rem;
     line-height: 1.65;
+}
+[data-theme="dark"] .descrip_er,
+[data-theme="dark"] .descrip_mer {
+  background: #1a1a2e;
+  color: #f1f5f9;
+  border: 1px solid #334155;
 }
 
 .section-diagramas {
