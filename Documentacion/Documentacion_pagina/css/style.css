@@ -364,7 +364,6 @@ hr {
     line-height: 1.65;
 }
 
-/* Layout flex para colocarlos lado a lado */
 .section-diagramas {
     display: flex;
     flex-wrap: wrap;
@@ -387,7 +386,6 @@ hr {
 
 /* Opcional: mejorar legibilidad en móviles muy pequeños */
 @media (max-width: 480px) {
-
     .diagrama_er,
     .diagrama_mer {
         font-size: 1.4rem;
@@ -466,7 +464,7 @@ hr {
             display: none;
             /* Ocultamos versión en pantallas diminutas para priorizar el nombre */
         }
-
+        
     }
 }
 
@@ -522,23 +520,22 @@ tbody td:nth-child(2) {
     color: #000f52;
     font-weight: 500;
 }
-
 @media screen and (max-width: 380px) {
     thead th {
         padding: 6px 4px;
         font-size: 9px;
     }
-
+    
     tbody td {
         padding: 6px 4px;
         font-size: 10px;
     }
-
+    
     tbody td:nth-child(3),
     tbody td:nth-child(4) {
         font-size: 9px;
     }
-
+    
 }
 
 /* GRID */
@@ -558,10 +555,8 @@ tbody td:nth-child(2) {
 
 .use-cases img {
     width: 100%;
-    aspect-ratio: 1 / 1;
-    /* 🔥 cuadrado */
-    object-fit: contain;
-    /* no recorta */
+    aspect-ratio: 1 / 1;       /* 🔥 cuadrado */
+    object-fit: contain;       /* no recorta */
     background: #fff;
     padding: 0.5rem;
     border-radius: 14px;
