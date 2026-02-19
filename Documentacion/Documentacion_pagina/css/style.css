@@ -99,6 +99,38 @@ html {
 .logo h1 span {
     color: var(--color-primary);
 }
+.barra-busqueda {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+}
+
+.barra-busqueda input {
+    width: 100%;
+    padding: 10px 12px 10px 40px; /* espacio para la lupita */
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    outline: none;
+    background-color: var(--color-bg-main);
+}
+.barra-busqueda input::placeholder {
+    color:var(--color-text-main);
+}
+
+.barra-busqueda input:focus {
+    border-color: var(--color-primary);
+}
+
+
+.icono {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--color-text-main);
+}
+
 
 .version-tag {
     font-size: 0.7rem;
