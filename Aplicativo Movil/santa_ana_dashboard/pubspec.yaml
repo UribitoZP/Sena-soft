@@ -38,6 +38,7 @@ dependencies:
   bloc: ^9.2.0
   flutter_bloc: ^9.1.1
   equatable: ^2.0.8
+  shimmer: ^3.0.0
 
 
 dev_dependencies:

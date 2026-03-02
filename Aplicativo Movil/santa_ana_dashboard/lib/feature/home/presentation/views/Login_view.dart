@@ -21,9 +21,7 @@ class Login extends StatelessWidget {
           // difuminado
           BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-            child: Container(
-              
-            ),
+            child: Container(),
           ),
 
           Center(
@@ -39,10 +37,7 @@ class Login extends StatelessWidget {
                 children: [
                   const Text(
                     'INICIAR SESIÓN',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
 
                   const SizedBox(height: 20),
@@ -84,7 +79,7 @@ class Login extends StatelessWidget {
                       onPressed: () {},
                       child: const Text(
                         'Iniciar Sesión',
-                        style: TextStyle(fontSize: 16),                        
+                        style: TextStyle(fontSize: 16),
                       ),
                     ),
                   ),
@@ -105,6 +100,15 @@ class Login extends StatelessWidget {
                       ),
                     ],
                   ),
+
+                  // --- CÓDIGO TEMPORAL PARA NAVEGACIÓN ---
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Volver al Inicio (Temporal)'),
+                  ),
+                  // ----------------------------------------
                 ],
               ),
             ),
