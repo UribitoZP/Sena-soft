@@ -45,7 +45,7 @@ class InitialView extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Navegar al Login (funcionalidad real esperada)
+                      // Navegar al Login (provicional mientras se implementa el bloc)
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const Login()),
