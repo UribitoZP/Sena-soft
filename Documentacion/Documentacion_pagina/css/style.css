@@ -99,6 +99,7 @@ html {
 .logo h1 span {
     color: var(--color-primary);
 }
+
 .barra-busqueda {
     position: relative;
     width: 100%;
@@ -107,14 +108,16 @@ html {
 
 .barra-busqueda input {
     width: 100%;
-    padding: 10px 12px 10px 40px; /* espacio para la lupita */
+    padding: 10px 12px 10px 40px;
+    /* espacio para la lupita */
     border-radius: 8px;
     border: 1px solid var(--color-border);
     outline: none;
     background-color: var(--color-bg-main);
 }
+
 .barra-busqueda input::placeholder {
-    color:var(--color-text-main);
+    color: var(--color-text-main);
 }
 
 .barra-busqueda input:focus {
@@ -470,6 +473,7 @@ hr {
 
 /* Opcional: mejorar legibilidad en móviles muy pequeños */
 @media (max-width: 480px) {
+
     .diagrama_er,
     .diagrama_mer {
         font-size: 1.4rem;
@@ -548,7 +552,7 @@ hr {
             display: none;
             /* Ocultamos versión en pantallas diminutas para priorizar el nombre */
         }
-        
+
     }
 }
 
@@ -566,7 +570,7 @@ table {
 
 thead {
     background: var(--color-code-bg);
-    color:var(--color-text-main)
+    color: var(--color-text-main)
 }
 
 thead th {
@@ -603,22 +607,23 @@ tbody td:nth-child(2) {
     color: var(--color-text-main);
     font-weight: 500;
 }
+
 @media (max-width: 750px) {
     thead th {
         padding: 6px 4px;
         font-size: 9px;
     }
-    
+
     tbody td {
         padding: 6px 4px;
         font-size: 10px;
     }
-    
+
     tbody td:nth-child(3),
     tbody td:nth-child(4) {
         font-size: 9px;
     }
-    
+
 }
 
 /* GRID */
@@ -638,8 +643,10 @@ tbody td:nth-child(2) {
 
 .use-cases img {
     width: 100%;
-    aspect-ratio: 1 / 1;       /* 🔥 cuadrado */
-    object-fit: contain;       /* no recorta */
+    aspect-ratio: 1 / 1;
+    /* 🔥 cuadrado */
+    object-fit: contain;
+    /* no recorta */
     background: #fff;
     padding: 0.5rem;
     border-radius: 14px;
