@@ -1,6 +1,9 @@
-part of 'bloc_bloc.dart';
+abstract class HomeState {}
 
-@immutable
-sealed class BlocState {}
+class EstadoInicial extends HomeState {}
 
-final class BlocInitial extends BlocState {}
+class EstadoLoading extends HomeState {}
+
+class EstadoLogin extends HomeState {}
+
+class EstadoFailure extends HomeState {}

@@ -1,4 +1,9 @@
-part of 'bloc_bloc.dart';
+abstract class HomeEvent {}
 
-@immutable
-sealed class BlocEvent {}
+class VistasInicial extends HomeEvent {}
+
+class VistaLoading extends HomeEvent {}
+
+class VistaLogin extends HomeEvent {}
+
+class VistaFailure extends HomeEvent {}

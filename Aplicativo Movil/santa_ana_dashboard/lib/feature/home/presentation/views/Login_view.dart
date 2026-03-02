@@ -1,5 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:santa_ana_dashboard/feature/home/presentation/bloc/bloc_bloc.dart';
+import 'package:santa_ana_dashboard/feature/home/presentation/bloc/bloc_event.dart';
 
 class Login extends StatelessWidget {
   const Login({super.key});
@@ -81,7 +84,7 @@ class Login extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {},
+                      onPressed: () {context.read<HomeBloc>().add(VistaLoading());},
                       child: const Text(
                         'Iniciar Sesión',
                         style: TextStyle(fontSize: 16),                        
@@ -99,10 +102,7 @@ class Login extends StatelessWidget {
                         onPressed: () {},
                         child: const Text('Olvidé mi contraseña'),
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('Crear cuenta nueva'),
-                      ),
+                      
                     ],
                   ),
                 ],
