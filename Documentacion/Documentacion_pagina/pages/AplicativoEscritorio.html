@@ -11,12 +11,12 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
     <script>
-    (function () {
-    const theme = localStorage.getItem("theme");
-    if (theme === "dark") {
-        document.documentElement.setAttribute("data-theme", "dark");
-    }
-    })();
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
     </script>
 
     <link rel="stylesheet" href="../css/variables.css">
@@ -36,7 +36,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v1.1.0</span>
+            <span class="version-tag">v1.2.0</span>
         </div>
     </header>
     <div class="container">
@@ -59,15 +59,16 @@
                     <ul>
                         <li><a href="../pages/SRS.html">SRS</a></li>
                         <li><a href="../pages/CasoUso.html">Caso de uso</a></li>
-                        <li><a href="../pages/ERMER.html" >ER / MER</a></li>
+                        <li><a href="../pages/ERMER.html">ER / MER</a></li>
                         <li><a href="../pages/ActaTrabajo.html">Actas de trabajo</a></li>
                     </ul>
                 </div>
                 <div class="nav-group">
                     <h3>Galería</h3>
                     <ul>
-                        <li><a href="../pages/AplicativoEscritorio.html" class="active">Aplicativo de escritorio</a></li>
-                        <li><a href="../pages/AplicativoMovil.html" >Aplicativo móbil</a></li>
+                        <li><a href="../pages/AplicativoEscritorio.html" class="active">Aplicativo de escritorio</a>
+                        </li>
+                        <li><a href="../pages/AplicativoMovil.html">Aplicativo móbil</a></li>
                     </ul>
                 </div>
                 <div class="nav-group">
@@ -80,17 +81,69 @@
             </nav>
         </aside>
         <main class="content">
-            <section id="prueba6">
-                <h1>prueba6</h1>
-
-                <p class="lead">Bienvenido a la seccion de prueba6</p>
+            <section id="arquitectura">
+                <h1>Aplicativo de Escritorio</h1>
+                <p class="lead">Arquitectura Modular Orientada a Roles (Java Swing)</p>
                 <hr>
 
+                <h2>1. Control de "Código Espagueti"</h2>
+                <p>Para evitar que el código se vuelva inmanejable a medida que el sistema crece, hemos implementado una
+                    estructura de paquetes basada en el principio de responsabilidad única. Cada rol (Administrador y
+                    Recepcionista) tiene su propio espacio de trabajo dentro del proyecto:</p>
+
+                <pre><code>com.santaana
+├── controller
+│   ├── admin         // Gestión lógica para el Administrador
+│   └── receptionist  // Gestión lógica para el Recepcionista
+├── model             // Clases de datos (Entidades)
+└── view
+    ├── admin         // Interfaces exclusivas: Usuarios, Configuración, Reportes
+    ├── receptionist  // Interfaces exclusivas: Reservas, Facturación
+    └── components    // Elementos UI reutilizables (Botones, logos personalizados)</code></pre>
 
                 <div class="callout info">
-                    <p><strong>Nota:</strong> Esta seccion es solo un ejemplo de como se veria una seccion de
-                        documentacion.
-                    </p>
+                    <p><strong>Ventaja:</strong> Esta estructura permite que los desarrolladores trabajen en módulos
+                        independientes sin generar conflictos en las clases principales.</p>
+                </div>
+
+                <h2>2. Orquestación Dinámica</h2>
+                <p>El sistema utiliza una ventana principal (<code>HomeFrame</code>) que actúa como un contenedor
+                    dinámico. En lugar de tener múltiples ventanas abiertas, el sistema inyecta el panel correspondiente
+                    según el rol del usuario autenticado.</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Componente</th>
+                                <th>Responsabilidad</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>AdminDashboard</code></td>
+                                <td>Panel de control para reportes y gestión global.</td>
+                                <td style="color: #22c55e;">Estructurado</td>
+                            </tr>
+                            <tr>
+                                <td><code>ReceptionistPanel</code></td>
+                                <td>Gestión operativa de huéspedes y habitaciones.</td>
+                                <td style="color: #22c55e;">Estructurado</td>
+                            </tr>
+                            <tr>
+                                <td><code>HomeFrame</code></td>
+                                <td>Contenedor base y manejo de sesión.</td>
+                                <td style="color: #22c55e;">Optimizado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout warning">
+                    <p><strong>Estándar de Desarrollo:</strong> Queda prohibido escribir lógica de negocio o consultas a
+                        base de datos dentro de los archivos de vista. Todo debe pasar a través de sus respectivos
+                        controladores.</p>
                 </div>
             </section>
         </main>
