@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/constants/app_strings.dart';
+import 'package:santa_ana_dashboard/feature/home/presentation/views/dashboard_view.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/failure_view.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/loading_view.dart';
 
@@ -81,6 +82,15 @@ class InitialView extends StatelessWidget {
                         ),
                       ),
                       child: const Text('Ver Failure'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardView(),
+                        ),
+                      ),
+                      child: const Text('Ver dashboard'),
                     ),
                   ],
                 ),
