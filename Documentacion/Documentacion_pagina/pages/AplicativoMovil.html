@@ -4,19 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenida | Documentación del Sistema</title>
+    <title>Aplicativo Móvil | Documentación del Sistema</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
     <script>
-    (function () {
-    const theme = localStorage.getItem("theme");
-    if (theme === "dark") {
-        document.documentElement.setAttribute("data-theme", "dark");
-    }
-    })();
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
     </script>
 
     <link rel="stylesheet" href="../css/variables.css">
@@ -36,7 +36,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v1.1.0</span>
+            <span class="version-tag">v1.2.0</span>
         </div>
     </header>
     <div class="container">
@@ -59,7 +59,7 @@
                     <ul>
                         <li><a href="../pages/SRS.html">SRS</a></li>
                         <li><a href="../pages/CasoUso.html">Caso de uso</a></li>
-                        <li><a href="../pages/ERMER.html" >ER / MER</a></li>
+                        <li><a href="../pages/ERMER.html">ER / MER</a></li>
                         <li><a href="../pages/ActaTrabajo.html">Actas de trabajo</a></li>
                     </ul>
                 </div>
@@ -67,7 +67,7 @@
                     <h3>Galería</h3>
                     <ul>
                         <li><a href="../pages/AplicativoEscritorio.html">Aplicativo de escritorio</a></li>
-                        <li><a href="../pages/AplicativoMovil.html" class="active">Aplicativo móbil</a></li>
+                        <li><a href="../pages/AplicativoMovil.html" class="active">Aplicativo móvil</a></li>
                     </ul>
                 </div>
                 <div class="nav-group">
@@ -80,17 +80,108 @@
             </nav>
         </aside>
         <main class="content">
-            <section id="prueba6">
-                <h1>prueba6</h1>
-
-                <p class="lead">Bienvenido a la seccion de prueba6</p>
+            <section id="arquitectura-movil">
+                <h1>Aplicativo Móvil</h1>
+                <p class="lead">Dashboard Administrativo de Santa Ana (Desarrollado en Flutter)</p>
                 <hr>
 
+                <h2>1. Arquitectura de Software</h2>
+                <p>El aplicativo móvil utiliza una arquitectura basada en **Clean Architecture** adaptada para Flutter,
+                    empleando **Bloc (Business Logic Component)** como patrón de gestión de estado principal.</p>
+
+                <pre><code>lib/</code>
+<code>├── core/             // Elementos compartidos (Themes, Widgets, Constants)</code>
+<code>├── feature/</code>
+<code>│   └── home/         // Módulo principal del Dashboard</code>
+<code>│       ├── data/     // Repositorios y fuentes de datos</code>
+<code>│       ├── domain/   // Entidades y casos de uso</code>
+<code>│       └── presentation/</code>
+<code>│           ├── bloc/ // Manejo de estados y eventos</code>
+<code>│           └── views/ // Pantallas y componentes UI</code>
+<code>└── main.dart         // Punto de entrada de la aplicación</code></pre>
 
                 <div class="callout info">
-                    <p><strong>Nota:</strong> Esta seccion es solo un ejemplo de como se veria una seccion de
-                        documentacion.
-                    </p>
+                    <p><strong>Dato Técnico:</strong> El uso de Bloc permite separar completamente la lógica de negocio
+                        de la interfaz de usuario, facilitando las pruebas unitarias y la escalabilidad del sistema.</p>
+                </div>
+
+                <h2>2. Gestión de Identidad Visual (Tematización)</h2>
+                <p>Para garantizar una experiencia visual coherente con la marca Santa Ana, se ha implementado un
+                    sistema de temas centralizado en la clase <code>AppTheme</code>. Esto permite cambiar aspectos
+                    visuales de toda la aplicación desde un solo punto.</p>
+
+                <h3>Misión del Código de Tema</h3>
+                <p>El siguiente fragmento gestiona la transición entre el modo claro y oscuro, definiendo los colores
+                    primarios y la tipografía estándar:</p>
+
+                <pre><code>// Definición del Tema Global (AppTheme)</code>
+<code>static ThemeData get lightTheme {</code>
+<code>  return ThemeData(</code>
+<code>    useMaterial3: true,</code>
+<code>    colorScheme: ColorScheme.fromSeed(</code>
+<code>      seedColor: primaryColor,</code>
+<code>      primary: primaryColor,</code>
+<code>      secondary: accentColor,
+    ),</code>
+<code>    appBarTheme: const AppBarTheme(</code>
+<code>      centerTitle: true,</code>
+<code>      elevation: 0,
+    ),</code>
+<code>  );</code>
+<code>}</code></pre>
+
+                <h2>3. Gestión de Estado con Bloc</h2>
+                <p>La lógica de negocio se maneja mediante eventos y estados. El <code>BlocBloc</code> (u HomeBloc) es
+                    el cerebro que recibe acciones del usuario y emite nuevos estados hacia la interfaz.</p>
+
+                <h3>Misión del Manejo de Estados</h3>
+                <p>Este código asegura que la UI sea reactiva. Cuando ocurre un evento (como pulsar un botón de
+                    reporte), el Bloc procesa la información y emite un estado que la pantalla "escucha" para
+                    actualizarse:</p>
+
+                <pre><code>class BlocBloc extends Bloc&lt;BlocEvent, BlocState&gt; {</code>
+<code>  BlocBloc() : super(BlocInitial()) {</code>
+<code>    on&lt;BlocEvent&gt;((event, emit) {</code>
+<code>      // Aquí se procesa la lógica antes de cambiar la pantalla</code>
+<code>      // emit(LoadingState()); -> procesar -> emit(LoadedState());</code>
+<code>    });</code>
+<code>  }</code>
+<code>}</code></pre>
+
+                <h2>4. Tecnologías y Estándares</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tecnología</th>
+                                <th>Propósito</th>
+                                <th>Versión</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Flutter</td>
+                                <td>Framework multiplataforma (UI)</td>
+                                <td>3.x.x</td>
+                            </tr>
+                            <tr>
+                                <td>Bloc / Flutter Bloc</td>
+                                <td>Gestión de estado reactivo</td>
+                                <td>8.1.x</td>
+                            </tr>
+                            <tr>
+                                <td>Material 3</td>
+                                <td>Sistema de diseño moderno</td>
+                                <td>Latest</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout danger" style="margin-top:2rem;">
+                    <p><strong>Importante:</strong> Se debe evitar el uso de <code>setState()</code> en componentes
+                        grandes. Siempre prefiera <code>BlocBuilder</code> o <code>BlocListener</code> para mantener un
+                        rendimiento óptimo.</p>
                 </div>
             </section>
         </main>
