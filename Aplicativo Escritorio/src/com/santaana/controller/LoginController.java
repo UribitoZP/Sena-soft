@@ -41,7 +41,7 @@ public class LoginController {
 
 private void processLogin(String role, String username) {
     if (role.equals("Recepcionista")) {
-        ReservaFrame reservaFrame = new ReservaFrame();
+        ReservaFrame reservaFrame = new ReservaFrame("Recepcionista", "Bienvenido");
         reservaFrame.setVisible(true);
     } else if (role.equals("Administrador")) {
         HomeFrame homeFrame = new HomeFrame(username, role); 
