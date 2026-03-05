@@ -2,7 +2,7 @@ package com.santaana.controller;
 
 import com.santaana.view.HomeFrame;
 import com.santaana.view.LoginFrame;
-
+import com.santaana.view.ReservaFrame;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -39,20 +39,14 @@ public class LoginController {
         }
     }
 
-    private void processLogin(String role, String username) {
-        // En esta etapa simplificada, cualquier credencial es válida
-        // Lo importante es el despacho según el rol seleccionado.
-
-        String welcomeMessage = "";
-        if (role.equalsIgnoreCase("Administrador")) {
-            welcomeMessage = "Usted ha ingresado como Administrador. Acceso al área de gestión global concedido.";
-        } else if (role.equalsIgnoreCase("Recepcionista")) {
-            welcomeMessage = "Usted ha ingresado como Recepcionista. Acceso al área de operaciones y reservas concedido.";
-        }
-
-        // 3. Navegación
-        view.dispose(); // Cerrar ventana de login
-        HomeFrame homeFrame = new HomeFrame(role, welcomeMessage);
+private void processLogin(String role, String username) {
+    if (role.equals("Recepcionista")) {
+        ReservaFrame reservaFrame = new ReservaFrame();
+        reservaFrame.setVisible(true);
+    } else if (role.equals("Administrador")) {
+        HomeFrame homeFrame = new HomeFrame(username, role); 
         homeFrame.setVisible(true);
     }
+    view.dispose();
+};
 }
