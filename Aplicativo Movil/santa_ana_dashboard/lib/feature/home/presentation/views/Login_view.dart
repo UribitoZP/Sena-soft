@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/constants/app_strings.dart';
+import 'package:santa_ana_dashboard/feature/home/presentation/views/dashboard_view.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/failure_view.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/loading_view.dart';
 
@@ -52,13 +53,7 @@ class _InitialViewState extends State<InitialView>
                 /// LOGO CON ANIMACIÓN
                 Hero(
                   tag: 'app_logo',
-                  child: RotationTransition(
-                    turns: Tween(begin: 0.0, end: 1.0).animate(
-                      CurvedAnimation(
-                        parent: _controller,
-                        curve: Curves.easeOut,
-                      ),
-                    ),
+                  
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(90),
                       child: Image.asset(
@@ -67,7 +62,6 @@ class _InitialViewState extends State<InitialView>
                       ),
                     ),
                   ),
-                ),
 
                 const SizedBox(height: 40),
 
@@ -189,6 +183,15 @@ class _InitialViewState extends State<InitialView>
                         ),
                       ),
                       child: const Text('Ver Failure'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardView(),
+                        ),
+                      ),
+                      child: const Text('Ver dashboard'),
                     ),
                   ],
                 ),
