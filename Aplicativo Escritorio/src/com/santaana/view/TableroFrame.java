@@ -11,8 +11,6 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.RenderingHints;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -26,6 +24,9 @@ import javax.swing.JScrollPane;
 import javax.swing.border.MatteBorder;
 
 public class TableroFrame extends JFrame {
+    private static final Color COLOR_BORDE    = new Color(0xDDE8F5);
+    private static final Color COLOR_PRIMARIO = new Color(0x3A7BD5);
+    private static final Color COLOR_LABEL    = new Color(0x6B84A0);
 
     private final String role;
 
@@ -78,7 +79,7 @@ public class TableroFrame extends JFrame {
         JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));
         mid.setOpaque(false);
         mid.add(actionBtn("+ Nueva reserva", new Color(0x3A7BD5), Color.WHITE));
-        mid.add(actionBtn("$  Venta r\u00e1pida",   new Color(0xE8F1FD), new Color(0x3A7BD5)));
+        mid.add(actionBtn("$  Venta rapida",   new Color(0xE8F1FD), new Color(0x3A7BD5)));
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 16));
         right.setOpaque(false);
@@ -128,51 +129,56 @@ public class TableroFrame extends JFrame {
         return p;
     }
 
-    private JPanel sidebar() {
-        JPanel side = new JPanel();
-        side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
-        side.setBackground(Color.WHITE);
-        side.setPreferredSize(new Dimension(185, 0));
-        side.setBorder(new MatteBorder(0, 0, 0, 1, new Color(0xDDE8F5)));
-        side.add(Box.createVerticalStrut(16));
+    private JPanel sidebar(){
 
-        String[] menuItems = {"Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte"};
-        for (int i = 0; i < menuItems.length; i++) {
-            side.add(sideBtn(menuItems[i], i == 0));
-            side.add(Box.createVerticalStrut(10));
+        JPanel side = new JPanel();
+        side.setLayout(new BoxLayout(side,BoxLayout.Y_AXIS));
+        side.setBackground(Color.WHITE);
+        side.setPreferredSize(new Dimension(190,0));
+        side.setBorder(new MatteBorder(0,0,0,1,COLOR_BORDE));
+
+        side.add(Box.createVerticalStrut(20));
+
+        String[] items={
+                "Tablero",
+                "Gestión de Habitaciones",
+                "Reserva",
+                "Punto de venta",
+                "Historial",
+                "Reporte"
+        };
+
+        for(int i=0;i<items.length;i++){
+
+            side.add(sideBtn(items[i], i==2));
+            side.add(Box.createVerticalStrut(8));
+
         }
+
         side.add(Box.createVerticalGlue());
+
         return side;
     }
 
-    private JPanel sideBtn(String text, boolean active) {
-        JPanel p = new JPanel(new BorderLayout()) {
-            public void paintComponent(Graphics g) {
-                if (active) {
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setColor(new Color(0xE8F1FD));
-                    g2.fillRoundRect(8, 2, getWidth() - 16, getHeight() - 4, 8, 8);
-                    g2.setColor(new Color(0x3A7BD5));
-                    g2.fillRoundRect(getWidth() - 5, 8, 3, getHeight() - 16, 4, 4);
-                    g2.dispose();
-                }
-                super.paintComponent(g);
-            }
-        };
-        p.setOpaque(false);
-        p.setMaximumSize(new Dimension(185, 38));
-        p.setBorder(BorderFactory.createEmptyBorder(0, 14, 0, 8));
+    private JPanel sideBtn(String text, boolean active){
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.setMaximumSize(new Dimension(180,36));
+        p.setBorder(BorderFactory.createEmptyBorder(8,14,8,8));
         p.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 12));
-        lbl.setForeground(active ? new Color(0x3A7BD5) : new Color(0x6B84A0));
-        p.add(lbl);
 
-        if (!active) p.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { p.setOpaque(true); p.setBackground(new Color(0xF5F9FF)); }
-            public void mouseExited(MouseEvent e)  { p.setOpaque(false); p.repaint(); }
-        });
+        lbl.setFont(new Font("Segoe UI",active?Font.BOLD:Font.PLAIN,12));
+        lbl.setForeground(active?COLOR_PRIMARIO:COLOR_LABEL);
+
+        if(active)
+            p.setBackground(new Color(0xE8F1FD));
+        else
+            p.setBackground(Color.WHITE);
+
+        p.add(lbl,BorderLayout.CENTER);
+
         return p;
     }
 
@@ -231,7 +237,7 @@ public class TableroFrame extends JFrame {
 
         JPanel grid = new JPanel(new GridLayout(2, 3, 14, 14));
         grid.setOpaque(false);
-        for (String n : new String[]{"05","06","07","08","09","10"})
+        for (String n : new String[]{"101","102","103","104","105","106","107","208","209","210","211","212","213","214","215","216"})
             grid.add(roomCard(n));
 
         JScrollPane scroll = new JScrollPane(grid);
@@ -257,10 +263,10 @@ public class TableroFrame extends JFrame {
         c.setOpaque(false);
         c.setBorder(BorderFactory.createEmptyBorder(14, 16, 14, 16));
 
-        JLabel numLbl = new JLabel("Habitaci\u00f3n " + num);
+        JLabel numLbl = new JLabel("Habitación " + num);
         numLbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
-        JLabel badge = new JLabel("\u25cf Disponible");
+        JLabel badge = new JLabel("Disponible");
         badge.setFont(new Font("Segoe UI", Font.BOLD, 10));
         badge.setForeground(new Color(0x27AE60));
 
