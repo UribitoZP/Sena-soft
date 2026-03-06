@@ -7,7 +7,14 @@ import javax.swing.JOptionPane;
 
 import com.santaana.view.HomeFrame;
 import com.santaana.view.LoginFrame;
+<<<<<<< HEAD
+import com.santaana.view.ReservaFrame;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+=======
 import com.santaana.view.TableroFrame;
+>>>>>>> main
 
 public class LoginController {
     private LoginFrame view;
@@ -41,6 +48,19 @@ public class LoginController {
         }
     }
 
+<<<<<<< HEAD
+private void processLogin(String role, String username) {
+    if (role.equals("Recepcionista")) {
+        ReservaFrame reservaFrame = new ReservaFrame("Recepcionista", "Bienvenido");
+        reservaFrame.setVisible(true);
+    } else if (role.equals("Administrador")) {
+        HomeFrame homeFrame = new HomeFrame(username, role); 
+        homeFrame.setVisible(true);
+    }
+    view.dispose();
+};
+}
+=======
     private void processLogin(String role, String username) {
         String welcomeMessage = "";
         
@@ -62,3 +82,4 @@ public class LoginController {
         }
     }
     }
+>>>>>>> main
