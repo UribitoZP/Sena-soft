@@ -1,9 +1,27 @@
 package com.santaana.view;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.geom.RoundRectangle2D;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 
 public class HomeFrame extends JFrame {
     private String role;
@@ -42,7 +60,7 @@ public class HomeFrame extends JFrame {
         add(mainPanel);
 
         // Icono de perfil dinámico
-        JLabel iconLabel = new JLabel("👤");
+    JLabel iconLabel = new JLabel("👤");
         iconLabel.setFont(new Font("Segoe UI Symbol", Font.PLAIN, 72));
         iconLabel.setForeground(
                 role.equalsIgnoreCase("Administrador") ? new Color(52, 152, 219) : new Color(155, 89, 182));

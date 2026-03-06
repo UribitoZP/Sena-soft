@@ -1,0 +1,301 @@
+package com.santaana.view;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.border.MatteBorder;
+
+public class TableroFrame extends JFrame {
+
+    private final String role;
+
+    public TableroFrame(String role, String welcomeMessage) {
+        this.role = role;
+        setTitle("Hotel Santa Ana — Tablero");
+        setSize(1100, 720);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        JPanel main = new JPanel(new BorderLayout());
+        main.setBackground(new Color(0xF0F6FF));
+        main.add(topBar(),   BorderLayout.NORTH);
+        main.add(sidebar(),  BorderLayout.WEST);
+        main.add(center(),   BorderLayout.CENTER);
+        add(main);
+        setVisible(true);
+    }
+
+    private JPanel topBar() {
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setBackground(Color.WHITE);
+        bar.setPreferredSize(new Dimension(0, 62));
+        bar.setBorder(new MatteBorder(0, 0, 1, 0, new Color(0xDDE8F5)));
+
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 12));
+        left.setOpaque(false);
+
+        // Logo desde archivo
+        JLabel logo = new JLabel();
+        try {
+            ImageIcon icon = new ImageIcon("resources/logo.png");
+            Image scaledImage = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+            logo.setIcon(new ImageIcon(scaledImage));
+        } catch (Exception e) {
+            System.err.println("Logo no encontrado");
+        }
+
+        JLabel nombre = new JLabel("<html><b style='font-size:13px'>HOTEL SANTA ANA</b><br>"+ "<span style='color:#6B84A0;font-size:9px'>Sistema de gestion hotelera</span></html>");
+
+        left.add(logo);
+        left.add(nombre);
+
+        JLabel notifLbl = new JLabel("🔔");
+        notifLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16)); 
+        notifLbl.setForeground(new Color(0x3A7BD5));
+
+        left.add(notifLbl);
+
+        JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));
+        mid.setOpaque(false);
+        mid.add(actionBtn("+ Nueva reserva", new Color(0x3A7BD5), Color.WHITE));
+        mid.add(actionBtn("$  Venta r\u00e1pida",   new Color(0xE8F1FD), new Color(0x3A7BD5)));
+
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 16));
+        right.setOpaque(false);
+        
+
+        right.add(userPanel());
+
+        bar.add(left,  BorderLayout.WEST);
+        bar.add(mid,   BorderLayout.CENTER);
+        bar.add(right, BorderLayout.EAST);
+        return bar;
+    }
+
+    private JButton actionBtn(String text, Color bg, Color fg) {
+        JButton b = new JButton(text) {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? bg.darker() : bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        b.setForeground(fg);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(150, 34));
+        return b;
+    }
+
+
+    private JPanel userPanel() {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setOpaque(false);
+        JLabel name = new JLabel("----");
+        name.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        JLabel rol = new JLabel(role);
+        rol.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        rol.setForeground(new Color(0x6B84A0));
+        p.add(name);
+        p.add(rol);
+        return p;
+    }
+
+    private JPanel sidebar() {
+        JPanel side = new JPanel();
+        side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
+        side.setBackground(Color.WHITE);
+        side.setPreferredSize(new Dimension(185, 0));
+        side.setBorder(new MatteBorder(0, 0, 0, 1, new Color(0xDDE8F5)));
+        side.add(Box.createVerticalStrut(16));
+
+        String[] menuItems = {"Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte"};
+        for (int i = 0; i < menuItems.length; i++) {
+            side.add(sideBtn(menuItems[i], i == 0));
+            side.add(Box.createVerticalStrut(10));
+        }
+        side.add(Box.createVerticalGlue());
+        return side;
+    }
+
+    private JPanel sideBtn(String text, boolean active) {
+        JPanel p = new JPanel(new BorderLayout()) {
+            public void paintComponent(Graphics g) {
+                if (active) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(new Color(0xE8F1FD));
+                    g2.fillRoundRect(8, 2, getWidth() - 16, getHeight() - 4, 8, 8);
+                    g2.setColor(new Color(0x3A7BD5));
+                    g2.fillRoundRect(getWidth() - 5, 8, 3, getHeight() - 16, 4, 4);
+                    g2.dispose();
+                }
+                super.paintComponent(g);
+            }
+        };
+        p.setOpaque(false);
+        p.setMaximumSize(new Dimension(185, 38));
+        p.setBorder(BorderFactory.createEmptyBorder(0, 14, 0, 8));
+        p.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 12));
+        lbl.setForeground(active ? new Color(0x3A7BD5) : new Color(0x6B84A0));
+        p.add(lbl);
+
+        if (!active) p.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { p.setOpaque(true); p.setBackground(new Color(0xF5F9FF)); }
+            public void mouseExited(MouseEvent e)  { p.setOpaque(false); p.repaint(); }
+        });
+        return p;
+    }
+
+
+    private JPanel center() {
+        JPanel p = new JPanel(new BorderLayout(0, 16));
+        p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        p.add(statsRow(),  BorderLayout.NORTH);
+        p.add(roomsArea(), BorderLayout.CENTER);
+        return p;
+    }
+
+    private JPanel statsRow() {
+        JPanel row = new JPanel(new GridLayout(1, 3, 14, 0));
+        row.setOpaque(false);
+        row.add(statCard("Habitaciones disponibles", "15", new Color(0x27AE60)));
+        row.add(statCard("Habitaciones ocupadas",    "0",  new Color(0xE67E22)));
+        row.add(statCard("Total habitaciones",       "15", new Color(0x3A7BD5)));
+        return row;
+    }
+
+    private JPanel statCard(String label, String value, Color accent) {
+        JPanel c = new JPanel(new BorderLayout()) {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(accent);
+                g2.fillRect(0, getHeight() - 4, getWidth(), 4);
+                g2.dispose();
+            }
+        };
+        c.setOpaque(false);
+        c.setPreferredSize(new Dimension(0, 85));
+        c.setBorder(BorderFactory.createEmptyBorder(14, 18, 14, 18));
+
+        JLabel num = new JLabel(value);
+        num.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        JLabel lbl = new JLabel(label.toUpperCase());
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+        lbl.setForeground(new Color(0x6B84A0));
+        c.add(num, BorderLayout.CENTER);
+        c.add(lbl, BorderLayout.SOUTH);
+        return c;
+    }
+
+    private JPanel roomsArea() {
+        JPanel area = new JPanel(new BorderLayout(0, 10));
+        area.setOpaque(false);
+
+        JLabel title = new JLabel("Estado actual de habitaciones");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        area.add(title, BorderLayout.NORTH);
+
+        JPanel grid = new JPanel(new GridLayout(2, 3, 14, 14));
+        grid.setOpaque(false);
+        for (String n : new String[]{"05","06","07","08","09","10"})
+            grid.add(roomCard(n));
+
+        JScrollPane scroll = new JScrollPane(grid);
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        area.add(scroll, BorderLayout.CENTER);
+        return area;
+    }
+
+    private JPanel roomCard(String num) {
+        JPanel c = new JPanel(new BorderLayout(0, 6)) {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.setColor(new Color(0xDDE8F5));
+                g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 12, 12);
+                g2.dispose();
+            }
+        };
+        c.setOpaque(false);
+        c.setBorder(BorderFactory.createEmptyBorder(14, 16, 14, 16));
+
+        JLabel numLbl = new JLabel("Habitaci\u00f3n " + num);
+        numLbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+        JLabel badge = new JLabel("\u25cf Disponible");
+        badge.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        badge.setForeground(new Color(0x27AE60));
+
+        JPanel top = new JPanel(new BorderLayout());
+        top.setOpaque(false);
+        top.add(numLbl, BorderLayout.WEST);
+        top.add(badge,  BorderLayout.EAST);
+
+        JLabel info = new JLabel("<html><span style='color:#6B84A0'>Individual<br>"
+                + "Noche: $70.000 &nbsp;|&nbsp; Hora: $15.000</span></html>");
+        info.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+
+        JButton btn = new JButton("Gestionar  \u203a") {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? new Color(0x2563C0) : new Color(0x3A7BD5));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btn.setForeground(Color.WHITE);
+        btn.setContentAreaFilled(false);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setPreferredSize(new Dimension(0, 30));
+
+        c.add(top,  BorderLayout.NORTH);
+        c.add(info, BorderLayout.CENTER);
+        c.add(btn,  BorderLayout.SOUTH);
+        return c;
+    }
+}
+
+

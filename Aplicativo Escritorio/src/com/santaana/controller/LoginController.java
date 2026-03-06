@@ -1,11 +1,20 @@
 package com.santaana.controller;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JOptionPane;
+
 import com.santaana.view.HomeFrame;
 import com.santaana.view.LoginFrame;
+<<<<<<< HEAD
 import com.santaana.view.ReservaFrame;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+=======
+import com.santaana.view.TableroFrame;
+>>>>>>> main
 
 public class LoginController {
     private LoginFrame view;
@@ -39,6 +48,7 @@ public class LoginController {
         }
     }
 
+<<<<<<< HEAD
 private void processLogin(String role, String username) {
     if (role.equals("Recepcionista")) {
         ReservaFrame reservaFrame = new ReservaFrame("Recepcionista", "Bienvenido");
@@ -50,3 +60,26 @@ private void processLogin(String role, String username) {
     view.dispose();
 };
 }
+=======
+    private void processLogin(String role, String username) {
+        String welcomeMessage = "";
+        
+        if (role.equalsIgnoreCase("Administrador")) {
+            welcomeMessage = "Usted ha ingresado como Administrador. Acceso al área de gestión global concedido.";
+        } else if (role.equalsIgnoreCase("Recepcionista")) {
+            welcomeMessage = "Usted ha ingresado como Recepcionista. Acceso al área de operaciones y reservas concedido.";
+        }
+
+        view.dispose(); // Cerrar ventana de login
+
+        // ✅ Redirige según el rol
+        if (role.equalsIgnoreCase("Administrador")) {
+            TableroFrame tableroFrame = new TableroFrame(role, welcomeMessage);
+            tableroFrame.setVisible(true);
+        } else {
+            HomeFrame homeFrame = new HomeFrame(role, welcomeMessage);
+            homeFrame.setVisible(true);
+        }
+    }
+    }
+>>>>>>> main
