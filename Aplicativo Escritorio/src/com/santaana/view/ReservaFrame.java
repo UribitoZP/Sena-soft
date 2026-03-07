@@ -1,6 +1,7 @@
 package com.santaana.view;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -11,11 +12,14 @@ import java.awt.Image;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
@@ -280,19 +284,101 @@ public class ReservaFrame extends JFrame {
 
     private JPanel crearPanelPago(){
 
-        JPanel p = tarjeta();
+        JPanel panel = tarjeta();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        p.add(titulo("Pago"));
+        panel.add(titulo("Pago"));
+        panel.add(Box.createVerticalStrut(12));
 
-        p.add(campo("Anticipo"));
-        p.add(Box.createVerticalStrut(10));
+        /* LIMITE DE HOSPEDAJE */
 
-        JLabel total = new JLabel("Total: $0");
-        total.setForeground(COLOR_PRIMARIO);
+        JLabel lblLimite = new JLabel("Límite de hospedaje");
+        lblLimite.setForeground(COLOR_TEXTO);
+        lblLimite.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        p.add(total);
+        JComboBox<String> cmbLimite = new JComboBox<>(new String[]{
+            "1 hora", "2 horas", "6 horas", "12 horas", "1 noche"
+        });
+        cmbLimite.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        cmbLimite.setAlignmentX(Component.LEFT_ALIGNMENT);
+        cmbLimite.setBorder(BorderFactory.createLineBorder(COLOR_BORDE));
+        cmbLimite.setBackground(Color.WHITE);
 
-        return p;
+        panel.add(lblLimite);
+        panel.add(Box.createVerticalStrut(4));
+        panel.add(cmbLimite);
+
+        panel.add(Box.createVerticalStrut(14));
+
+        /* ANTICIPO */
+
+        JPanel filaAnticipo = new JPanel(new BorderLayout(8,0));
+        filaAnticipo.setOpaque(false);
+        filaAnticipo.setMaximumSize(new Dimension(Integer.MAX_VALUE,34));
+        filaAnticipo.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblAnticipo = new JLabel("Anticipo");
+        lblAnticipo.setForeground(COLOR_TEXTO);
+
+        JTextField txtAnticipo = new JTextField("$0");
+        txtAnticipo.setBorder(BorderFactory.createLineBorder(COLOR_BORDE));
+
+        filaAnticipo.add(lblAnticipo,BorderLayout.WEST);
+        filaAnticipo.add(txtAnticipo,BorderLayout.CENTER);
+
+        panel.add(filaAnticipo);
+
+        panel.add(Box.createVerticalStrut(12));
+
+        /* TOTAL */
+
+        JPanel filaTotal = new JPanel(new BorderLayout());
+        filaTotal.setOpaque(false);
+        filaTotal.setMaximumSize(new Dimension(Integer.MAX_VALUE,30));
+        filaTotal.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblTotal = new JLabel("Total");
+
+        JLabel lblTotalVal = new JLabel("$0");
+        lblTotalVal.setForeground(COLOR_PRIMARIO);
+        lblTotalVal.setFont(lblTotalVal.getFont().deriveFont(Font.BOLD,16f));
+
+        filaTotal.add(lblTotal,BorderLayout.WEST);
+        filaTotal.add(lblTotalVal,BorderLayout.EAST);
+
+        panel.add(filaTotal);
+
+        panel.add(Box.createVerticalStrut(14));
+
+        /* MÉTODO DE PAGO */
+
+        JPanel filaPago = new JPanel(new FlowLayout(FlowLayout.LEFT,12,0));
+        filaPago.setOpaque(false);
+        filaPago.setMaximumSize(new Dimension(Integer.MAX_VALUE,32));
+        filaPago.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JRadioButton rbEfectivo = new JRadioButton("Efectivo");
+        JRadioButton rbTransferencia = new JRadioButton("Transferencia");
+        JRadioButton rbTarjeta = new JRadioButton("Tarjeta");
+
+        rbEfectivo.setOpaque(false);
+        rbTransferencia.setOpaque(false);
+        rbTarjeta.setOpaque(false);
+
+        rbEfectivo.setSelected(true);
+
+        ButtonGroup grupoPago = new ButtonGroup();
+        grupoPago.add(rbEfectivo);
+        grupoPago.add(rbTransferencia);
+        grupoPago.add(rbTarjeta);
+
+        filaPago.add(rbEfectivo);
+        filaPago.add(rbTransferencia);
+        filaPago.add(rbTarjeta);
+
+        panel.add(filaPago);
+
+        return panel;
     }
 
     // HABITACIONES
