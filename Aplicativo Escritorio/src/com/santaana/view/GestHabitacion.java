@@ -151,7 +151,7 @@ public class GestHabitacion extends JFrame {
 
         for(int i=0;i<items.length;i++){
 
-            side.add(sideBtn(items[i], i==2));
+            side.add(sideBtn(items[i], i==1));
             side.add(Box.createVerticalStrut(8));
 
         }
