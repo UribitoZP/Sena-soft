@@ -5,9 +5,11 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JOptionPane;
 
-import com.santaana.view.GestHabitacion;
+//import com.santaana.view.HomeFrame;
 import com.santaana.view.LoginFrame;
 import com.santaana.view.ReservaFrame;
+
+import com.santaana.view.TableroFrame;
 
 
 public class LoginController {
@@ -48,8 +50,8 @@ public class LoginController {
         if (role.equalsIgnoreCase("Administrador")) {
             welcomeMessage = "Usted ha ingresado como Administrador. Acceso al área de gestión global concedido.";
 
-            GestHabitacion gestHabitacion = new GestHabitacion("Administrador", "Bienvenido " + username);
-            gestHabitacion.setVisible(true);
+            TableroFrame tableroFrame = new TableroFrame(role, welcomeMessage);
+            tableroFrame.setVisible(true);
 
 
         } else if (role.equalsIgnoreCase("Recepcionista")) {
