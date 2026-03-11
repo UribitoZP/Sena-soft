@@ -500,7 +500,7 @@ public class ReservaFrame extends JFrame {
 
         JPanel p = tarjeta();
 
-        p.add(titulo("Seleccione habitación"));
+        p.add(titulo("Seleccionar    habitación"));
 
         JPanel cards = new JPanel(new GridLayout(1,3,10,0));
         cards.setOpaque(false);
