@@ -9,7 +9,7 @@ build/
 .project
 .classpath
 
-# --- Flutter/Dart ---
+# --- Flutter y Dart ---
 .dart_tool/
 .packages
 .pub-cache/
@@ -19,13 +19,14 @@ build/
 .flutter-plugins-dependencies
 .project
 pubspec.lock
+*.lock
 
-# --- IDEs ---
+# --- Entornos de Desarrollo (IDEs) ---
 .idea/
 *.iml
 *.iws
 .vscode/
 
-# --- Sistema ---
+# --- Archivos del Sistema ---
 Thumbs.db
 .DS_Store

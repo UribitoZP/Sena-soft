@@ -5,11 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prueba 4 | Documentación del Sistema</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
+
     <script>
         (function () {
             const theme = localStorage.getItem("theme");
@@ -22,15 +24,18 @@
     <link rel="stylesheet" href="../css/variables.css">
     <link rel="stylesheet" href="../css/codigo.css">
     <link rel="stylesheet" href="../css/style.css">
+
 </head>
 
 <body>
+
     <header class="main-header">
         <div class="logo">
             <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
             <span class="logo-icon">◈</span>
             <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
         </div>
+
         <div class="header-actions">
             <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
                 <span class="icon-sun">☀️</span>
@@ -39,13 +44,18 @@
             <span class="version-tag">v1.3.0</span>
         </div>
     </header>
+
     <div class="container">
+
         <aside class="sidebar">
+
             <div class="barra-busqueda">
                 <span class="icono">🔍</span>
                 <input type="text" id="buscador" placeholder="Buscar en el menú...">
             </div>
+
             <nav class="side-nav">
+
                 <div class="nav-group">
                     <h3>Introducción</h3>
                     <ul>
@@ -54,6 +64,7 @@
                         <li><a href="../pages/EquipoTrabajo.html">Equipo de trabajo</a></li>
                     </ul>
                 </div>
+
                 <div class="nav-group">
                     <h3>Documentación</h3>
                     <ul>
@@ -63,13 +74,15 @@
                         <li><a href="../pages/ActaTrabajo.html">Actas de trabajo</a></li>
                     </ul>
                 </div>
+
                 <div class="nav-group">
                     <h3>Galería</h3>
                     <ul>
                         <li><a href="../pages/AplicativoEscritorio.html">Aplicativo de escritorio</a></li>
-                        <li><a href="../pages/AplicativoMovil.html">Aplicativo móbil</a></li>
+                        <li><a href="../pages/AplicativoMovil.html">Aplicativo móvil</a></li>
                     </ul>
                 </div>
+
                 <div class="nav-group">
                     <h3>Soporte</h3>
                     <ul>
@@ -77,40 +90,96 @@
                         <li><a href="../pages/Versiones.html">Versiones</a></li>
                     </ul>
                 </div>
+
             </nav>
+
         </aside>
+
+
         <main class="content">
+
             <section class="section-diagramas" id="er-mer">
+
                 <div class="diagrama_er_container">
+
                     <h1 class="diagrama_er">Diagrama ER</h1>
-                    <img class="diagrama_er_img" src="../img_Mer_Er/Diagrama_ER.png" alt="Diagrama ER del sistema">
-                    <p class="descrip_er">El diagrama Entidad-Relación (ER) representa de forma conceptual la estructura
-                        de la base de datos del sistema. Permite identificar las entidades principales, sus atributos y
-                        las relaciones que existen entre ellas. Su función es mostrar cómo se organiza la información
-                        dentro del sistema antes de su implementación técnica.</p>
+
+                    <!-- IMAGEN CON ZOOM -->
+                    <img class="diagrama_er_img zoom-img"
+                        src="../img_Mer_Er/Diagrama_ER.png"
+                        alt="Diagrama ER del sistema">
+
+                    <p class="descrip_er">
+                        El diagrama Entidad-Relación (ER) representa de forma conceptual la estructura
+                        de la base de datos del sistema. Permite identificar las entidades principales,
+                        sus atributos y las relaciones que existen entre ellas. Su función es mostrar
+                        cómo se organiza la información dentro del sistema antes de su implementación técnica.
+                    </p>
+
                 </div>
+
+
                 <div class="diagrama_mer_container">
+
                     <h1 class="diagrama_mer">Diagrama MER</h1>
-                    <img class="diagrama_mer_img" src="../img_Mer_Er/Diagrama_Mer.png" alt="Diagrama MER del sistema">
-                    <p class="descrip_mer">El diagrama Modelo Entidad-Relación (MER) es una representación más detallada
-                        y técnica del diagrama ER. Incluye información adicional sobre las claves primarias, claves
-                        foráneas, tipos de datos y restricciones de integridad. Su función es servir como guía para la
-                        implementación de la base de datos, asegurando que se cumplan los requisitos de diseño y se
-                        mantenga la integridad de los datos.</p>
+
+                    <!-- IMAGEN CON ZOOM -->
+                    <img class="diagrama_mer_img zoom-img"
+                        src="../img_Mer_Er/Diagrama_Mer.png"
+                        alt="Diagrama MER del sistema">
+
+                    <p class="descrip_mer">
+                        El diagrama Modelo Entidad-Relación (MER) es una representación más detallada
+                        y técnica del diagrama ER. Incluye información adicional sobre las claves primarias,
+                        claves foráneas, tipos de datos y restricciones de integridad. Su función es servir
+                        como guía para la implementación de la base de datos, asegurando que se cumplan
+                        los requisitos de diseño y se mantenga la integridad de los datos.
+                    </p>
+
                 </div>
+
+
                 <div class="info er">
+
                     <p>
                         <strong>Documento completo:</strong>
-                        <a class="archivo_mer_er" href="../archivos_pdfs/Diagrama_ER_y_MER.pdf" target="_blank">
+
+                        <a class="archivo_mer_er"
+                            href="../archivos_pdfs/Diagrama_ER_y_MER.pdf"
+                            target="_blank">
+
                             Descargar Diagrama MER y ER en PDF
+
                         </a>
+
                     </p>
+
                 </div>
+
             </section>
+
         </main>
+
     </div>
+
+
     <div class="sidebar-overlay"></div>
+
+
+    <!-- MODAL PARA ZOOM DE IMÁGENES -->
+    <div id="imageModal" class="image-modal">
+
+        <span class="close-modal">&times;</span>
+
+        <img id="modalImage">
+
+        <p id="modalCaption"></p>
+
+    </div>
+
+
     <script src="../js/main.js"></script>
+
 </body>
 
 </html>
