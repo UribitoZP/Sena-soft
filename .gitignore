@@ -1,0 +1,32 @@
+# --- Java ---
+*.class
+*.log
+bin/
+out/
+build/
+.metadata/
+.settings/
+.project
+.classpath
+
+# --- Flutter y Dart ---
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.project
+pubspec.lock
+*.lock
+
+# --- Entornos de Desarrollo (IDEs) ---
+.idea/
+*.iml
+*.iws
+.vscode/
+
+# --- Archivos del Sistema ---
+Thumbs.db
+.DS_Store

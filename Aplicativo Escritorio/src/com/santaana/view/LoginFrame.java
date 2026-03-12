@@ -33,7 +33,7 @@ public class LoginFrame extends JFrame {
         setBackground(new Color(0, 0, 0, 0));
 
         // Panel principal con fondo y capacidad de arrastre
-        BackgroundPanel mainContainer = new BackgroundPanel("resources/bg.png");
+        BackgroundPanel mainContainer = new BackgroundPanel("/resources/bg.png");
         mainContainer.setLayout(new GridBagLayout());
         add(mainContainer);
 
@@ -92,13 +92,13 @@ public class LoginFrame extends JFrame {
         topBar.add(closeBtn);
         glassPanel.add(topBar);
 
-        // Branding
         JLabel logoLabel = new JLabel();
         try {
-            ImageIcon icon = new ImageIcon("resources/logo.png");
+            ImageIcon icon = new ImageIcon(getClass().getResource("/resources/logo.png"));
             Image scaledImage = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
             logoLabel.setIcon(new ImageIcon(scaledImage));
         } catch (Exception e) {
+            System.err.println("Error cargando logo: " + e.getMessage());
         }
         logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         glassPanel.add(logoLabel);
@@ -265,8 +265,14 @@ public class LoginFrame extends JFrame {
 
         public BackgroundPanel(String path) {
             try {
-                img = new ImageIcon(path).getImage();
+                java.net.URL imgUrl = getClass().getResource(path);
+                if (imgUrl != null) {
+                    img = new ImageIcon(imgUrl).getImage();
+                } else {
+                    System.err.println("No se encontró el recurso: " + path);
+                }
             } catch (Exception e) {
+                System.err.println("Error cargando imagen de fondo: " + e.getMessage());
             }
         }
 

@@ -1,89 +1,221 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- Lógica del modo oscuro ---
+    const setupDarkMode = () => {
+        const themeToggle = document.getElementById('themeToggle');
+        if (!themeToggle) return;
 
-    const themeToggle = document.getElementById('themeToggle');
-    const currentTheme = localStorage.getItem('theme') || 'light';
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
 
-    // Aplicar el tema guardado al cargar
-    if (currentTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }
-
-    if (themeToggle) {
         themeToggle.addEventListener('click', () => {
             let theme = document.documentElement.getAttribute('data-theme');
-            if (theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('theme', 'light');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
-            }
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
         });
-    }
-
-    // --- Lógica del Menú Móvil ---
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const overlay = document.querySelector('.sidebar-overlay');
-    const navLinks = document.querySelectorAll('.side-nav a');
-
-    // Función para alternar el menú
-    const toggleMenu = () => {
-        if (!sidebar || !overlay) return;
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
-        // Bloquear scroll del body cuando el menú está abierto
-        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
     };
 
-    // Eventos
-    if (menuToggle) {
+    // --- Lógica del Menú Móvil ---
+    const setupMobileMenu = () => {
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        const navLinks = document.querySelectorAll('.side-nav a');
+
+        if (!menuToggle || !sidebar || !overlay) return;
+
+        const toggleMenu = () => {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+        };
+
         menuToggle.addEventListener('click', toggleMenu);
-    }
-
-    if (overlay) {
         overlay.addEventListener('click', toggleMenu);
-    }
 
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) toggleMenu();
+            });
+        });
 
-    // Cerrar menú al hacer clic en un enlace (importante en móviles)
-    navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                toggleMenu();
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && sidebar.classList.contains('active')) toggleMenu();
+        });
+    };
+
+    // --- ZOOM IMÁGENES (Resiliente a elementos faltantes) ---
+    const setupImageZoom = () => {
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImage");
+        const captionText = document.getElementById("modalCaption");
+        const closeModal = document.querySelector(".close-modal");
+
+        if (!modal || !modalImg || !closeModal) return;
+
+        document.querySelectorAll(".zoom-img").forEach(img => {
+            img.addEventListener("click", () => {
+                modal.style.display = "flex";
+                modalImg.src = img.src;
+                captionText.textContent = img.alt;
+            });
+        });
+
+        closeModal.addEventListener("click", () => modal.style.display = "none");
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) modal.style.display = "none";
+        });
+    };
+
+    // --- MEJORAS DINÁMICAS (TOC, Breadcrumbs, Progress Bar) ---
+
+    const setupProgressBar = () => {
+        if (document.querySelector('.reading-progress-container')) return;
+
+        const container = document.createElement('div');
+        container.className = 'reading-progress-container';
+        const bar = document.createElement('div');
+        bar.className = 'reading-progress-bar';
+        container.appendChild(bar);
+        document.body.prepend(container);
+
+        window.addEventListener('scroll', () => {
+            const winScroll = window.scrollY || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            bar.style.width = scrolled + "%";
+        });
+    };
+
+    const setupDynamicLayout = () => {
+        const content = document.querySelector('.content');
+        if (!content) return;
+
+        // 1. Inyectar Breadcrumbs
+        if (!content.querySelector('.breadcrumbs')) {
+            const breadcrumbsNav = document.createElement('nav');
+            breadcrumbsNav.className = 'breadcrumbs';
+            content.prepend(breadcrumbsNav);
+            generateBreadcrumbs(breadcrumbsNav);
+        }
+
+        // 2. Inyectar Estructura para TOC
+        if (content.querySelector('.content-wrapper')) return;
+
+        const childrenArray = Array.from(content.children);
+        const originalContent = childrenArray.filter(child =>
+            !child.classList.contains('breadcrumbs') &&
+            !child.classList.contains('sidebar-overlay') &&
+            !child.classList.contains('image-modal') &&
+            !child.classList.contains('reading-progress-container')
+        );
+
+        if (originalContent.length === 0) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'content-wrapper';
+        const article = document.createElement('article');
+        article.className = 'main-article';
+        const tocSidebar = document.createElement('aside');
+        tocSidebar.className = 'toc-sidebar';
+        tocSidebar.innerHTML = `
+            <div class="toc-sticky">
+                <h4>Navegación</h4>
+                <nav id="toc"></nav>
+            </div>
+        `;
+
+        originalContent.forEach(child => article.appendChild(child));
+        wrapper.appendChild(article);
+        wrapper.appendChild(tocSidebar);
+        content.appendChild(wrapper);
+
+        generateTOC(article, tocSidebar.querySelector('#toc'));
+        initScrollSpy();
+    };
+
+    const generateBreadcrumbs = (container) => {
+        const path = window.location.pathname;
+        const fileName = path.split(/[/\\]/).pop() || 'index.html';
+        const isIndex = fileName.toLowerCase() === 'index.html' || fileName === '';
+
+        const items = [];
+        items.push({
+            label: 'Inicio',
+            url: isIndex ? '#' : (path.includes('/pages/') ? '../index.html' : 'index.html')
+        });
+
+        const activeLink = document.querySelector('.side-nav a.active') ||
+            Array.from(document.querySelectorAll('.side-nav a'))
+                .find(a => a.getAttribute('href').includes(fileName));
+
+        if (activeLink && !isIndex) {
+            const group = activeLink.closest('.nav-group');
+            if (group) {
+                const groupTitle = group.querySelector('h3').textContent.trim();
+                items.push({ label: groupTitle, url: '#' });
             }
-        });
-    });
-
-    // Cerrar menú si la pantalla se redimensiona por encima del límite
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 768 && sidebar.classList.contains('active')) {
-            toggleMenu();
+            items.push({ label: activeLink.textContent.trim(), current: true });
+        } else if (isIndex) {
+            items[0].current = true;
         }
-    });
-    // ZOOM IMÁGENES (MODAL)
-    const modal = document.getElementById("imageModal");
-    const modalImg = document.getElementById("modalImage");
-    const captionText = document.getElementById("modalCaption");
-    const closeModal = document.querySelector(".close-modal");
 
-    document.querySelectorAll(".zoom-img").forEach(img => {
-        img.addEventListener("click", () => {
-            modal.style.display = "flex";
-            modalImg.src = img.src;
-            captionText.textContent = img.alt;
-        });
-    });
+        container.innerHTML = items.map(item => {
+            if (item.current) return `<span class="current">${item.label}</span>`;
+            return `<a href="${item.url}">${item.label}</a><span class="separator">/</span>`;
+        }).join('');
+    };
 
-    closeModal.addEventListener("click", () => {
-        modal.style.display = "none";
-    });
-
-    modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.style.display = "none";
+    const generateTOC = (source, target) => {
+        const headers = Array.from(source.querySelectorAll('h1, h2, h3'));
+        if (headers.length === 0) {
+            target.innerHTML = '<p style="font-size: 0.8rem; color: var(--color-text-muted);">Sin subsecciones</p>';
+            return;
         }
-    });
 
+        const tocList = document.createElement('ul');
+        headers.forEach((header, index) => {
+            if (!header.id) header.id = 'section-' + index;
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `#${header.id}`;
+            a.textContent = header.textContent.trim();
+            a.className = `toc-item toc-${header.tagName.toLowerCase()}`;
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetEl = document.getElementById(header.id);
+                if (targetEl) {
+                    window.scrollTo({ top: targetEl.offsetTop - 100, behavior: "smooth" });
+                    history.pushState(null, null, `#${header.id}`);
+                }
+            });
+            li.appendChild(a);
+            tocList.appendChild(li);
+        });
+        target.appendChild(tocList);
+    };
+
+    const initScrollSpy = () => {
+        const headers = document.querySelectorAll('h1, h2, h3');
+        if (headers.length === 0) return;
+        const options = { rootMargin: '-10% 0px -80% 0px', threshold: 0 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const id = entry.target.getAttribute('id');
+                const tocLink = document.querySelector(`.toc-sidebar nav a[href="#${id}"]`);
+                if (entry.isIntersecting && tocLink) {
+                    document.querySelectorAll('.toc-sidebar nav a').forEach(a => a.classList.remove('active'));
+                    tocLink.classList.add('active');
+                }
+            });
+        }, options);
+        headers.forEach(h => observer.observe(h));
+    };
+
+    // --- INICIALIZACIÓN SEGURA ---
+    setupDarkMode();
+    setupMobileMenu();
+    setupImageZoom();
+    setupProgressBar();
+    setupDynamicLayout();
 });
