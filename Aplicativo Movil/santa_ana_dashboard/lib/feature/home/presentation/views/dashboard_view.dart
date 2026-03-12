@@ -816,14 +816,22 @@ class _BottomNavState extends State<_BottomNav> {
         children: _items.asMap().entries.map((e) {
           final isActive = e.key == _selected;
           return GestureDetector(
-            onTap: () {
-              if (e.key == 1) {
-                Navigator.push(
+            onTap: () async {
+              final routes = {
+                1: const ReservationsView(),
+                // 2: const HabitacionesView(),
+                // 3: const ReportesView(),
+              };
+
+              if (routes.containsKey(e.key)) {
+                await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ReservationsView()),
+                  MaterialPageRoute(builder: (_) => routes[e.key]!),
                 );
+                setState(() => _selected = 0);
+              } else {
+                setState(() => _selected = e.key);
               }
-              setState(() => _selected = e.key);
             },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),

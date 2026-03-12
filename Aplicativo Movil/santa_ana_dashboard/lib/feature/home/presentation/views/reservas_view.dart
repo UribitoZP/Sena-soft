@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
+import 'package:santa_ana_dashboard/feature/home/presentation/views/dashboard_view.dart';
 
 // ════════════════════════════════════════════════════════════════
 //  MODELOS
@@ -360,9 +361,13 @@ class _ReservationsViewState extends State<ReservationsView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: items.asMap().entries.map((e) {
-          final isActive = e.key == 1; // Reservas activo
+          final isActive = e.key == 1;
           return GestureDetector(
-            onTap: () {},
+            onTap: () {
+              if (e.key == 0) {
+                Navigator.pop(context);
+              }
+            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
