@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
 
+import 'reservas_view.dart';
+
 
 //  DASHBOARD VIEW
 
@@ -789,6 +791,7 @@ class _BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<_BottomNav> {
+  
   int _selected = 0;
 
   static const _items = [
@@ -813,7 +816,23 @@ class _BottomNavState extends State<_BottomNav> {
         children: _items.asMap().entries.map((e) {
           final isActive = e.key == _selected;
           return GestureDetector(
-            onTap: () => setState(() => _selected = e.key),
+            onTap: () async {
+              final routes = {
+                1: const ReservationsView(),
+                // 2: const HabitacionesView(),
+                // 3: const ReportesView(),
+              };
+
+              if (routes.containsKey(e.key)) {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => routes[e.key]!),
+                );
+                setState(() => _selected = 0);
+              } else {
+                setState(() => _selected = e.key);
+              }
+            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding:

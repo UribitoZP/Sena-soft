@@ -48,6 +48,17 @@ class LoadingView extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // --- CÓDIGO TEMPORAL PARA NAVEGACIÓN ---
+              const SizedBox(height: 16),
+              const Divider(),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Volver (Temporal)'),
+                ),
+              ),
+              // ----------------------------------------
             ],
           ),
         ),
