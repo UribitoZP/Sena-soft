@@ -32,14 +32,19 @@ public class NotificacionFrame extends JFrame {
     private static final Color COLOR_BORDE    = new Color(0xDDE8F5);
     private static final Color COLOR_PRIMARIO = new Color(0x3A7BD5);
     private static final Color COLOR_LABEL    = new Color(0x6B84A0);
-    private static final Color AMARILLO_IMPORTANTE = new Color(0xFFE033);
     private static final Color ROJO_WARNING = new Color(0xFF2020);
     private static final Color VERDE_RECORDATORIO = new Color(0x33C24D);
     private static final Color AZUL_TODO = new Color(0x2A7BF5);
     private static final Color GRIS_MANTENIMIENTO = new Color(0x6B6D78);
     private static final Color NARANJA_STOCK = new Color(0xFF8C00);
+    private static final Color ROJO_WARNING_BG        = new Color(0xFFEAEA);
+    private static final Color VERDE_RECORDATORIO_BG  = new Color(0xE6F9EA);
+    private static final Color AZUL_TODO_BG           = new Color(0xEAF1FF);
+    private static final Color GRIS_MANTENIMIENTO_BG  = new Color(0xF0F0F3);
+    private static final Color NARANJA_STOCK_BG       = new Color(0xFFF3E0);
 
     private final String role;
+    private JPanel list; 
 
     public NotificacionFrame(String role, String welcomeMessage) {
         this.role = role;
@@ -50,9 +55,9 @@ public class NotificacionFrame extends JFrame {
 
         JPanel main = new JPanel(new BorderLayout());
         main.setBackground(new Color(0xE8F1FD));
-        main.add(topBar(),   BorderLayout.NORTH);
-        main.add(sidebar(),  BorderLayout.WEST);
-        main.add(center(),   BorderLayout.CENTER);
+        main.add(topBar(),  BorderLayout.NORTH);
+        main.add(sidebar(), BorderLayout.WEST);
+        main.add(center(),  BorderLayout.CENTER);
         add(main);
         setVisible(true);
     }
@@ -220,36 +225,51 @@ public class NotificacionFrame extends JFrame {
         return p;
     }
     private JPanel center() {
-
+        
         JPanel container = new JPanel(new BorderLayout());
         container.setBackground(new Color(0xE8F1FD));
         container.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
 
         container.add(navbar(), BorderLayout.NORTH);
 
-        JPanel list = new JPanel();
+        list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
         list.setBackground(new Color(0xE8F1FD));
 
-        list.add(notificationCard(ROJO_WARNING,"alerta.png"));
-        list.add(Box.createVerticalStrut(12));
+        loadNotifications("Todo");
 
-        list.add(notificationCard(NARANJA_STOCK,"stock.png"));
-        list.add(Box.createVerticalStrut(12));
-
-        list.add(notificationCard(VERDE_RECORDATORIO,"controlar.png"));
-        list.add(Box.createVerticalStrut(12));
-
-
-        
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(new Color(0xE8F1FD));
         wrapper.setBorder(BorderFactory.createEmptyBorder(16,0,0,0));
         wrapper.add(list, BorderLayout.NORTH);
 
         container.add(wrapper, BorderLayout.CENTER);
-
         return container;
+    }
+        private void loadNotifications(String filter) {
+        list.removeAll();
+
+        if (filter.equals("Todo") || filter.equals("Importantes")) {
+            list.add(notificationCard(ROJO_WARNING,   "alerta.png",  ROJO_WARNING_BG));
+            list.add(Box.createVerticalStrut(12));
+            list.add(notificationCard(NARANJA_STOCK,  "stock.png",   NARANJA_STOCK_BG));
+            list.add(Box.createVerticalStrut(12));
+        }
+
+        if (filter.equals("Todo") || filter.equals("Recordatorios")) {
+            list.add(notificationCard(VERDE_RECORDATORIO, "controlar.png", VERDE_RECORDATORIO_BG));
+            list.add(Box.createVerticalStrut(12));
+            list.add(notificationCard(AZUL_TODO, "tiempo.png", AZUL_TODO_BG));
+            list.add(Box.createVerticalStrut(12));
+        }
+
+        if (filter.equals("Todo")) {
+            list.add(notificationCard(GRIS_MANTENIMIENTO, "mecanico.png", GRIS_MANTENIMIENTO_BG));
+            list.add(Box.createVerticalStrut(12));
+        }
+
+        list.revalidate();
+        list.repaint();
     }
 
    
@@ -257,19 +277,16 @@ public class NotificacionFrame extends JFrame {
 
     private JPanel navbar() {
 
-        Color bg = new Color(0xE8F1FD);
+       Color bg = new Color(0xE8F1FD);
 
         JPanel container = new JPanel(new BorderLayout());
         container.setBackground(bg);
 
         JPanel nav = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 0));
         nav.setBackground(bg);
-        
 
-
-
-        JToggleButton todo = createTab("Todo");
-        JToggleButton importantes = createTab("Importantes");
+        JToggleButton todo          = createTab("Todo");
+        JToggleButton importantes   = createTab("Importantes");
         JToggleButton recordatorios = createTab("Recordatorios");
 
         ButtonGroup group = new ButtonGroup();
@@ -279,6 +296,10 @@ public class NotificacionFrame extends JFrame {
 
         todo.setSelected(true);
 
+        todo.addActionListener(e          -> loadNotifications("Todo"));
+        importantes.addActionListener(e   -> loadNotifications("Importantes"));
+        recordatorios.addActionListener(e -> loadNotifications("Recordatorios"));
+
         nav.add(todo);
         nav.add(importantes);
         nav.add(recordatorios);
@@ -286,7 +307,7 @@ public class NotificacionFrame extends JFrame {
         JSeparator divider = new JSeparator();
         divider.setForeground(new Color(220,220,220));
 
-        container.add(nav, BorderLayout.NORTH);
+        container.add(nav,     BorderLayout.NORTH);
         container.add(divider, BorderLayout.SOUTH);
 
         return container;
@@ -324,69 +345,27 @@ public class NotificacionFrame extends JFrame {
 
         return tab;
     }
-    private JPanel notificationCard(Color color, Icon icon) {
 
-        JPanel card = new JPanel(new BorderLayout());
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220,225,230),1,true),
-            BorderFactory.createEmptyBorder(14,14,14,14)
-        ));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
-
-        
-        JPanel line = new JPanel();
-        line.setBackground(color);
-        line.setPreferredSize(new Dimension(4,0));
-
-        JLabel iconLabel = new JLabel(icon);
-        iconLabel.setBorder(BorderFactory.createEmptyBorder(0,8,0,12));
-
-        JPanel textPanel = new JPanel();
-        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
-        textPanel.setOpaque(false);
-
-        JLabel title = new JLabel("Título de notificación");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 14));
-
-        JLabel desc = new JLabel("Descripción breve de la notificación para mostrar información.");
-        desc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        desc.setForeground(new Color(120,140,160));
-
-        textPanel.add(title);
-        textPanel.add(Box.createVerticalStrut(4));
-        textPanel.add(desc);
-
-        JPanel content = new JPanel(new BorderLayout());
-        content.setOpaque(false);
-        content.add(iconLabel, BorderLayout.WEST);
-        content.add(textPanel, BorderLayout.CENTER);
-
-        card.add(line, BorderLayout.WEST);
-        card.add(content, BorderLayout.CENTER);
-
-        return card;
-    }
-    private JPanel notificationCard(Color lineColor, String iconPath) {
+    private JPanel notificationCard(Color lineColor, String iconPath, Color bgColor) {
 
         JPanel card = new JPanel(new BorderLayout(12,0));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(220,225,230)),
-                BorderFactory.createEmptyBorder(14,14,14,14)
+            BorderFactory.createLineBorder(new Color(220,225,230), 2, true),
+            BorderFactory.createEmptyBorder(10,2,10,10)
         ));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE,80));
 
         
         JPanel line = new JPanel();
         line.setBackground(lineColor);
-        line.setPreferredSize(new Dimension(4,0));
+        line.setPreferredSize(new Dimension(4,10));
 
         
         JPanel iconWrapper = new JPanel(new GridBagLayout());
-        iconWrapper.setBackground(new Color(240,243,247));
-        iconWrapper.setPreferredSize(new Dimension(40,40));
-        iconWrapper.setMaximumSize(new Dimension(40,40));
+        iconWrapper.setBackground(bgColor);
+        iconWrapper.setPreferredSize(new Dimension(50,50));
+        iconWrapper.setMaximumSize(new Dimension(50,50));
 
         ImageIcon icon = new ImageIcon(getClass().getResource("/resources/" + iconPath));
         Image img = icon.getImage().getScaledInstance(25,25,Image.SCALE_SMOOTH);

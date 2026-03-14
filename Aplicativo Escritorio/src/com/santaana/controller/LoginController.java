@@ -49,7 +49,7 @@ public class LoginController {
         if (role.equalsIgnoreCase("Administrador")) {
             welcomeMessage = "Usted ha ingresado como Administrador. Acceso al área de gestión global concedido.";
 
-            NotificacionFrame tableroFrame = new NotificacionFrame("Administrador", "Bienvenido " + username);
+            TableroFrame tableroFrame = new TableroFrame("Administrador", "Bienvenido " + username);
             tableroFrame.setVisible(true);
 
 
