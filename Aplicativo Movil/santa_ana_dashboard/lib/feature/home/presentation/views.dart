@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/Login_view.dart';
+import 'package:santa_ana_dashboard/feature/home/presentation/views/dashboard_view.dart';
 import 'bloc/bloc_bloc.dart';
 import 'bloc/bloc_state.dart';
-import 'views/dashboard_view.dart';
+import 'views/home_view.dart';
 import 'views/failure_view.dart';
 
 class Views extends StatelessWidget {
