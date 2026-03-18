@@ -8,7 +8,7 @@ import javax.swing.JOptionPane;
 //import com.santaana.view.HomeFrame;
 import com.santaana.view.LoginFrame;
 import com.santaana.view.ReservaFrame;
-
+import com.santaana.view.InfoHabitacionFrame;
 import com.santaana.view.TableroFrame;
 
 
@@ -57,8 +57,8 @@ public class LoginController {
         } else if (role.equalsIgnoreCase("Recepcionista")) {
             welcomeMessage = "Usted ha ingresado como Recepcionista. Acceso al área de operaciones y reservas concedido.";
 
-            ReservaFrame reservaFrame = new ReservaFrame("Recepcionista", "Bienvenido " + username);
-            reservaFrame.setVisible(true);
+           ReservaFrame reservaFrame = new ReservaFrame("Recepcionista", "Bienvenido " + username);
+           reservaFrame.setVisible(true);  
 
         }
 
