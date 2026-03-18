@@ -9,6 +9,14 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -25,16 +33,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
 
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
 import com.toedter.calendar.JDateChooser;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
 import com.santaana.util.ThemeManager;
 
 public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
@@ -45,7 +44,6 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private Color getBorde() { return ThemeManager.getBorder(); }
     private Color getTextCol() { return ThemeManager.getTextPrimary(); }
     private Color getLabelCol() { return ThemeManager.getTextSecondary(); }
-    private static final Color COLOR_VERDE = new Color(0, 170, 90);
 
     public ReservaFrame(String role, String welcomeMessage) {
         this.role = role;
@@ -79,35 +77,30 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel crearNavbar() {
         JPanel navbar = new JPanel(new BorderLayout());
         navbar.setBackground(getPanelCol());
-        navbar.setPreferredSize(new Dimension(0, 60));
+        navbar.setPreferredSize(new Dimension(0, 62));
         navbar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 10));
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 12));
         left.setOpaque(false);
 
         JLabel logo = new JLabel();
-
         try {
             java.net.URL logoUrl = getClass().getResource("/resources/logo.png");
             if (logoUrl != null) {
                 ImageIcon icon = new ImageIcon(logoUrl);
                 Image scaled = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
                 logo.setIcon(new ImageIcon(scaled));
-            } else {
-                System.err.println("Logo no encontrado en /resources/logo.png");
             }
-        } catch (Exception e) {
-            System.err.println("Error cargando logo en navbar: " + e.getMessage());
-        }
+        } catch (Exception e) {}
 
-        JLabel nombre = new JLabel(
-                "<html><b style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#1F2937" : "#F3F4F6") + "'>HOTEL SANTA ANA</b><br><span style='font-size:9px;color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + "'>Sistema de gestión hotelera</span></html>");
+        JLabel nombre = new JLabel("<html><b style='font-size:13px; color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#1F2937" : "#F3F4F6") + "'>HOTEL SANTA ANA</b><br>"
+                + "<span style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + ";font-size:9px'>Sistema de gestion hotelera</span></html>");
 
         left.add(logo);
         left.add(nombre);
 
         JLabel notifLbl = new JLabel("🔔");
-        notifLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 17));
+        notifLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
         notifLbl.setForeground(getPrimario());
 
         JButton themeToggle = new JButton(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "🌙" : "☀️");
@@ -121,155 +114,115 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         left.add(notifLbl);
         left.add(themeToggle);
 
-        JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 12));
+        JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));
         mid.setOpaque(false);
+        mid.add(crearBotonNavbar("+ Nueva reserva", getPrimario(), Color.WHITE));
+        mid.add(crearBotonNavbar("$  Venta rapida", 
+            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155), 
+            getPrimario()));
 
-        mid.add(crearBotonNavbar("+ Nueva reserva", getPrimario()));
-        mid.add(crearBotonNavbar("Venta rápida", 
-            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155)));
-
-        // Lado derecho: botones + usuario
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 14));
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 16));
         right.setOpaque(false);
         right.add(userPanel());
 
         navbar.add(left, BorderLayout.WEST);
         navbar.add(mid, BorderLayout.CENTER);
         navbar.add(right, BorderLayout.EAST);
-
         return navbar;
     }
 
-    private JButton crearBotonNavbar(String texto, Color bg) {
-        JButton btn = new JButton(texto);
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(150, 34));
-        return btn;
+    private JButton crearBotonNavbar(String text, Color bg, Color fg) {
+        JButton b = new JButton(text) {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getModel().isRollover() ? bg.darker() : bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        b.setForeground(fg);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(150, 34));
+        return b;
     }
 
     private JPanel userPanel() {
-
         JPanel p = new JPanel();
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setOpaque(false);
-
         JLabel name = new JLabel("Usuario");
         name.setFont(new Font("Segoe UI", Font.BOLD, 12));
-
         JLabel rol = new JLabel(role);
         rol.setFont(new Font("Segoe UI", Font.PLAIN, 10));
         rol.setForeground(getLabelCol());
         name.setForeground(getTextCol());
-
         p.add(name);
         p.add(rol);
-
         return p;
     }
 
-    // SIDEBAR
-
     private JPanel sidebar() {
-
         JPanel side = new JPanel();
         side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
         side.setBackground(getPanelCol());
         side.setPreferredSize(new Dimension(190, 0));
         side.setBorder(new MatteBorder(0, 0, 0, 1, getBorde()));
-
         side.add(Box.createVerticalStrut(20));
-
-        String[] items = {
-                "Tablero",
-                "Gestión de Habitaciones",
-                "Reserva",
-                "Punto de venta",
-                "Historial",
-                "Reporte"
-        };
-
+        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte" };
         for (int i = 0; i < items.length; i++) {
-
             side.add(sideBtn(items[i], i == 2));
             side.add(Box.createVerticalStrut(8));
-
         }
-
         side.add(Box.createVerticalGlue());
-
         return side;
     }
 
     private JPanel sideBtn(String text, boolean active) {
-
         JPanel p = new JPanel(new BorderLayout());
         p.setMaximumSize(new Dimension(180, 36));
         p.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 8));
         p.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
         JLabel lbl = new JLabel(text);
-
         lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 12));
         lbl.setForeground(active ? getPrimario() : getLabelCol());
-
         if (active)
             p.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x2D3748));
         else
             p.setBackground(getPanelCol());
-
         p.add(lbl, BorderLayout.CENTER);
-
         return p;
     }
 
-    // CONTENIDO CENTRAL
-
     private JScrollPane crearContenido() {
-
         JPanel cont = new JPanel();
         cont.setLayout(new BoxLayout(cont, BoxLayout.Y_AXIS));
         cont.setBackground(getFondo());
         cont.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Fila1: Huesped + Reserva
         JPanel fila1 = new JPanel(new GridBagLayout());
         fila1.setOpaque(false);
         GridBagConstraints gbc1 = new GridBagConstraints();
         gbc1.fill = GridBagConstraints.HORIZONTAL;
         gbc1.insets = new Insets(0, 0, 0, 20);
-
-        gbc1.gridx = 0;
-        gbc1.gridy = 0;
-        gbc1.weightx = 0.35;
-        gbc1.weighty = 1.0;
+        gbc1.gridx = 0; gbc1.gridy = 0; gbc1.weightx = 0.35;
         fila1.add(crearPanelHuesped(), gbc1);
-
-        gbc1.gridx = 1;
-        gbc1.weightx = 0.65;
-        gbc1.insets = new Insets(0, 0, 0, 0);
+        gbc1.gridx = 1; gbc1.weightx = 0.65; gbc1.insets = new Insets(0, 0, 0, 0);
         fila1.add(crearPanelReserva(), gbc1);
 
-        // Fila2: Pago + Habitaciones
         JPanel fila2 = new JPanel(new GridBagLayout());
         fila2.setOpaque(false);
         GridBagConstraints gbc2 = new GridBagConstraints();
         gbc2.fill = GridBagConstraints.BOTH;
         gbc2.insets = new Insets(0, 0, 0, 20);
-
-        gbc2.gridx = 0;
-        gbc2.gridy = 0;
-        gbc2.weightx = 0.35;
-        gbc2.weighty = 1.0;
+        gbc2.gridx = 0; gbc2.gridy = 0; gbc2.weightx = 0.35;
         fila2.add(crearPanelPago(), gbc2);
-
-        gbc2.gridx = 1;
-        gbc2.weightx = 0.65;
-        gbc2.insets = new Insets(0, 0, 0, 0);
+        gbc2.gridx = 1; gbc2.weightx = 0.65; gbc2.insets = new Insets(0, 0, 0, 0);
         fila2.add(crearPanelHabitaciones(), gbc2);
 
         cont.add(fila1);
@@ -281,391 +234,237 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         JScrollPane scroll = new JScrollPane(cont);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
-
         return scroll;
     }
 
-    // TARJETA BASE
-
     private JPanel tarjeta() {
-
-        JPanel p = new JPanel();
+        JPanel p = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
+                g2.setColor(getBorde());
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+                g2.dispose();
+            }
+        };
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setBackground(getPanelCol());
-        p.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(getBorde()),
-                BorderFactory.createEmptyBorder(16, 16, 16, 16)));
-
+        p.setOpaque(false);
+        p.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         return p;
     }
 
     private JLabel titulo(String txt) {
-
         JLabel l = new JLabel(txt);
         l.setForeground(getPrimario());
-        l.setFont(new Font("Segoe UI", Font.BOLD, 14));
-
-        l.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-
+        l.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        l.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         return l;
     }
 
-    // HUESPED
-
     private JPanel crearPanelHuesped() {
-
         JPanel p = tarjeta();
-
         p.add(titulo("Datos de huésped"));
-
-        p.add(campo("Nombre"));
-        p.add(Box.createVerticalStrut(7));
-        p.add(campo("Apellido"));
-        p.add(Box.createVerticalStrut(7));
-        p.add(campo("Identificación"));
-        p.add(Box.createVerticalStrut(7));
-        p.add(campo("Correo"));
-        p.add(Box.createVerticalStrut(7));
-        p.add(campo("Teléfono"));
-
+        p.add(campo("Nombre", "Ej: Juan"));
+        p.add(Box.createVerticalStrut(12));
+        p.add(campo("Apellido", "Ej: Pérez"));
+        p.add(Box.createVerticalStrut(12));
+        p.add(campo("Identificación", "Cédula o Pasaporte"));
+        p.add(Box.createVerticalStrut(12));
+        p.add(campo("Correo", "correo@ejemplo.com"));
+        p.add(Box.createVerticalStrut(12));
+        p.add(campo("Teléfono", "Ej: +57 ..."));
         return p;
     }
-
-    // RESERVA
 
     private JPanel crearPanelReserva() {
-
         JPanel p = tarjeta();
         p.add(titulo("Datos de reserva"));
-
-        JPanel cont = new JPanel(new GridLayout(0, 2, 10, 8));
-        cont.setOpaque(false);
-
-        // Fecha entrada
-        JLabel lblEntrada = new JLabel("Fecha de Entrada");
-        lblEntrada.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblEntrada.setForeground(getLabelCol());
-
-        JDateChooser fechaEntrada = new JDateChooser();
-        fechaEntrada.setDateFormatString("dd/MM/yyyy");
-
-        JTextField txtEntrada = (JTextField) fechaEntrada.getDateEditor().getUiComponent();
-        txtEntrada.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        txtEntrada.setBorder(BorderFactory.createLineBorder(getBorde()));
-        txtEntrada.setBackground(getPanelCol());
-        txtEntrada.setForeground(getTextCol());
-
-        // Hora entrada
-        JLabel lblHoraEntrada = new JLabel("Hora de Entrada");
-        lblHoraEntrada.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblHoraEntrada.setForeground(getLabelCol());
-
-        JComboBox<String> horaEntrada = new JComboBox<>(new String[] {
-                "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-                "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
-        });
-        horaEntrada.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        horaEntrada.setBackground(getPanelCol());
-        horaEntrada.setForeground(getTextCol());
-
-        // Fecha salida
-        JLabel lblSalida = new JLabel("Fecha de Salida");
-        lblSalida.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblSalida.setForeground(getLabelCol());
-
-        JDateChooser fechaSalida = new JDateChooser();
-        fechaSalida.setDateFormatString("dd/MM/yyyy");
-
-        JTextField txtSalida = (JTextField) fechaSalida.getDateEditor().getUiComponent();
-        txtSalida.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        txtSalida.setBorder(BorderFactory.createLineBorder(getBorde()));
-        txtSalida.setBackground(getPanelCol());
-        txtSalida.setForeground(getTextCol());
-
-        // Hora Salida
-        JLabel lblHoraSalida = new JLabel("Hora de Salida");
-        lblHoraSalida.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblHoraSalida.setForeground(getLabelCol());
-
-        JComboBox<String> horaSalida = new JComboBox<>(new String[] {
-                "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-                "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
-        });
-        horaSalida.setBackground(getPanelCol());
-        horaSalida.setForeground(getTextCol());
-
-        // Tipo de estadía
-        JLabel lblTipo = new JLabel("Tipo de estadía");
-        lblTipo.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblTipo.setForeground(getLabelCol());
-
-        JComboBox<String> tipoEstadia = new JComboBox<>(new String[] {
-                "Por horas",
-                "Media noche",
-                "Noche completa",
-                "Día completo"
-        });
-        tipoEstadia.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        tipoEstadia.setBackground(getPanelCol());
-        tipoEstadia.setForeground(getTextCol());
-
-        cont.add(lblEntrada);
-        cont.add(fechaEntrada);
-
-        cont.add(lblHoraEntrada);
-        cont.add(horaEntrada);
-
-        cont.add(lblSalida);
-        cont.add(fechaSalida);
-
-        cont.add(lblHoraSalida);
-        cont.add(horaSalida);
-
-        cont.add(lblTipo);
-        cont.add(tipoEstadia);
-
-        p.add(cont);
-
+        JPanel grid = new JPanel(new GridLayout(0, 2, 15, 12));
+        grid.setOpaque(false);
+        grid.add(crearCajaFecha("Fecha de Entrada"));
+        grid.add(crearCajaCombo("Hora de Entrada", new String[] { "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00" }));
+        grid.add(crearCajaFecha("Fecha de Salida"));
+        grid.add(crearCajaCombo("Hora de Salida", new String[] { "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00" }));
+        grid.add(crearCajaCombo("Tipo de estadía", new String[] { "Por horas", "Media noche", "Noche completa", "Día completo" }));
+        p.add(grid);
         return p;
     }
 
-    // PAGO
+    private JPanel crearCajaFecha(String label) {
+        JPanel wrapper = new JPanel(new BorderLayout(0, 5));
+        wrapper.setOpaque(false);
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lbl.setForeground(getLabelCol());
+        JDateChooser dc = new JDateChooser();
+        dc.setDateFormatString("dd/MM/yyyy");
+        dc.setPreferredSize(new Dimension(0, 36));
+        dc.setBackground(getPanelCol());
+        JTextField tf = (JTextField) dc.getDateEditor().getUiComponent();
+        tf.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(getBorde(), 1, true), BorderFactory.createEmptyBorder(0, 10, 0, 10)));
+        tf.setBackground(getPanelCol());
+        tf.setForeground(getTextCol());
+        wrapper.add(lbl, BorderLayout.NORTH);
+        wrapper.add(dc, BorderLayout.CENTER);
+        return wrapper;
+    }
+
+    private JPanel crearCajaCombo(String label, String[] items) {
+        JPanel wrapper = new JPanel(new BorderLayout(0, 5));
+        wrapper.setOpaque(false);
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lbl.setForeground(getLabelCol());
+        JComboBox<String> combo = new JComboBox<>(items);
+        combo.setPreferredSize(new Dimension(0, 36));
+        combo.setBackground(getPanelCol());
+        combo.setForeground(getTextCol());
+        combo.setBorder(BorderFactory.createLineBorder(getBorde(), 1, true));
+        wrapper.add(lbl, BorderLayout.NORTH);
+        wrapper.add(combo, BorderLayout.CENTER);
+        return wrapper;
+    }
 
     private JPanel crearPanelPago() {
-
         JPanel panel = tarjeta();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
         panel.add(titulo("Pago"));
-        panel.add(Box.createVerticalStrut(12));
-
-        /* LIMITE DE HOSPEDAJE */
-
-        JLabel lblLimite = new JLabel("Límite de hospedaje");
-        lblLimite.setForeground(getTextCol());
-        lblLimite.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JComboBox<String> cmbLimite = new JComboBox<>(new String[] {
-                "1 hora", "2 horas", "6 horas", "12 horas", "1 noche"
-        });
-        cmbLimite.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        cmbLimite.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cmbLimite.setBorder(BorderFactory.createLineBorder(getBorde()));
-        cmbLimite.setBackground(getPanelCol());
-        cmbLimite.setForeground(getTextCol());
-
-        panel.add(lblLimite);
-        panel.add(Box.createVerticalStrut(4));
-        panel.add(cmbLimite);
-
-        panel.add(Box.createVerticalStrut(14));
-
-        /* ANTICIPO */
-
-        JPanel filaAnticipo = new JPanel(new BorderLayout(8, 0));
-        filaAnticipo.setOpaque(false);
-        filaAnticipo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        filaAnticipo.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel lblAnticipo = new JLabel("Anticipo");
-        lblAnticipo.setForeground(getTextCol());
-
-        JTextField txtAnticipo = new JTextField("$0");
-        txtAnticipo.setBorder(BorderFactory.createLineBorder(getBorde()));
-        txtAnticipo.setBackground(getPanelCol());
-        txtAnticipo.setForeground(getTextCol());
-
-        filaAnticipo.add(lblAnticipo, BorderLayout.WEST);
-        filaAnticipo.add(txtAnticipo, BorderLayout.CENTER);
-
-        panel.add(filaAnticipo);
-
-        panel.add(Box.createVerticalStrut(12));
-
-        /* TOTAL */
-
-        JPanel filaTotal = new JPanel(new BorderLayout());
-        filaTotal.setOpaque(false);
-        filaTotal.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        filaTotal.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel lblTotal = new JLabel("Total");
+        panel.add(crearCajaCombo("Límite de hospedaje", new String[] { "1 hora", "2 horas", "6 horas", "12 horas", "1 noche" }));
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(campo("Anticipo", "$0"));
+        panel.add(Box.createVerticalStrut(15));
+        JPanel totalRow = new JPanel(new BorderLayout());
+        totalRow.setOpaque(false);
+        JLabel lblTotal = new JLabel("Total a pagar");
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblTotal.setForeground(getTextCol());
-
-        JLabel lblTotalVal = new JLabel("$0");
-        lblTotalVal.setForeground(getPrimario());
-        lblTotalVal.setFont(lblTotalVal.getFont().deriveFont(Font.BOLD, 16f));
-
-        filaTotal.add(lblTotal, BorderLayout.WEST);
-        filaTotal.add(lblTotalVal, BorderLayout.EAST);
-
-        panel.add(filaTotal);
-
-        panel.add(Box.createVerticalStrut(14));
-
-        /* MÉTODO DE PAGO */
-
-        JPanel filaPago = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
-        filaPago.setOpaque(false);
-        filaPago.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
-        filaPago.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JRadioButton rbEfectivo = new JRadioButton("Efectivo");
-        JRadioButton rbTransferencia = new JRadioButton("Transferencia");
-        JRadioButton rbTarjeta = new JRadioButton("Tarjeta");
-
-        rbEfectivo.setForeground(getTextCol());
-        rbTransferencia.setForeground(getTextCol());
-        rbTarjeta.setForeground(getTextCol());
-
-        rbEfectivo.setOpaque(false);
-        rbTransferencia.setOpaque(false);
-        rbTarjeta.setOpaque(false);
-
-        rbEfectivo.setSelected(true);
-
-        ButtonGroup grupoPago = new ButtonGroup();
-        grupoPago.add(rbEfectivo);
-        grupoPago.add(rbTransferencia);
-        grupoPago.add(rbTarjeta);
-
-        filaPago.add(rbEfectivo);
-        filaPago.add(rbTransferencia);
-        filaPago.add(rbTarjeta);
-
-        panel.add(filaPago);
-
+        JLabel valTotal = new JLabel("$0");
+        valTotal.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        valTotal.setForeground(getPrimario());
+        totalRow.add(lblTotal, BorderLayout.WEST);
+        totalRow.add(valTotal, BorderLayout.EAST);
+        panel.add(totalRow);
+        panel.add(Box.createVerticalStrut(15));
+        JPanel mtdPago = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        mtdPago.setOpaque(false);
+        String[] opts = { "Efectivo", "Transferencia", "Tarjeta" };
+        ButtonGroup bg = new ButtonGroup();
+        for (String opt : opts) {
+            JRadioButton rb = new JRadioButton(opt);
+            rb.setOpaque(false);
+            rb.setForeground(getTextCol());
+            rb.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            if (opt.equals("Efectivo")) rb.setSelected(true);
+            bg.add(rb);
+            mtdPago.add(rb);
+        }
+        panel.add(mtdPago);
         return panel;
     }
 
-    // HABITACIONES
-
     private JPanel crearPanelHabitaciones() {
-
         JPanel p = tarjeta();
-
-        p.add(titulo("Seleccionar    habitación"));
-
-        JPanel cards = new JPanel(new GridLayout(1, 3, 10, 0));
-        cards.setOpaque(false);
-        cards.setBorder(BorderFactory.createEmptyBorder(1, 3, 12, 0));
-
-        cards.add(cardHabitacion("07"));
-        cards.add(cardHabitacion("01"));
-        cards.add(cardHabitacion("15"));
-
-        p.add(cards);
-
+        p.add(titulo("Seleccionar habitación"));
+        JPanel grid = new JPanel(new GridLayout(1, 3, 12, 0));
+        grid.setOpaque(false);
+        grid.add(cardHabitacion("101"));
+        grid.add(cardHabitacion("102"));
+        grid.add(cardHabitacion("103"));
+        p.add(grid);
         return p;
     }
 
     private JPanel cardHabitacion(String num) {
-
         JPanel c = new JPanel() {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
                 g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
-
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
                 g2.setColor(getBorde());
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
-
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
                 g2.dispose();
             }
         };
-
         c.setLayout(new BoxLayout(c, BoxLayout.Y_AXIS));
         c.setOpaque(false);
         c.setBackground(getPanelCol());
         c.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         c.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
         JLabel n = new JLabel("Habitación " + num);
-        n.setAlignmentX(Component.CENTER_ALIGNMENT);
         n.setFont(new Font("Segoe UI", Font.BOLD, 15));
         n.setForeground(getPrimario());
-
+        n.setAlignmentX(0.5f);
         JLabel disp = new JLabel("Disponible");
-        disp.setAlignmentX(Component.CENTER_ALIGNMENT);
-        disp.setForeground(COLOR_VERDE);
-
-        JLabel info = new JLabel("<html><span style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + "'>Individual<br>"
-                + "Noche: $70.000 &nbsp;|&nbsp; Hora: $15.000</span></html>");
+        disp.setForeground(new Color(0x27AE60));
+        disp.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        disp.setAlignmentX(0.5f);
+        JLabel info = new JLabel("<html><center>Individual<br>$70.000 / Noche</center></html>");
         info.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        info.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JButton sel = new JButton("Seleccionar");
-        sel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        sel.setBackground(getPrimario());
-        sel.setForeground(Color.WHITE);
-        sel.setFocusPainted(false);
-        sel.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
-
-        c.add(n);
-        c.add(Box.createVerticalStrut(5));
-        c.add(disp);
-        c.add(Box.createVerticalStrut(5));
-        c.add(info);
-        c.add(Box.createVerticalStrut(10));
-        c.add(sel);
-
-        // Efecto hover
-
+        info.setForeground(getLabelCol());
+        info.setAlignmentX(0.5f);
+        c.add(n); c.add(Box.createVerticalStrut(5)); c.add(disp); c.add(Box.createVerticalStrut(5)); c.add(info);
         c.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                c.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xF4F8FF) : new Color(0x2D3748));
+            public void mouseEntered(MouseEvent e) {
+                c.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xF1F5F9) : new Color(0x334155));
                 c.repaint();
             }
-
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
+            public void mouseExited(MouseEvent e) {
                 c.setBackground(getPanelCol());
                 c.repaint();
             }
         });
-
         return c;
     }
 
-    // BOTONES
-
     private JPanel crearPanelBotones() {
-
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         p.setOpaque(false);
-
-        JButton cancelar = new JButton("Cancelar");
-        JButton reservar = new JButton("Reservar");
-
-        cancelar.setForeground(getTextCol());
-        cancelar.setBackground(getPanelCol());
-
-        reservar.setBackground(getPrimario());
-        reservar.setForeground(Color.WHITE);
-
-        p.add(cancelar);
-        p.add(reservar);
-
+        JButton btnCancela = new JButton("Cancelar");
+        btnCancela.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnCancela.setForeground(getTextCol());
+        btnCancela.setContentAreaFilled(false);
+        btnCancela.setBorder(BorderFactory.createLineBorder(getBorde(), 1, true));
+        btnCancela.setPreferredSize(new Dimension(120, 38));
+        JButton btnReserva = new JButton("Confirmar Reserva") {
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnReserva.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnReserva.setBackground(getPrimario());
+        btnReserva.setForeground(Color.WHITE);
+        btnReserva.setContentAreaFilled(false);
+        btnReserva.setBorderPainted(false);
+        btnReserva.setPreferredSize(new Dimension(180, 38));
+        btnReserva.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        p.add(btnCancela);
+        p.add(btnReserva);
         return p;
     }
 
-    // CAMPO
-
-    private JPanel campo(String txt) {
-
-        JPanel p = new JPanel(new BorderLayout());
-        p.setOpaque(false);
-
-        JTextField t = new JTextField();
-        t.setBackground(getPanelCol());
-        t.setForeground(getTextCol());
-        t.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(getBorde()), txt, 0, 0, null, getLabelCol()));
-
-        p.add(t);
-
-        return p;
+    private JPanel campo(String label, String placeholder) {
+        JPanel wrapper = new JPanel(new BorderLayout(0, 5));
+        wrapper.setOpaque(false);
+        JLabel lbl = new JLabel(label);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lbl.setForeground(getLabelCol());
+        JTextField tf = new JTextField();
+        tf.setPreferredSize(new Dimension(0, 36));
+        tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        tf.setBackground(getPanelCol());
+        tf.setForeground(getTextCol());
+        tf.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(getBorde(), 1, true), BorderFactory.createEmptyBorder(0, 10, 0, 10)));
+        wrapper.add(lbl, BorderLayout.NORTH);
+        wrapper.add(tf, BorderLayout.CENTER);
+        return wrapper;
     }
 }
