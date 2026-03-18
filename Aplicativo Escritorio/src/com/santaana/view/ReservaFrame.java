@@ -35,15 +35,17 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-public class ReservaFrame extends JFrame {
+import com.santaana.util.ThemeManager;
+
+public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private String role;
-    private static final Color COLOR_PRIMARIO = new Color(0x3A7BD5);
-    private static final Color COLOR_FONDO = new Color(0xF0F6FF);
-    private static final Color COLOR_PANEL = Color.WHITE;
-    private static final Color COLOR_BORDE = new Color(0xEAF2FB);
-    private static final Color COLOR_TEXTO = new Color(40, 50, 70);
+    private Color getPrimario() { return ThemeManager.getPrimary(); }
+    private Color getFondo() { return ThemeManager.getBackground(); }
+    private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
+    private Color getBorde() { return ThemeManager.getBorder(); }
+    private Color getTextCol() { return ThemeManager.getTextPrimary(); }
+    private Color getLabelCol() { return ThemeManager.getTextSecondary(); }
     private static final Color COLOR_VERDE = new Color(0, 170, 90);
-    private static final Color COLOR_LABEL = new Color(110, 120, 140);
 
     public ReservaFrame(String role, String welcomeMessage) {
         this.role = role;
@@ -53,19 +55,32 @@ public class ReservaFrame extends JFrame {
         setMinimumSize(new Dimension(1100, 720));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        
+        ThemeManager.addListener(this);
+        refreshUI();
+        setVisible(true);
+    }
 
+    private void refreshUI() {
+        getContentPane().removeAll();
+        setLayout(new BorderLayout());
         add(crearNavbar(), BorderLayout.NORTH);
         add(sidebar(), BorderLayout.WEST);
         add(crearContenido(), BorderLayout.CENTER);
-        setVisible(true);
+        revalidate();
+        repaint();
+    }
+
+    @Override
+    public void onThemeChanged() {
+        refreshUI();
     }
 
     private JPanel crearNavbar() {
         JPanel navbar = new JPanel(new BorderLayout());
-        navbar.setBackground(Color.WHITE);
+        navbar.setBackground(getPanelCol());
         navbar.setPreferredSize(new Dimension(0, 60));
-        navbar.setBorder(new MatteBorder(0, 0, 1, 0, COLOR_BORDE));
+        navbar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 10));
         left.setOpaque(false);
@@ -86,22 +101,32 @@ public class ReservaFrame extends JFrame {
         }
 
         JLabel nombre = new JLabel(
-                "<html><b>HOTEL SANTA ANA</b><br><span style='font-size:9px;color:#6B84A0'>Sistema de gestión hotelera</span></html>");
+                "<html><b style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#1F2937" : "#F3F4F6") + "'>HOTEL SANTA ANA</b><br><span style='font-size:9px;color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + "'>Sistema de gestión hotelera</span></html>");
 
         left.add(logo);
         left.add(nombre);
 
         JLabel notifLbl = new JLabel("🔔");
         notifLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 17));
-        notifLbl.setForeground(new Color(0x3A7BD5));
+        notifLbl.setForeground(getPrimario());
+
+        JButton themeToggle = new JButton(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "🌙" : "☀️");
+        themeToggle.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        themeToggle.setContentAreaFilled(false);
+        themeToggle.setBorderPainted(false);
+        themeToggle.setFocusPainted(false);
+        themeToggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        themeToggle.addActionListener(e -> ThemeManager.toggleTheme());
 
         left.add(notifLbl);
+        left.add(themeToggle);
 
         JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 12));
         mid.setOpaque(false);
 
-        mid.add(crearBotonNavbar("+ Nueva reserva", COLOR_PRIMARIO));
-        mid.add(crearBotonNavbar("Venta rápida", new Color(0xE8F1FD)));
+        mid.add(crearBotonNavbar("+ Nueva reserva", getPrimario()));
+        mid.add(crearBotonNavbar("Venta rápida", 
+            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155)));
 
         // Lado derecho: botones + usuario
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 14));
@@ -138,7 +163,8 @@ public class ReservaFrame extends JFrame {
 
         JLabel rol = new JLabel(role);
         rol.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        rol.setForeground(COLOR_LABEL);
+        rol.setForeground(getLabelCol());
+        name.setForeground(getTextCol());
 
         p.add(name);
         p.add(rol);
@@ -152,9 +178,9 @@ public class ReservaFrame extends JFrame {
 
         JPanel side = new JPanel();
         side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
-        side.setBackground(Color.WHITE);
+        side.setBackground(getPanelCol());
         side.setPreferredSize(new Dimension(190, 0));
-        side.setBorder(new MatteBorder(0, 0, 0, 1, COLOR_BORDE));
+        side.setBorder(new MatteBorder(0, 0, 0, 1, getBorde()));
 
         side.add(Box.createVerticalStrut(20));
 
@@ -189,12 +215,12 @@ public class ReservaFrame extends JFrame {
         JLabel lbl = new JLabel(text);
 
         lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 12));
-        lbl.setForeground(active ? COLOR_PRIMARIO : COLOR_LABEL);
+        lbl.setForeground(active ? getPrimario() : getLabelCol());
 
         if (active)
-            p.setBackground(new Color(0xE8F1FD));
+            p.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x2D3748));
         else
-            p.setBackground(Color.WHITE);
+            p.setBackground(getPanelCol());
 
         p.add(lbl, BorderLayout.CENTER);
 
@@ -207,7 +233,7 @@ public class ReservaFrame extends JFrame {
 
         JPanel cont = new JPanel();
         cont.setLayout(new BoxLayout(cont, BoxLayout.Y_AXIS));
-        cont.setBackground(COLOR_FONDO);
+        cont.setBackground(getFondo());
         cont.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Fila1: Huesped + Reserva
@@ -265,9 +291,9 @@ public class ReservaFrame extends JFrame {
 
         JPanel p = new JPanel();
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBackground(COLOR_PANEL);
+        p.setBackground(getPanelCol());
         p.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(COLOR_BORDE),
+                BorderFactory.createLineBorder(getBorde()),
                 BorderFactory.createEmptyBorder(16, 16, 16, 16)));
 
         return p;
@@ -276,7 +302,7 @@ public class ReservaFrame extends JFrame {
     private JLabel titulo(String txt) {
 
         JLabel l = new JLabel(txt);
-        l.setForeground(COLOR_PRIMARIO);
+        l.setForeground(getPrimario());
         l.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
         l.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
@@ -318,54 +344,60 @@ public class ReservaFrame extends JFrame {
         // Fecha entrada
         JLabel lblEntrada = new JLabel("Fecha de Entrada");
         lblEntrada.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblEntrada.setForeground(COLOR_LABEL);
+        lblEntrada.setForeground(getLabelCol());
 
         JDateChooser fechaEntrada = new JDateChooser();
         fechaEntrada.setDateFormatString("dd/MM/yyyy");
 
         JTextField txtEntrada = (JTextField) fechaEntrada.getDateEditor().getUiComponent();
         txtEntrada.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        txtEntrada.setBorder(BorderFactory.createLineBorder(COLOR_BORDE));
+        txtEntrada.setBorder(BorderFactory.createLineBorder(getBorde()));
+        txtEntrada.setBackground(getPanelCol());
+        txtEntrada.setForeground(getTextCol());
 
         // Hora entrada
         JLabel lblHoraEntrada = new JLabel("Hora de Entrada");
         lblHoraEntrada.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblHoraEntrada.setForeground(COLOR_LABEL);
+        lblHoraEntrada.setForeground(getLabelCol());
 
         JComboBox<String> horaEntrada = new JComboBox<>(new String[] {
                 "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
                 "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
         });
         horaEntrada.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        horaEntrada.setBackground(Color.WHITE);
+        horaEntrada.setBackground(getPanelCol());
+        horaEntrada.setForeground(getTextCol());
 
         // Fecha salida
         JLabel lblSalida = new JLabel("Fecha de Salida");
         lblSalida.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblSalida.setForeground(COLOR_LABEL);
+        lblSalida.setForeground(getLabelCol());
 
         JDateChooser fechaSalida = new JDateChooser();
         fechaSalida.setDateFormatString("dd/MM/yyyy");
 
         JTextField txtSalida = (JTextField) fechaSalida.getDateEditor().getUiComponent();
         txtSalida.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        txtSalida.setBorder(BorderFactory.createLineBorder(COLOR_BORDE));
+        txtSalida.setBorder(BorderFactory.createLineBorder(getBorde()));
+        txtSalida.setBackground(getPanelCol());
+        txtSalida.setForeground(getTextCol());
 
         // Hora Salida
         JLabel lblHoraSalida = new JLabel("Hora de Salida");
         lblHoraSalida.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblHoraSalida.setForeground(COLOR_LABEL);
+        lblHoraSalida.setForeground(getLabelCol());
 
         JComboBox<String> horaSalida = new JComboBox<>(new String[] {
                 "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
                 "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"
         });
-        horaSalida.setBackground(Color.WHITE);
+        horaSalida.setBackground(getPanelCol());
+        horaSalida.setForeground(getTextCol());
 
         // Tipo de estadía
         JLabel lblTipo = new JLabel("Tipo de estadía");
         lblTipo.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblTipo.setForeground(COLOR_LABEL);
+        lblTipo.setForeground(getLabelCol());
 
         JComboBox<String> tipoEstadia = new JComboBox<>(new String[] {
                 "Por horas",
@@ -374,7 +406,8 @@ public class ReservaFrame extends JFrame {
                 "Día completo"
         });
         tipoEstadia.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
-        tipoEstadia.setBackground(Color.WHITE);
+        tipoEstadia.setBackground(getPanelCol());
+        tipoEstadia.setForeground(getTextCol());
 
         cont.add(lblEntrada);
         cont.add(fechaEntrada);
@@ -409,7 +442,7 @@ public class ReservaFrame extends JFrame {
         /* LIMITE DE HOSPEDAJE */
 
         JLabel lblLimite = new JLabel("Límite de hospedaje");
-        lblLimite.setForeground(COLOR_TEXTO);
+        lblLimite.setForeground(getTextCol());
         lblLimite.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JComboBox<String> cmbLimite = new JComboBox<>(new String[] {
@@ -417,8 +450,9 @@ public class ReservaFrame extends JFrame {
         });
         cmbLimite.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         cmbLimite.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cmbLimite.setBorder(BorderFactory.createLineBorder(COLOR_BORDE));
-        cmbLimite.setBackground(Color.WHITE);
+        cmbLimite.setBorder(BorderFactory.createLineBorder(getBorde()));
+        cmbLimite.setBackground(getPanelCol());
+        cmbLimite.setForeground(getTextCol());
 
         panel.add(lblLimite);
         panel.add(Box.createVerticalStrut(4));
@@ -434,10 +468,12 @@ public class ReservaFrame extends JFrame {
         filaAnticipo.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblAnticipo = new JLabel("Anticipo");
-        lblAnticipo.setForeground(COLOR_TEXTO);
+        lblAnticipo.setForeground(getTextCol());
 
         JTextField txtAnticipo = new JTextField("$0");
-        txtAnticipo.setBorder(BorderFactory.createLineBorder(COLOR_BORDE));
+        txtAnticipo.setBorder(BorderFactory.createLineBorder(getBorde()));
+        txtAnticipo.setBackground(getPanelCol());
+        txtAnticipo.setForeground(getTextCol());
 
         filaAnticipo.add(lblAnticipo, BorderLayout.WEST);
         filaAnticipo.add(txtAnticipo, BorderLayout.CENTER);
@@ -454,9 +490,10 @@ public class ReservaFrame extends JFrame {
         filaTotal.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel lblTotal = new JLabel("Total");
+        lblTotal.setForeground(getTextCol());
 
         JLabel lblTotalVal = new JLabel("$0");
-        lblTotalVal.setForeground(COLOR_PRIMARIO);
+        lblTotalVal.setForeground(getPrimario());
         lblTotalVal.setFont(lblTotalVal.getFont().deriveFont(Font.BOLD, 16f));
 
         filaTotal.add(lblTotal, BorderLayout.WEST);
@@ -476,6 +513,10 @@ public class ReservaFrame extends JFrame {
         JRadioButton rbEfectivo = new JRadioButton("Efectivo");
         JRadioButton rbTransferencia = new JRadioButton("Transferencia");
         JRadioButton rbTarjeta = new JRadioButton("Tarjeta");
+
+        rbEfectivo.setForeground(getTextCol());
+        rbTransferencia.setForeground(getTextCol());
+        rbTarjeta.setForeground(getTextCol());
 
         rbEfectivo.setOpaque(false);
         rbTransferencia.setOpaque(false);
@@ -528,7 +569,7 @@ public class ReservaFrame extends JFrame {
                 g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
 
-                g2.setColor(COLOR_BORDE);
+                g2.setColor(getBorde());
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
 
                 g2.dispose();
@@ -537,27 +578,27 @@ public class ReservaFrame extends JFrame {
 
         c.setLayout(new BoxLayout(c, BoxLayout.Y_AXIS));
         c.setOpaque(false);
-        c.setBackground(Color.WHITE);
+        c.setBackground(getPanelCol());
         c.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         c.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         JLabel n = new JLabel("Habitación " + num);
         n.setAlignmentX(Component.CENTER_ALIGNMENT);
         n.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        n.setForeground(COLOR_PRIMARIO);
+        n.setForeground(getPrimario());
 
         JLabel disp = new JLabel("Disponible");
         disp.setAlignmentX(Component.CENTER_ALIGNMENT);
         disp.setForeground(COLOR_VERDE);
 
-        JLabel info = new JLabel("<html><span style='color:#6B84A0'>Individual<br>"
+        JLabel info = new JLabel("<html><span style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + "'>Individual<br>"
                 + "Noche: $70.000 &nbsp;|&nbsp; Hora: $15.000</span></html>");
         info.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         info.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JButton sel = new JButton("Seleccionar");
         sel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        sel.setBackground(COLOR_PRIMARIO);
+        sel.setBackground(getPrimario());
         sel.setForeground(Color.WHITE);
         sel.setFocusPainted(false);
         sel.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
@@ -575,13 +616,13 @@ public class ReservaFrame extends JFrame {
         c.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent e) {
-                c.setBackground(new Color(0xF4F8FF));
+                c.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xF4F8FF) : new Color(0x2D3748));
                 c.repaint();
             }
 
             @Override
             public void mouseExited(java.awt.event.MouseEvent e) {
-                c.setBackground(Color.WHITE);
+                c.setBackground(getPanelCol());
                 c.repaint();
             }
         });
@@ -599,7 +640,10 @@ public class ReservaFrame extends JFrame {
         JButton cancelar = new JButton("Cancelar");
         JButton reservar = new JButton("Reservar");
 
-        reservar.setBackground(COLOR_PRIMARIO);
+        cancelar.setForeground(getTextCol());
+        cancelar.setBackground(getPanelCol());
+
+        reservar.setBackground(getPrimario());
         reservar.setForeground(Color.WHITE);
 
         p.add(cancelar);
@@ -616,7 +660,9 @@ public class ReservaFrame extends JFrame {
         p.setOpaque(false);
 
         JTextField t = new JTextField();
-        t.setBorder(BorderFactory.createTitledBorder(txt));
+        t.setBackground(getPanelCol());
+        t.setForeground(getTextCol());
+        t.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(getBorde()), txt, 0, 0, null, getLabelCol()));
 
         p.add(t);
 
