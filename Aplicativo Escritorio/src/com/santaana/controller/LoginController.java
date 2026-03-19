@@ -1,8 +1,10 @@
 package com.santaana.controller;
 
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Action;
 import javax.swing.JOptionPane;
 
 import com.santaana.view.LoginFrame;
@@ -18,6 +20,13 @@ public class LoginController {
     public LoginController(LoginFrame view) {
         this.view = view;
         this.view.addLoginListener(new LoginListener());
+
+        this.view.addBypassListener(new ActionListener() {
+            @Override
+            public void actionperformed(ActionEvent e){
+                processLogin("Administrador", "admin(sin registro)");
+            }
+        });
     }
 
     private class LoginListener implements ActionListener {

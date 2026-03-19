@@ -1,4 +1,4 @@
-                                                        package com.santaana.view;
+package com.santaana.view;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -48,6 +48,8 @@ public class LoginFrame extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
+    // boton bypass temporal
+    private JButton bypassAdminBtn;
     private LoginController controller;
     private Point initialClick;
 
@@ -219,6 +221,19 @@ public class LoginFrame extends JFrame {
         footerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         glassPanel.add(footerLabel);
 
+        // Botón para acceder directamente como administrador sin login
+        glassPanel.add(Box.createVerticalStrut(10));
+        bypassAdminBtn = new JButton("Acceder como Administrador (Sin Login)");
+        bypassAdminBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        bypassAdminBtn.setBackground(new Color(46, 204, 113)); // Verde esmeralda
+        bypassAdminBtn.setForeground(Color.WHITE);
+        bypassAdminBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        bypassAdminBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
+        bypassAdminBtn.setFocusPainted(false);
+        bypassAdminBtn.setBorderPainted(false);
+        bypassAdminBtn.setMaximumSize(new Dimension(280, 35));
+        glassPanel.add(bypassAdminBtn);
+
         mainContainer.add(glassPanel);
     }
 
@@ -290,6 +305,10 @@ public class LoginFrame extends JFrame {
 
     public void addLoginListener(ActionListener l) {
         loginButton.addActionListener(l);
+    }
+
+    public void addBypassListener(ActionListener l){
+        bypassAdminBtn.addActionListener(l);
     }
 
     public void showMessage(String m, String t, int type) {
