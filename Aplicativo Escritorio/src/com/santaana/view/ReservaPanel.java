@@ -1,43 +1,15 @@
 package com.santaana.view;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
+import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.border.MatteBorder;
-
 import com.toedter.calendar.JDateChooser;
 import com.santaana.util.ThemeManager;
 
-public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
-    private String role;
+public class ReservaPanel extends JPanel {
+    private String userRole;
+    
     private Color getPrimario() { return ThemeManager.getPrimary(); }
     private Color getFondo() { return ThemeManager.getBackground(); }
     private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
@@ -45,98 +17,46 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private Color getTextCol() { return ThemeManager.getTextPrimary(); }
     private Color getLabelCol() { return ThemeManager.getTextSecondary(); }
 
-    public ReservaFrame(String role, String welcomeMessage) {
-        this.role = role;
-
-        setTitle("Hotel Santa Ana — Reservas");
-        setSize(1280, 800);
-        setMinimumSize(new Dimension(1100, 720));
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        
-        ThemeManager.addListener(this);
+    public ReservaPanel(String role) {
+        this.userRole = role;
+        setLayout(new BorderLayout());
+        setBackground(getFondo());
         refreshUI();
-        setVisible(true);
     }
 
-    private void refreshUI() {
-        getContentPane().removeAll();
-        setLayout(new BorderLayout());
+    public void refreshUI() {
+        removeAll();
         add(crearNavbar(), BorderLayout.NORTH);
-        add(sidebar(), BorderLayout.WEST);
         add(crearContenido(), BorderLayout.CENTER);
         revalidate();
         repaint();
     }
 
-    @Override
-    public void onThemeChanged() {
-        refreshUI();
-    }
-
     private JPanel crearNavbar() {
         JPanel navbar = new JPanel(new BorderLayout());
         navbar.setBackground(getPanelCol());
-        navbar.setPreferredSize(new Dimension(0, 62));
-        navbar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
+        navbar.setPreferredSize(new Dimension(0, 50));
+        navbar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, getBorde()));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 12));
-        left.setOpaque(false);
+        JLabel title = new JLabel("  GESTIONAR RESERVAS");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        title.setForeground(getTextCol());
+        navbar.add(title, BorderLayout.WEST);
 
-        JLabel logo = new JLabel();
-        try {
-            java.net.URL logoUrl = getClass().getResource("/resources/logo.png");
-            if (logoUrl != null) {
-                ImageIcon icon = new ImageIcon(logoUrl);
-                Image scaled = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-                logo.setIcon(new ImageIcon(scaled));
-            }
-        } catch (Exception e) {}
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+        actions.setOpaque(false);
+        actions.add(crearBotonAccion("+ Nueva Reserva", getPrimario(), Color.WHITE));
+        navbar.add(actions, BorderLayout.EAST);
 
-        JLabel nombre = new JLabel("<html><b style='font-size:13px; color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#1F2937" : "#F3F4F6") + "'>HOTEL SANTA ANA</b><br>"
-                + "<span style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + ";font-size:9px'>Sistema de gestion hotelera</span></html>");
-
-        left.add(logo);
-        left.add(nombre);
-
-        JLabel notifLbl = new JLabel("🔔");
-        notifLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        notifLbl.setForeground(getPrimario());
-
-        JButton themeToggle = new JButton(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "🌙" : "☀️");
-        themeToggle.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        themeToggle.setContentAreaFilled(false);
-        themeToggle.setBorderPainted(false);
-        themeToggle.setFocusPainted(false);
-        themeToggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        themeToggle.addActionListener(e -> ThemeManager.toggleTheme());
-
-        left.add(notifLbl);
-        left.add(themeToggle);
-
-        JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));
-        mid.setOpaque(false);
-        mid.add(crearBotonNavbar("+ Nueva reserva", getPrimario(), Color.WHITE));
-        mid.add(crearBotonNavbar("$  Venta rapida", 
-            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155), 
-            getPrimario()));
-
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 16));
-        right.setOpaque(false);
-        right.add(userPanel());
-
-        navbar.add(left, BorderLayout.WEST);
-        navbar.add(mid, BorderLayout.CENTER);
-        navbar.add(right, BorderLayout.EAST);
         return navbar;
     }
 
-    private JButton crearBotonNavbar(String text, Color bg, Color fg) {
+    private JButton crearBotonAccion(String text, Color bg, Color fg) {
         JButton b = new JButton(text) {
             public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isRollover() ? bg.darker() : bg);
+                g2.setColor(bg);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
@@ -147,56 +67,8 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         b.setContentAreaFilled(false);
         b.setBorderPainted(false);
         b.setFocusPainted(false);
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        b.setPreferredSize(new Dimension(150, 34));
+        b.setPreferredSize(new Dimension(140, 30));
         return b;
-    }
-
-    private JPanel userPanel() {
-        JPanel p = new JPanel();
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setOpaque(false);
-        JLabel name = new JLabel("Usuario");
-        name.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        JLabel rol = new JLabel(role);
-        rol.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        rol.setForeground(getLabelCol());
-        name.setForeground(getTextCol());
-        p.add(name);
-        p.add(rol);
-        return p;
-    }
-
-    private JPanel sidebar() {
-        JPanel side = new JPanel();
-        side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
-        side.setBackground(getPanelCol());
-        side.setPreferredSize(new Dimension(190, 0));
-        side.setBorder(new MatteBorder(0, 0, 0, 1, getBorde()));
-        side.add(Box.createVerticalStrut(20));
-        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte" };
-        for (int i = 0; i < items.length; i++) {
-            side.add(sideBtn(items[i], i == 2));
-            side.add(Box.createVerticalStrut(8));
-        }
-        side.add(Box.createVerticalGlue());
-        return side;
-    }
-
-    private JPanel sideBtn(String text, boolean active) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setMaximumSize(new Dimension(180, 36));
-        p.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 8));
-        p.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 12));
-        lbl.setForeground(active ? getPrimario() : getLabelCol());
-        if (active)
-            p.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x2D3748));
-        else
-            p.setBackground(getPanelCol());
-        p.add(lbl, BorderLayout.CENTER);
-        return p;
     }
 
     private JScrollPane crearContenido() {
@@ -268,13 +140,12 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel crearPanelHuesped() {
         JPanel p = tarjeta();
         p.add(titulo("Datos de huésped"));
-        p.add(campo("Nombre", "Ej: Juan"));
-        p.add(Box.createVerticalStrut(12));
-        p.add(campo("Apellido", "Ej: Pérez"));
-        p.add(Box.createVerticalStrut(12));
+        
         p.add(campo("Identificación", "Cédula o Pasaporte"));
         p.add(Box.createVerticalStrut(12));
-        p.add(campo("Correo", "correo@ejemplo.com"));
+        p.add(campo("Nombre completo del huesped", "Ej: Juan Pérez"));
+        p.add(Box.createVerticalStrut(12));
+        p.add(campo("Correo(Opcional)", "correo@ejemplo.com"));
         p.add(Box.createVerticalStrut(12));
         p.add(campo("Teléfono", "Ej: +57 ..."));
         return p;
@@ -304,6 +175,7 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         dc.setDateFormatString("dd/MM/yyyy");
         dc.setPreferredSize(new Dimension(0, 36));
         dc.setBackground(getPanelCol());
+        dc.setForeground(getTextCol());
         JTextField tf = (JTextField) dc.getDateEditor().getUiComponent();
         tf.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(getBorde(), 1, true), BorderFactory.createEmptyBorder(0, 10, 0, 10)));
         tf.setBackground(getPanelCol());

@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const SYSTEM_VERSION = 'v1.3.2';
+
+    // --- Control de Versión Centralizado ---
+    const setupVersion = () => {
+        const versionTags = document.querySelectorAll('.version-tag');
+        versionTags.forEach(tag => {
+            tag.textContent = SYSTEM_VERSION;
+        });
+    };
     // --- Lógica del modo oscuro ---
     const setupDarkMode = () => {
         const themeToggle = document.getElementById('themeToggle');
@@ -46,12 +55,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ZOOM IMÁGENES (Resiliente a elementos faltantes) ---
     const setupImageZoom = () => {
-        const modal = document.getElementById("imageModal");
+        let modal = document.getElementById("imageModal");
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'imageModal';
+            modal.className = 'image-modal';
+            modal.innerHTML = `
+                <span class="close-modal">&times;</span>
+                <img id="modalImage" src="" alt="">
+                <p id="modalCaption"></p>
+            `;
+            document.body.appendChild(modal);
+        }
+
         const modalImg = document.getElementById("modalImage");
         const captionText = document.getElementById("modalCaption");
-        const closeModal = document.querySelector(".close-modal");
+        const closeModal = modal.querySelector(".close-modal");
 
-        if (!modal || !modalImg || !closeModal) return;
+        if (!modalImg || !closeModal) return;
 
         document.querySelectorAll(".zoom-img").forEach(img => {
             img.addEventListener("click", () => {
@@ -213,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- INICIALIZACIÓN SEGURA ---
+    setupVersion();
     setupDarkMode();
     setupMobileMenu();
     setupImageZoom();

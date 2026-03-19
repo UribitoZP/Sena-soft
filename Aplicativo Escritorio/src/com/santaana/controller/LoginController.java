@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
 
 import com.santaana.view.LoginFrame;
+import com.santaana.view.MainFrame;
 import com.santaana.view.NotificacionFrame;
 import com.santaana.view.ReservaFrame;
 import com.santaana.view.TableroFrame;
@@ -44,24 +45,12 @@ public class LoginController {
     }
 
     private void processLogin(String role, String username) {
-        String welcomeMessage = "";
+        String welcomeMessage = "Bienvenido al sistema, " + username + ".";
         
-        if (role.equalsIgnoreCase("Administrador")) {
-            welcomeMessage = "Usted ha ingresado como Administrador. Acceso al área de gestión global concedido.";
-
-            TableroFrame tableroFrame = new TableroFrame("Administrador", "Bienvenido " + username);
-            tableroFrame.setVisible(true);
-
-
-        } else if (role.equalsIgnoreCase("Recepcionista")) {
-            welcomeMessage = "Usted ha ingresado como Recepcionista. Acceso al área de operaciones y reservas concedido.";
-
-           ReservaFrame reservaFrame = new ReservaFrame("Recepcionista", "Bienvenido " + username);
-           reservaFrame.setVisible(true);  
-
-        }
+        // Siempre abrir MainFrame, pero con el rol correspondiente
+        MainFrame mainFrame = new MainFrame(role, welcomeMessage);
+        mainFrame.setVisible(true);
 
         view.dispose(); // Cerrar ventana de login
-
     }
 }

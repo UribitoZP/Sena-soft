@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
-import 'package:santa_ana_dashboard/feature/home/presentation/views/dashboard_view.dart';
+import 'package:santa_ana_dashboard/feature/home/presentation/views/home_view.dart';
 
 // ════════════════════════════════════════════════════════════════
 //  MODELOS
@@ -142,7 +142,7 @@ class _ReservationsViewState extends State<ReservationsView> {
                 ],
               ),
             ),
-            _buildBottomNav(),
+
           ],
         ),
       ),
@@ -343,65 +343,7 @@ class _ReservationsViewState extends State<ReservationsView> {
 
   // ── Bottom nav ───────────────────────────────────────────────
 
-  Widget _buildBottomNav() {
-    const items = [
-      (Icons.home_rounded,           'INICIO'),
-      (Icons.calendar_month_rounded, 'RESERVAS'),
-      (Icons.bed_rounded,            'HABITACIONES'),
-      (Icons.bar_chart_rounded,      'REPORTES'),
-    ];
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: items.asMap().entries.map((e) {
-          final isActive = e.key == 1;
-          return GestureDetector(
-            onTap: () {
-              if (e.key == 0) {
-                Navigator.pop(context);
-              }
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: isActive ? AppTheme.goldDim : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(e.value.$1, size: 20,
-                      color: isActive
-                          ? AppTheme.goldColor
-                          : AppTheme.textMuted),
-                  const SizedBox(height: 4),
-                  Text(
-                    e.value.$2,
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                      color: isActive
-                          ? AppTheme.goldColor
-                          : AppTheme.textMuted,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
+  
 }
 
 // ════════════════════════════════════════════════════════════════

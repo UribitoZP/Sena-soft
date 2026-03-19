@@ -36,7 +36,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v1.3.0</span>
+            <span class="version-tag">v1.3.1</span>
         </div>
     </header>
     <div class="container">
@@ -81,35 +81,67 @@
             </nav>
         </aside>
         <main class="content">
-            <section id="arquitectura">
-                <h1>Aplicativo de Escritorio</h1>
-                <p class="lead">Arquitectura Modular Orientada a Roles (Java Swing)</p>
+            <section id="ejecucion">
+                <h1>Guía de Ejecución</h1>
+                <p class="lead">Pasos necesarios para poner en marcha el aplicativo de escritorio.</p>
                 <hr>
 
-                <h2>1. Control de "Código Espagueti"</h2>
-                <p>Para evitar que el código se vuelva inmanejable a medida que el sistema crece, hemos implementado una
-                    estructura de paquetes basada en el principio de responsabilidad única. Cada rol (Administrador y
-                    Recepcionista) tiene su propio espacio de trabajo dentro del proyecto:</p>
+                <h2>1. Requisitos del Sistema</h2>
+                <p>Para asegurar el correcto funcionamiento del software, su entorno de desarrollo debe contar con:</p>
+                <ul>
+                    <li><strong>JDK 17+:</strong> El proyecto utiliza características de Java 17.</li>
+                    <li><strong>MySQL / MariaDB:</strong> Motor de base de datos para persistencia.</li>
+                    <li><strong>Bibliotecas en <code>/lib</code>:</strong>
+                        <pre><code>/lib
+└── jcalendar-1.4.jar  // Gestión de fechas visual</code></pre>
+                    </li>
+                </ul>
 
-                <pre><code>com.santaana
-├── controller
-│   ├── admin         // Gestión lógica para el Administrador
-│   └── receptionist  // Gestión lógica para el Recepcionista
-├── model             // Clases de datos (Entidades)
-└── view
-    ├── admin         // Interfaces exclusivas: Usuarios, Configuración, Reportes
-    ├── receptionist  // Interfaces exclusivas: Reservas, Facturación
-    └── components    // Elementos UI reutilizables (Botones, logos personalizados)</code></pre>
+                <h2>2. Instalación y Compilación</h2>
+                <p>Si no utiliza un IDE (como IntelliJ o NetBeans), puede compilar y ejecutar el proyecto manualmente desde la terminal usando los siguientes comandos (estando en la raíz de "Aplicativo Escritorio"):</p>
+                
+                <div class="code-block">
+                    <pre><code># 1. Crear carpeta para binarios
+mkdir bin
 
-                <div class="callout info">
-                    <p><strong>Ventaja:</strong> Esta estructura permite que los desarrolladores trabajen en módulos
-                        independientes sin generar conflictos en las clases principales.</p>
+# 2. Compilar el proyecto incluyendo librerías
+javac -cp ".;lib/*" -d bin -sourcepath src src/com/santaana/main/ApplicationMain.java
+
+# 3. Ejecutar la aplicación
+java -cp "bin;lib/*" com.santaana.main.ApplicationMain</code></pre>
                 </div>
 
-                <h2>2. Orquestación Dinámica</h2>
-                <p>El sistema utiliza una ventana principal (<code>HomeFrame</code>) que actúa como un contenedor
-                    dinámico. En lugar de tener múltiples ventanas abiertas, el sistema inyecta el panel correspondiente
-                    según el rol del usuario autenticado.</p>
+                <div class="callout warning">
+                    <p><strong>Automatización:</strong> Puede utilizar el archivo <code>run.bat</code> incluido en la carpeta raíz del aplicativo para automatizar este proceso en sistemas Windows.</p>
+                </div>
+
+                <h2>3. Configuración de Base de Datos</h2>
+                <ol>
+                    <li>Importar el esquema SQL (ubicado en la carpeta de base de datos).</li>
+                    <li>Verificar que el puerto 3306 esté abierto.</li>
+                </ol>
+            </section>
+
+            <section id="arquitectura">
+                <h1>Arquitectura del Sistema</h1>
+                <p class="lead">Diseño Modular Orientada a Roles (Java Swing)</p>
+                <hr>
+
+                <h2>1. Estructura de Paquetes</h2>
+                <p>Hemos implementado una estructura basada en el principio de responsabilidad única:</p>
+
+                <pre><code>com.santaana
+├── controller    // Lógica de negocio y control
+├── main          // Punto de entrada (ApplicationMain)
+├── util          // Utilidades (ThemeManager, etc)
+└── view          // Interfaces de usuario (JFrame, JPanel)</code></pre>
+
+                <div class="callout info">
+                    <p><strong>Ventaja:</strong> Permite que los desarrolladores trabajen en módulos independientes sin generar conflictos.</p>
+                </div>
+
+                <h2>2. Orquestación de Vistas</h2>
+                <p>El sistema utiliza una ventana principal (<code>HomeFrame</code>) que actúa como un contenedor dinámico según el perfil.</p>
 
                 <div class="table-container">
                     <table>
@@ -122,32 +154,42 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td><code>AdminDashboard</code></td>
-                                <td>Panel de control para reportes y gestión global.</td>
-                                <td style="color: #22c55e;">Estructurado</td>
+                                <td><code>TableroFrame</code></td>
+                                <td>Dashboard principal para Administradores.</td>
+                                <td style="color: #22c55e;">Optimizado</td>
                             </tr>
                             <tr>
-                                <td><code>ReceptionistPanel</code></td>
-                                <td>Gestión operativa de huéspedes y habitaciones.</td>
-                                <td style="color: #22c55e;">Estructurado</td>
-                            </tr>
-                            <tr>
-                                <td><code>HomeFrame</code></td>
-                                <td>Contenedor base y manejo de sesión.</td>
+                                <td><code>ReservaFrame</code></td>
+                                <td>Gestión operativa de huéspedes.</td>
                                 <td style="color: #22c55e;">Optimizado</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="callout warning">
-                    <p><strong>Estándar de Desarrollo:</strong> Queda prohibido escribir lógica de negocio o consultas a
-                        base de datos dentro de los archivos de vista. Todo debe pasar a través de sus respectivos
-                        controladores.</p>
+                <h2>3. Personalización: Modo Oscuro "Dark Blue"</h2>
+                <p>Se ha implementado un sistema robusto de temas para alternar entre un modo claro y un modo oscuro basado en una paleta de <b>azul profundo</b>.</p>
+                
+                <div class="gallery">
+                  <div class="gallery-item">
+                    <img src="../img_dashboard/light_mode.png" alt="Modo Claro" class="zoom-img" style="cursor:pointer;">
+                    <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Interfaz Original (Modo Claro)</p>
+                  </div>
+                  <div class="gallery-item">
+                    <img src="../img_dashboard/dark_mode.png" alt="Modo Oscuro" class="zoom-img" style="cursor:pointer;">
+                    <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Nueva Interfaz "Dark Blue" (Modo Oscuro)</p>
+                  </div>
                 </div>
+
+                <h3>¿Cómo se hizo? (Patrón Observer)</h3>
+                <ul>
+                    <li><strong>ThemeManager:</strong> Utilidad central (<code>com.santaana.util.ThemeManager</code>).</li>
+                    <li><strong>ThemeListener:</strong> Sistema de notificaciones en tiempo real para todas las ventanas.</li>
+                </ul>
             </section>
         </main>
     </div>
+    
     <div class="sidebar-overlay"></div>
     <script src="../js/main.js"></script>
 </body>

@@ -27,11 +27,17 @@ import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 import javax.swing.border.MatteBorder;
 
-public class NotificacionFrame extends JFrame {
+import com.santaana.util.ThemeManager;
 
-    private static final Color COLOR_BORDE    = new Color(0xDDE8F5);
-    private static final Color COLOR_PRIMARIO = new Color(0x3A7BD5);
-    private static final Color COLOR_LABEL    = new Color(0x6B84A0);
+public class NotificacionFrame extends JFrame implements ThemeManager.ThemeListener {
+
+    private Color getBorde() { return ThemeManager.getBorder(); }
+    private Color getPrimario() { return ThemeManager.getPrimary(); }
+    private Color getLabel() { return ThemeManager.getTextSecondary(); }
+    private Color getBackgroundCol() { return ThemeManager.getBackground(); }
+    private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
+    private Color getTextCol() { return ThemeManager.getTextPrimary(); }
+
     private static final Color ROJO_WARNING = new Color(0xFF2020);
     private static final Color VERDE_RECORDATORIO = new Color(0x33C24D);
     private static final Color AZUL_TODO = new Color(0x2A7BF5);
@@ -48,25 +54,38 @@ public class NotificacionFrame extends JFrame {
 
     public NotificacionFrame(String role, String welcomeMessage) {
         this.role = role;
-        setTitle("Hotel Santa Ana — Gestión de Habitaciones");
+        setTitle("Hotel Santa Ana — Notificaciones");
         setSize(1100, 720);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(new Color(0xE8F1FD));
-        main.add(topBar(),  BorderLayout.NORTH);
-        main.add(sidebar(), BorderLayout.WEST);
-        main.add(center(),  BorderLayout.CENTER);
-        add(main);
+        ThemeManager.addListener(this);
+        refreshUI();
         setVisible(true);
+    }
+
+    private void refreshUI() {
+        getContentPane().removeAll();
+        JPanel main = new JPanel(new BorderLayout());
+        main.setBackground(getBackgroundCol());
+        main.add(topBar(), BorderLayout.NORTH);
+        main.add(sidebar(), BorderLayout.WEST);
+        main.add(center(), BorderLayout.CENTER);
+        add(main);
+        revalidate();
+        repaint();
+    }
+
+    @Override
+    public void onThemeChanged() {
+        refreshUI();
     }
 
     private JPanel topBar() {
         JPanel bar = new JPanel(new BorderLayout());
-        bar.setBackground(Color.WHITE);
+        bar.setBackground(getPanelCol());
         bar.setPreferredSize(new Dimension(0, 62));
-        bar.setBorder(new MatteBorder(0, 0, 1, 0, new Color(0xDDE8F5)));
+        bar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 12));
         left.setOpaque(false);
@@ -80,7 +99,7 @@ public class NotificacionFrame extends JFrame {
             System.err.println("Logo no encontrado");
         }
 
-        JLabel nombre = new JLabel("<html><b style='font-size:13px'>HOTEL SANTA ANA</b><br>"+ "<span style='color:#6B84A0;font-size:9px'>Sistema de gestion hotelera</span></html>");
+        JLabel nombre = new JLabel("<html><b style='font-size:13px; color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#1F2937" : "#F3F4F6") + "'>HOTEL SANTA ANA</b><br>"+ "<span style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + ";font-size:9px'>Sistema de gestion hotelera</span></html>");
 
         left.add(logo);
         left.add(nombre);
@@ -127,8 +146,10 @@ public class NotificacionFrame extends JFrame {
 
         JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));
         mid.setOpaque(false);
-        mid.add(actionBtn("+ Nueva reserva", new Color(0x3A7BD5), Color.WHITE));
-        mid.add(actionBtn("$  Venta rapida",   new Color(0xE8F1FD), new Color(0x3A7BD5)));
+        mid.add(actionBtn("+ Nueva reserva", getPrimario(), Color.WHITE));
+        mid.add(actionBtn("$  Venta rapida",   
+            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155), 
+            getPrimario()));
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 16));
         right.setOpaque(false);
@@ -136,7 +157,14 @@ public class NotificacionFrame extends JFrame {
 
         right.add(userPanel());
 
-        bar.add(left,  BorderLayout.WEST);
+        JButton themeToggle = new JButton(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "🌙" : "☀️");
+        themeToggle.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        themeToggle.setContentAreaFilled(false);
+        themeToggle.setBorderPainted(false);
+        themeToggle.setFocusPainted(false);
+        themeToggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        themeToggle.addActionListener(e -> ThemeManager.toggleTheme());
+        right.add(themeToggle);
         bar.add(mid,   BorderLayout.CENTER);
         bar.add(right, BorderLayout.EAST);
         return bar;
@@ -171,7 +199,8 @@ public class NotificacionFrame extends JFrame {
         name.setFont(new Font("Segoe UI", Font.BOLD, 12));
         JLabel rol = new JLabel(role);
         rol.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        rol.setForeground(new Color(0x6B84A0));
+        rol.setForeground(getLabel());
+        name.setForeground(getTextCol());
         p.add(name);
         p.add(rol);
         return p;
@@ -180,9 +209,9 @@ public class NotificacionFrame extends JFrame {
     private JPanel sidebar(){
         JPanel side = new JPanel();
         side.setLayout(new BoxLayout(side,BoxLayout.Y_AXIS));
-        side.setBackground(Color.WHITE);
+        side.setBackground(getPanelCol());
         side.setPreferredSize(new Dimension(190,0));
-        side.setBorder(new MatteBorder(0,0,0,1,COLOR_BORDE));
+        side.setBorder(new MatteBorder(0,0,0,1,getBorde()));
 
         side.add(Box.createVerticalStrut(20));
 
@@ -213,12 +242,12 @@ public class NotificacionFrame extends JFrame {
 
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI",active?Font.BOLD:Font.PLAIN,12));
-        lbl.setForeground(active?COLOR_PRIMARIO:COLOR_LABEL);
+        lbl.setForeground(active?getPrimario():getLabel());
 
         if(active)
-            p.setBackground(new Color(0xE8F1FD));
+            p.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x2D3748));
         else
-            p.setBackground(Color.WHITE);
+            p.setBackground(getPanelCol());
 
         p.add(lbl,BorderLayout.CENTER);
 
@@ -234,12 +263,12 @@ public class NotificacionFrame extends JFrame {
 
         list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-        list.setBackground(new Color(0xE8F1FD));
+        list.setBackground(getBackgroundCol());
 
         loadNotifications("Todo");
 
         JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setBackground(new Color(0xE8F1FD));
+        wrapper.setBackground(getBackgroundCol());
         wrapper.setBorder(BorderFactory.createEmptyBorder(16,0,0,0));
         wrapper.add(list, BorderLayout.NORTH);
 
@@ -277,7 +306,7 @@ public class NotificacionFrame extends JFrame {
 
     private JPanel navbar() {
 
-       Color bg = new Color(0xE8F1FD);
+        Color bg = getBackgroundCol();
 
         JPanel container = new JPanel(new BorderLayout());
         container.setBackground(bg);
@@ -305,7 +334,7 @@ public class NotificacionFrame extends JFrame {
         nav.add(recordatorios);
 
         JSeparator divider = new JSeparator();
-        divider.setForeground(new Color(220,220,220));
+        divider.setForeground(getBorde());
 
         container.add(nav,     BorderLayout.NORTH);
         container.add(divider, BorderLayout.SOUTH);
@@ -322,14 +351,14 @@ public class NotificacionFrame extends JFrame {
 
                 if (isSelected()) {
                     Graphics2D g2 = (Graphics2D) g;
-                    g2.setColor(COLOR_PRIMARIO);
+                    g2.setColor(getPrimario());
                     g2.fillRect(0, getHeight() - 2, getWidth(), 2);
                 }
             }
         };
 
         tab.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        tab.setForeground(COLOR_LABEL);
+        tab.setForeground(getLabel());
         tab.setBorderPainted(false);
         tab.setFocusPainted(false);
         tab.setContentAreaFilled(false);
@@ -337,9 +366,9 @@ public class NotificacionFrame extends JFrame {
 
         tab.addChangeListener(e -> {
             if (tab.isSelected())
-                tab.setForeground(Color.BLACK);
+                tab.setForeground(getTextCol());
             else
-                tab.setForeground(COLOR_LABEL);
+                tab.setForeground(getLabel());
             }
         );
 
@@ -349,9 +378,9 @@ public class NotificacionFrame extends JFrame {
     private JPanel notificationCard(Color lineColor, String iconPath, Color bgColor) {
 
         JPanel card = new JPanel(new BorderLayout(12,0));
-        card.setBackground(Color.WHITE);
+        card.setBackground(getPanelCol());
         card.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(220,225,230), 2, true),
+            BorderFactory.createLineBorder(getBorde(), 2, true),
             BorderFactory.createEmptyBorder(10,2,10,10)
         ));
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE,80));
@@ -363,7 +392,7 @@ public class NotificacionFrame extends JFrame {
 
         
         JPanel iconWrapper = new JPanel(new GridBagLayout());
-        iconWrapper.setBackground(bgColor);
+        iconWrapper.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? bgColor : bgColor.darker().darker());
         iconWrapper.setPreferredSize(new Dimension(50,50));
         iconWrapper.setMaximumSize(new Dimension(50,50));
 
@@ -380,10 +409,11 @@ public class NotificacionFrame extends JFrame {
 
         JLabel title = new JLabel("Título de notificación");
         title.setFont(new Font("Segoe UI",Font.BOLD,13));
+        title.setForeground(getTextCol());
 
         JLabel desc = new JLabel("Descripción corta de la notificación.");
         desc.setFont(new Font("Segoe UI",Font.PLAIN,12));
-        desc.setForeground(new Color(120,140,160));
+        desc.setForeground(getLabel());
 
         textPanel.add(title);
         textPanel.add(Box.createVerticalStrut(3));

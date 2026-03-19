@@ -24,10 +24,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
 
-public class TableroFrame extends JFrame {
-    private static final Color COLOR_BORDE = new Color(0xDDE8F5);
-    private static final Color COLOR_PRIMARIO = new Color(0x3A7BD5);
-    private static final Color COLOR_LABEL = new Color(0x6B84A0);
+import com.santaana.util.ThemeManager;
+
+public class TableroFrame extends JFrame implements ThemeManager.ThemeListener {
+    private Color getBorde() { return ThemeManager.getBorder(); }
+    private Color getPrimario() { return ThemeManager.getPrimary(); }
+    private Color getLabel() { return ThemeManager.getTextSecondary(); }
+    private Color getBackgroundCol() { return ThemeManager.getBackground(); }
+    private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
+    private Color getTextCol() { return ThemeManager.getTextPrimary(); }
 
     private final String role;
 
@@ -38,20 +43,33 @@ public class TableroFrame extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        ThemeManager.addListener(this);
+        refreshUI();
+        setVisible(true);
+    }
+
+    private void refreshUI() {
+        getContentPane().removeAll();
         JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(new Color(0xF0F6FF));
+        main.setBackground(getBackgroundCol());
         main.add(topBar(), BorderLayout.NORTH);
         main.add(sidebar(), BorderLayout.WEST);
         main.add(center(), BorderLayout.CENTER);
         add(main);
-        setVisible(true);
+        revalidate();
+        repaint();
+    }
+
+    @Override
+    public void onThemeChanged() {
+        refreshUI();
     }
 
     private JPanel topBar() {
         JPanel bar = new JPanel(new BorderLayout());
-        bar.setBackground(Color.WHITE);
+        bar.setBackground(getPanelCol());
         bar.setPreferredSize(new Dimension(0, 62));
-        bar.setBorder(new MatteBorder(0, 0, 1, 0, new Color(0xDDE8F5)));
+        bar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 12));
         left.setOpaque(false);
@@ -71,22 +89,33 @@ public class TableroFrame extends JFrame {
             System.err.println("Error cargando logo: " + e.getMessage());
         }
 
-        JLabel nombre = new JLabel("<html><b style='font-size:13px'>HOTEL SANTA ANA</b><br>"
-                + "<span style='color:#6B84A0;font-size:9px'>Sistema de gestion hotelera</span></html>");
+        JLabel nombre = new JLabel("<html><b style='font-size:13px; color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#1F2937" : "#F3F4F6") + "'>HOTEL SANTA ANA</b><br>"
+                + "<span style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + ";font-size:9px'>Sistema de gestion hotelera</span></html>");
 
         left.add(logo);
         left.add(nombre);
 
         JLabel notifLbl = new JLabel("🔔");
         notifLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        notifLbl.setForeground(new Color(0x3A7BD5));
+        notifLbl.setForeground(getPrimario());
+
+        JButton themeToggle = new JButton(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "🌙" : "☀️");
+        themeToggle.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        themeToggle.setContentAreaFilled(false);
+        themeToggle.setBorderPainted(false);
+        themeToggle.setFocusPainted(false);
+        themeToggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        themeToggle.addActionListener(e -> ThemeManager.toggleTheme());
 
         left.add(notifLbl);
+        left.add(themeToggle);
 
         JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));
         mid.setOpaque(false);
-        mid.add(actionBtn("+ Nueva reserva", new Color(0x3A7BD5), Color.WHITE));
-        mid.add(actionBtn("$  Venta rapida", new Color(0xE8F1FD), new Color(0x3A7BD5)));
+        mid.add(actionBtn("+ Nueva reserva", getPrimario(), Color.WHITE));
+        mid.add(actionBtn("$  Venta rapida", 
+            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155), 
+            getPrimario()));
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 16));
         right.setOpaque(false);
@@ -128,7 +157,8 @@ public class TableroFrame extends JFrame {
         name.setFont(new Font("Segoe UI", Font.BOLD, 12));
         JLabel rol = new JLabel(role);
         rol.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        rol.setForeground(new Color(0x6B84A0));
+        rol.setForeground(getLabel());
+        name.setForeground(getTextCol());
         p.add(name);
         p.add(rol);
         return p;
@@ -138,9 +168,9 @@ public class TableroFrame extends JFrame {
 
         JPanel side = new JPanel();
         side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
-        side.setBackground(Color.WHITE);
+        side.setBackground(getPanelCol());
         side.setPreferredSize(new Dimension(190, 0));
-        side.setBorder(new MatteBorder(0, 0, 0, 1, COLOR_BORDE));
+        side.setBorder(new MatteBorder(0, 0, 0, 1, getBorde()));
 
         side.add(Box.createVerticalStrut(20));
 
@@ -155,7 +185,7 @@ public class TableroFrame extends JFrame {
 
         for (int i = 0; i < items.length; i++) {
 
-            side.add(sideBtn(items[i], i == 2));
+            side.add(sideBtn(items[i], i == 0));
             side.add(Box.createVerticalStrut(8));
 
         }
@@ -175,12 +205,12 @@ public class TableroFrame extends JFrame {
         JLabel lbl = new JLabel(text);
 
         lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 12));
-        lbl.setForeground(active ? COLOR_PRIMARIO : COLOR_LABEL);
+        lbl.setForeground(active ? getPrimario() : getLabel());
 
         if (active)
-            p.setBackground(new Color(0xE8F1FD));
+            p.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x2D3748));
         else
-            p.setBackground(Color.WHITE);
+            p.setBackground(getPanelCol());
 
         p.add(lbl, BorderLayout.CENTER);
 
@@ -210,7 +240,7 @@ public class TableroFrame extends JFrame {
             public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
+                g2.setColor(getPanelCol());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
                 g2.setColor(accent);
                 g2.fillRect(0, getHeight() - 4, getWidth(), 4);
@@ -223,9 +253,10 @@ public class TableroFrame extends JFrame {
 
         JLabel num = new JLabel(value);
         num.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        num.setForeground(getTextCol());
         JLabel lbl = new JLabel(label.toUpperCase());
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        lbl.setForeground(new Color(0x6B84A0));
+        lbl.setForeground(getLabel());
         c.add(num, BorderLayout.CENTER);
         c.add(lbl, BorderLayout.SOUTH);
         return c;
@@ -240,6 +271,7 @@ public class TableroFrame extends JFrame {
 
         JLabel title = new JLabel("Estado actual de habitaciones");
         title.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        title.setForeground(getTextCol());
 
         header.add(title, BorderLayout.WEST);
         header.add(searchBar(), BorderLayout.CENTER);
@@ -267,9 +299,9 @@ public class TableroFrame extends JFrame {
             public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
+                g2.setColor(getPanelCol());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-                g2.setColor(new Color(0xCCCCCC));
+                g2.setColor(getBorde());
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 20, 20);
                 g2.dispose();
             }
@@ -289,7 +321,7 @@ public class TableroFrame extends JFrame {
             }
         };
         field.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        field.setForeground(Color.GRAY);
+        field.setForeground(getLabel());
         field.setOpaque(false);
         field.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
@@ -297,19 +329,20 @@ public class TableroFrame extends JFrame {
             public void focusGained(java.awt.event.FocusEvent e) {
                 if (field.getText().equals("Buscar habitación...")) {
                     field.setText("");
-                    field.setForeground(Color.BLACK);
+                    field.setForeground(getTextCol());
                 }
             }
 
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (field.getText().isEmpty()) {
                     field.setText("Buscar habitación...");
-                    field.setForeground(Color.GRAY);
+                    field.setForeground(getLabel());
                 }
             }
         });
 
         fieldWrapper.add(searchIcon, BorderLayout.WEST);
+        searchIcon.setForeground(getLabel());
         fieldWrapper.add(field, BorderLayout.CENTER);
 
         return fieldWrapper;
@@ -320,9 +353,9 @@ public class TableroFrame extends JFrame {
             public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(Color.WHITE);
+                g2.setColor(getPanelCol());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-                g2.setColor(new Color(0xDDE8F5));
+                g2.setColor(getBorde());
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
                 g2.dispose();
             }
@@ -334,6 +367,7 @@ public class TableroFrame extends JFrame {
 
         JLabel numLbl = new JLabel("Habitación " + num);
         numLbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        numLbl.setForeground(getTextCol());
         numLbl.setAlignmentX(JLabel.LEFT_ALIGNMENT);
 
         JLabel badge = new JLabel(" Disponible");
@@ -347,7 +381,7 @@ public class TableroFrame extends JFrame {
         top.add(numLbl);
         top.add(badge);
 
-        JLabel info = new JLabel("<html><span style='color:#6B84A0'>Individual<br>"
+        JLabel info = new JLabel("<html><span style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + "'>Individual<br>"
                 + "Noche: $70.000 &nbsp;|&nbsp; Hora: $15.000</span></html>");
         info.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         info.setVerticalAlignment(JLabel.TOP);
@@ -357,7 +391,7 @@ public class TableroFrame extends JFrame {
             public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isRollover() ? new Color(0x2563C0) : new Color(0x3A7BD5));
+                g2.setColor(getModel().isRollover() ? getPrimario().darker() : getPrimario());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
                 super.paintComponent(g);
