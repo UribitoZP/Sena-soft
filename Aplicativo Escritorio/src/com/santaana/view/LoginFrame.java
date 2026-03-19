@@ -1,12 +1,47 @@
-package com.santaana.view;
+                                                        package com.santaana.view;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Frame;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.geom.RoundRectangle2D;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 
 import com.santaana.controller.LoginController;
-
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.RoundRectangle2D;
 
 public class LoginFrame extends JFrame {
     private JComboBox<String> roleComboBox;
@@ -145,20 +180,21 @@ public class LoginFrame extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                Color c1 = new Color(252, 163, 17);
-                Color c2 = new Color(214, 137, 12);
+                Color c1 = new Color(0x3A7BD5);
+                Color c2 = new Color(0x3A7BD5);
 
                 if (getModel().isPressed()) {
                     g2.setPaint(new GradientPaint(0, 0, c2, getWidth(), 0, c1));
                 } else if (getModel().isRollover()) {
-                    g2.setPaint(new GradientPaint(0, 0, c1.brighter(), getWidth(), 0, c2.brighter()));
+                    Color hover = new Color(0x5A9BE5);
+                    g2.setPaint(new GradientPaint(0, 0, hover, getWidth(), 0, hover));
                 } else {
                     g2.setPaint(new GradientPaint(0, 0, c1, getWidth(), 0, c2));
                 }
 
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
 
-                g2.setColor(new Color(20, 33, 61));
+                g2.setColor(Color.WHITE);
                 g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 FontMetrics fm = g2.getFontMetrics();
                 int x = (getWidth() - fm.stringWidth(getText())) / 2;
@@ -227,7 +263,7 @@ public class LoginFrame extends JFrame {
             @Override
             public void focusGained(FocusEvent e) {
                 c.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(252, 163, 17)),
+                        BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(0x3A7BD5)),
                         BorderFactory.createEmptyBorder(5, 10, 5, 10)));
             }
 
