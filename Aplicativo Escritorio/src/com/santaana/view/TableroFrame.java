@@ -185,7 +185,7 @@ public class TableroFrame extends JFrame implements ThemeManager.ThemeListener {
 
         for (int i = 0; i < items.length; i++) {
 
-            side.add(sideBtn(items[i], i == 2));
+            side.add(sideBtn(items[i], i == 0));
             side.add(Box.createVerticalStrut(8));
 
         }
