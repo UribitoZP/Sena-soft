@@ -14,7 +14,7 @@ class Views extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<AppBloc, AppState>(
       listener: (context, state) {
-        if (state is AppSuccess) {
+        if (state is AppLoginSuccess) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const DashboardView()),
@@ -28,7 +28,7 @@ class Views extends StatelessWidget {
           );
         }
       },
-      child: const InitialView(), // InitialView ahora maneja su propio loading overlay
+      child: const InitialView(),
     );
   }
 }

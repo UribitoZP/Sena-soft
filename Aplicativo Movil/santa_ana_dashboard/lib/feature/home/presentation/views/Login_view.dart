@@ -31,11 +31,11 @@ class _InitialViewState extends State<InitialView> {
       builder: (context, state) {
 
         /// SI ESTÁ CARGANDO → MOSTRAR SOLO LOADING
-        if (state is AppLoading) {
+        if (state is AppLoading || state is AppLoginSuccess) {
           return const LoadingView();
         }
 
-        /// SI NO → MOSTRAR LOGIN
+        /// MOSTRAR LOGIN
         return Scaffold(
           body: SafeArea(
             child: SingleChildScrollView(

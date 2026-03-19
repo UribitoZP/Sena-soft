@@ -6,28 +6,27 @@ abstract class AppState extends Equatable {
   List<Object> get props => [];
 }
 
-// Estado inicial
 class AppInitial extends AppState {}
 
-// Estado de carga
 class AppLoading extends AppState {}
 
-// Estado de éxito (login o carga de datos)
-class AppSuccess extends AppState {
-  final dynamic data; // puede ser user info o dashboard data
-
-  const AppSuccess({this.data});
-
+class AppLoginSuccess extends AppState {
+  final dynamic data;
+  const AppLoginSuccess({this.data});
   @override
   List<Object> get props => [data ?? ''];
 }
 
-// Estado de fallo
+class AppDashboardLoaded extends AppState {
+  final dynamic data;
+  const AppDashboardLoaded({this.data});
+  @override
+  List<Object> get props => [data ?? ''];
+}
+
 class AppFailure extends AppState {
   final String message;
-
   const AppFailure({required this.message});
-
   @override
   List<Object> get props => [message];
 }
