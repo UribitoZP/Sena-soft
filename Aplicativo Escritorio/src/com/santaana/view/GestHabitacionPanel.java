@@ -40,7 +40,7 @@ public class GestHabitacionPanel extends JPanel {
         navbar.setPreferredSize(new Dimension(0, 50));
         navbar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
 
-        JLabel title = new JLabel("  GESTIÖN DE HABITACIONES");
+        JLabel title = new JLabel("  GESTION DE HABITACIONES");
         title.setFont(new Font("Segoe UI", Font.BOLD, 14));
         title.setForeground(getTextCol());
         navbar.add(title, BorderLayout.WEST);
