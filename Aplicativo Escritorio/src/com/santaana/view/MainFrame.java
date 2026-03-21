@@ -34,7 +34,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel sidebarPanel;
     private String userRole;
     private String currentView = "Tablero";
-    private JButton notifBtn;
+
 
     public MainFrame(String role, String welcomeMessage) {
         this.userRole = role;
@@ -107,7 +107,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 12));
         right.setOpaque(false);
 
-        notifBtn = new JButton() {
+        JButton notifBtn = new JButton() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -271,7 +271,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                     currentView = text;
                     cardLayout.show(contentPanel, text);
                     refreshSidebar();
-                    notifBtn.repaint();
+                    repaint();
                 } else {
                     JOptionPane.showMessageDialog(MainFrame.this, "El módulo '" + text + "' está en desarrollo.", "Próximamente", JOptionPane.INFORMATION_MESSAGE);
                 }
