@@ -1,5 +1,6 @@
 package com.santaana.view;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -99,9 +100,7 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         left.add(logo);
         left.add(nombre);
 
-        JLabel notifLbl = new JLabel("🔔");
-        notifLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        notifLbl.setForeground(getPrimario());
+
 
         JButton themeToggle = new JButton(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "🌙" : "☀️");
         themeToggle.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
@@ -111,7 +110,6 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         themeToggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         themeToggle.addActionListener(e -> ThemeManager.toggleTheme());
 
-        left.add(notifLbl);
         left.add(themeToggle);
 
         JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));

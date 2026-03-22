@@ -17,7 +17,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -132,17 +131,7 @@ public class NotificacionFrame extends JFrame implements ThemeManager.ThemeListe
             }
         };
 
-        ImageIcon rawIcon = new ImageIcon("resources/iconNoti.png");
-        Image scaled = rawIcon.getImage().getScaledInstance(35, 35, Image.SCALE_SMOOTH);
-        notifBtn.setIcon(new ImageIcon(scaled));
 
-        notifBtn.setContentAreaFilled(false);
-        notifBtn.setBorderPainted(false);
-        notifBtn.setFocusPainted(false);
-        notifBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        notifBtn.setPreferredSize(new Dimension(40, 34));
-
-        left.add(notifBtn);
 
         JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));
         mid.setOpaque(false);

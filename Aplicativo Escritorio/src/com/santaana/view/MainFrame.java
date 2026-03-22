@@ -1,10 +1,31 @@
 package com.santaana.view;
 
-import javax.swing.*;
-import javax.swing.border.MatteBorder;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.border.MatteBorder;
+
 import com.santaana.util.ThemeManager;
 
 public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
@@ -13,6 +34,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel sidebarPanel;
     private String userRole;
     private String currentView = "Tablero";
+
 
     public MainFrame(String role, String welcomeMessage) {
         this.userRole = role;
@@ -51,6 +73,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.add(new TableroPanel(userRole), "Tablero");
         contentPanel.add(new ReservaPanel(userRole), "Reserva");
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
+        contentPanel.add(new NotificacionPanel(), "Notificaciones");
 
         add(contentPanel, BorderLayout.CENTER);
         
@@ -84,10 +107,54 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 12));
         right.setOpaque(false);
 
-        JLabel notifIcon = new JLabel("🔔");
-        notifIcon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
-        notifIcon.setForeground(ThemeManager.getPrimary());
-        notifIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        JButton notifBtn = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                boolean isActive = currentView.equals("Notificaciones");
+                boolean isDark = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK;
+
+                if (isActive) {
+                    g2.setColor(isDark ? new Color(133, 183, 235, 38) : new Color(24, 95, 165, 25));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                }
+
+                int cx = getWidth() / 2;
+                int cy = getHeight() / 2;
+
+                Color iconColor = isActive
+                    ? (isDark ? new Color(0x85B7EB) : new Color(0x185FA5))
+                    : ThemeManager.getTextSecondary();
+
+                g2.setColor(iconColor);
+                g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+                g2.drawLine(cx, cy - 9, cx, cy - 7);
+                g2.drawArc(cx - 7, cy - 8, 14, 14, 0, 180);
+                g2.drawLine(cx - 7, cy - 1, cx - 7, cy + 5);
+                g2.drawLine(cx + 7, cy - 1, cx + 7, cy + 5);
+                g2.drawLine(cx - 7, cy + 5, cx + 7, cy + 5);
+                g2.drawArc(cx - 2, cy + 5, 4, 4, 180, 180);
+
+                g2.dispose();
+            }
+        };
+
+        notifBtn.setContentAreaFilled(false);
+        notifBtn.setBorderPainted(false);
+        notifBtn.setFocusPainted(false);
+        notifBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        notifBtn.setPreferredSize(new Dimension(36, 36));
+        notifBtn.addActionListener(e -> {
+            currentView = "Notificaciones";
+            cardLayout.show(contentPanel, "Notificaciones");
+            refreshSidebar();
+            notifBtn.repaint();
+        });
+
+
 
         JButton themeToggle = new JButton(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "🌙" : "☀️");
         themeToggle.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 18));
@@ -110,7 +177,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         userPnl.add(uName);
         userPnl.add(uRol);
 
-        right.add(notifIcon);
+        right.add(notifBtn);
         right.add(themeToggle);
         right.add(userPnl);
 
@@ -200,10 +267,11 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                 }
                 
                 // Solo cambiar si la vista existe
-                if (text.equals("Tablero") || text.equals("Reserva") || text.equals("Gestión de Habitaciones")) {
+                if (text.equals("Tablero") || text.equals("Reserva") || text.equals("Gestión de Habitaciones") || text.equals("Notificaciones")) {
                     currentView = text;
                     cardLayout.show(contentPanel, text);
                     refreshSidebar();
+                    repaint();
                 } else {
                     JOptionPane.showMessageDialog(MainFrame.this, "El módulo '" + text + "' está en desarrollo.", "Próximamente", JOptionPane.INFORMATION_MESSAGE);
                 }
