@@ -205,8 +205,12 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         
         side.add(Box.createVerticalStrut(30));
 
+
         String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte" };
         for (String item : items) {
+            if(userRole.equalsIgnoreCase("Recepcionista")&& item.equals("Gestión de Habitaciones") ) {
+                continue;
+            }
             side.add(crearBotonSidebar(item));
             side.add(Box.createVerticalStrut(8));
         }
@@ -235,13 +239,13 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
             p.setBackground(ThemeManager.getPanelBackground());
         }
         
-        p.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
+        p.setBorder(BorderFactory.createEmptyBorder(7, 14, 7, 8));
 
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 13));
         lbl.setForeground(active ? ThemeManager.getPrimary() : ThemeManager.getTextSecondary());
         p.add(lbl, BorderLayout.CENTER);
-
+        
         // Indicador lateral activo
         if (active) {
             JPanel indicator = new JPanel();
@@ -312,6 +316,9 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
 
         String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte" };
         for (String item : items) {
+            if(userRole.equalsIgnoreCase("Recepcionista")&& item.equals("Gestión de Habitaciones") ) {
+                continue;
+            }
             sidebarPanel.add(crearBotonSidebar(item));
             sidebarPanel.add(Box.createVerticalStrut(8));
         }

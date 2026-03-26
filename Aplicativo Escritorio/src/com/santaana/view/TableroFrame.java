@@ -169,6 +169,7 @@ public class TableroFrame extends JFrame implements ThemeManager.ThemeListener {
 
         side.add(Box.createVerticalStrut(20));
 
+
         String[] items = {
                 "Tablero",
                 "Gestión de Habitaciones",
