@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
 
-// ════════════════════════════════════════════════════════════════
 //  MODELO
-// ════════════════════════════════════════════════════════════════
 
 enum RoomStatus { occupied, available, cleaning, maintenance, reserved }
 
@@ -54,9 +52,7 @@ const _mockRooms = [
   ),
 ];
 
-// ════════════════════════════════════════════════════════════════
 //  ROOMS VIEW
-// ════════════════════════════════════════════════════════════════
 
 class RoomsView extends StatefulWidget {
   const RoomsView({super.key});
@@ -275,9 +271,7 @@ class _RoomsViewState extends State<RoomsView> {
   
 }
 
-// ════════════════════════════════════════════════════════════════
 //  ROOM CARD
-// ════════════════════════════════════════════════════════════════
 
 class _RoomCard extends StatelessWidget {
   final RoomModel room;

@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/home_view.dart';
 
-// ════════════════════════════════════════════════════════════════
 //  MODELOS
-// ════════════════════════════════════════════════════════════════
 
 enum ReservationStatus { checkIn, checkOut, inStay, reserved }
 
@@ -69,9 +67,7 @@ final _mockReservations = [
   ),
 ];
 
-// ════════════════════════════════════════════════════════════════
 //  RESERVATIONS VIEW
-// ════════════════════════════════════════════════════════════════
 
 class ReservationsView extends StatefulWidget {
   const ReservationsView({super.key});
@@ -346,9 +342,7 @@ class _ReservationsViewState extends State<ReservationsView> {
   
 }
 
-// ════════════════════════════════════════════════════════════════
 //  RESERVATION CARD
-// ════════════════════════════════════════════════════════════════
 
 class _ReservationCard extends StatelessWidget {
   final ReservationModel data;
