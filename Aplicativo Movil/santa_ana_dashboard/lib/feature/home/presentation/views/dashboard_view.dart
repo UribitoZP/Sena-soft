@@ -3,7 +3,7 @@ import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/home_view.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/habitaciones_view.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/views/reservas_view.dart';
-// import 'package:santa_ana_dashboard/feature/home/presentation/views/reports_view.dart';
+import 'package:santa_ana_dashboard/feature/home/presentation/views/reportes_view.dart';
 
 
 //  DASHBOARD VIEW — Nav centralizado con IndexedStack
@@ -24,7 +24,7 @@ class _DashboardViewState extends State<DashboardView> {
     const HomeView(),
     const ReservationsView(),
     const RoomsView(),
-    const _ComingSoonView(label: 'Reportes'), // reemplaza con ReportsView()
+    const ReportsView()
   ];
 
   @override
@@ -115,46 +115,6 @@ class _BottomNav extends StatelessWidget {
             ),
           );
         }).toList(),
-      ),
-    );
-  }
-}
-
-
-//  PLACEHOLDER — Para vistas que aún no existen
-
-
-class _ComingSoonView extends StatelessWidget {
-  final String label;
-  const _ComingSoonView({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.bgColor,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.construction_rounded,
-                color: AppTheme.goldColor, size: 48),
-            const SizedBox(height: 16),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'Georgia',
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textColor,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Próximamente',
-              style: TextStyle(fontSize: 13, color: AppTheme.textMuted),
-            ),
-          ],
-        ),
       ),
     );
   }
