@@ -238,19 +238,23 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         } else {
             p.setBackground(ThemeManager.getPanelBackground());
         }
-        
-        p.setBorder(BorderFactory.createEmptyBorder(7, 14, 7, 8));
+            p.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
 
         JLabel lbl = new JLabel(text);
         lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 13));
         lbl.setForeground(active ? ThemeManager.getPrimary() : ThemeManager.getTextSecondary());
-        p.add(lbl, BorderLayout.CENTER);
-        
+
+        JPanel textWrapper = new JPanel(new BorderLayout());
+        textWrapper.setOpaque(false);
+        textWrapper.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 0)); 
+        textWrapper.add(lbl, BorderLayout.CENTER);
+
+        p.add(textWrapper, BorderLayout.CENTER);
         // Indicador lateral activo
         if (active) {
             JPanel indicator = new JPanel();
             indicator.setBackground(ThemeManager.getPrimary());
-            indicator.setPreferredSize(new Dimension(4, 0));
+            indicator.setPreferredSize(new Dimension(2, 0));
             p.add(indicator, BorderLayout.WEST);
         }
 
@@ -300,6 +304,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
 
         return p;
     }
+
 
     private void refreshSidebar() {
         sidebarPanel.removeAll();

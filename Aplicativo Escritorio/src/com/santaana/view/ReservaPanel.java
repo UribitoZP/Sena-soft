@@ -43,10 +43,6 @@ public class ReservaPanel extends JPanel {
         title.setForeground(getTextCol());
         navbar.add(title, BorderLayout.WEST);
 
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
-        actions.setOpaque(false);
-        actions.add(crearBotonAccion("+ Nueva Reserva", getPrimario(), Color.WHITE));
-        navbar.add(actions, BorderLayout.EAST);
 
         return navbar;
     }

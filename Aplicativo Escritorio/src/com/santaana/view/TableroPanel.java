@@ -2,6 +2,7 @@ package com.santaana.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -84,7 +85,6 @@ public class TableroPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
-        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
         b.setForeground(fg);
         b.setContentAreaFilled(false);
         b.setBorderPainted(false);
@@ -225,7 +225,7 @@ public class TableroPanel extends JPanel {
         info.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         info.setForeground(getLabel());
         info.setAlignmentX(0.0f);
-        
+
         JButton btn = new JButton("Gestionar ›") {
             public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -236,12 +236,47 @@ public class TableroPanel extends JPanel {
                 super.paintComponent(g);
             }
         };
+        JButton btn2 = new JButton("Ver detalles  \u203a") {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                Color bg = ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT
+                        ? new Color(0xE8F1FD)
+                        : new Color(0x334155);
+
+                g2.setColor(getModel().isRollover() ? bg.darker() : bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
+
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        JPanel espacio = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        espacio.setOpaque(false);
+        if (userRole.equalsIgnoreCase("administrador")) {
+            espacio.add(btn);
+        }
+        espacio.add(btn2);
+        espacio.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        espacio.setAlignmentX(0.0f);
+
+        info.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        
         btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btn.setForeground(Color.WHITE);
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
-        btn.setPreferredSize(new Dimension(100, 26));
+        btn.setPreferredSize(null);
         btn.setAlignmentX(0.0f);
+        //diselo de boton2 
+        btn2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btn2.setPreferredSize(null);
+        btn2.setForeground(getPrimario()); 
+        btn2.setContentAreaFilled(false);
+        btn2.setBorderPainted(false);
+        btn2.setFocusPainted(false);
+        btn2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         c.add(n);
         c.add(Box.createVerticalStrut(5));
@@ -249,7 +284,7 @@ public class TableroPanel extends JPanel {
         c.add(Box.createVerticalStrut(10));
         c.add(info);
         c.add(Box.createVerticalStrut(15));
-        c.add(btn);
+        c.add(espacio);
 
         return c;
     }

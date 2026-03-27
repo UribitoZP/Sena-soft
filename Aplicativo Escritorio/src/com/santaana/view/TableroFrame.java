@@ -393,6 +393,24 @@ public class TableroFrame extends JFrame implements ThemeManager.ThemeListener {
                 super.paintComponent(g);
             }
         };
+        JButton btn2 = new JButton("Ver detalles  \u203a") {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                Color bg = ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT
+                        ? new Color(0xE8F1FD)
+                        : new Color(0x334155);
+
+                g2.setColor(getModel().isRollover() ? bg.darker() : bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        JPanel espacio = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        espacio.setOpaque(false);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btn.setForeground(Color.WHITE);
         btn.setContentAreaFilled(false);
@@ -401,16 +419,30 @@ public class TableroFrame extends JFrame implements ThemeManager.ThemeListener {
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
         btn.setAlignmentX(JButton.LEFT_ALIGNMENT);
+        espacio.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        espacio.setAlignmentX(0.0f);
+
+        info.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        //diseño de boton2
+        btn2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btn2.setForeground(getPrimario()); 
+        btn2.setContentAreaFilled(false);
+        btn2.setBorderPainted(false);
+        btn2.setFocusPainted(false);
+        btn2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        btn2.setAlignmentX(JButton.LEFT_ALIGNMENT);
+
 
         c.add(top);
         c.add(Box.createVerticalStrut(10));
         c.add(info);
         c.add(Box.createVerticalStrut(10));
         c.add(btn);
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setOpaque(false);
-        wrapper.add(c, BorderLayout.NORTH);
-        return wrapper;
+        c.add(btn2);
+        c.add(espacio);
+        return c;
+    
 
     }
 }
