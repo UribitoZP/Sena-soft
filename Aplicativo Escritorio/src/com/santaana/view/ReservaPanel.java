@@ -447,13 +447,58 @@ public class ReservaPanel extends JPanel {
     }
 
     private void mostrarDetalleReserva(Reserva r) {
+        String colorHex = String.format("#%06X", r.color.getRGB() & 0xFFFFFF);
         String msg = "<html><b>Reserva #" + r.id + "</b><br><br>"
-            + "<b>Huésped:</b> " + r.huesped + "<br>"
+            + "<b>Huésped:</b> "    + r.huesped    + "<br>"
             + "<b>Habitación:</b> " + r.habitacion + "<br>"
-            + "<b>Entrada:</b> " + r.inicio + "<br>"
-            + "<b>Salida:</b> " + r.fin + "<br>"
-            + "<b>Estado:</b> <font color='" + String.format("#%06X", r.color.getRGB() & 0xFFFFFF) + "'>" + r.estado + "</font>"
+            + "<b>Entrada:</b> "    + r.inicio     + "<br>"
+            + "<b>Salida:</b> "     + r.fin        + "<br>"
+            + "<b>Estado:</b> <font color='" + colorHex + "'>" + r.estado + "</font>"
             + "</html>";
-        JOptionPane.showMessageDialog(this, msg, "Detalle de reserva", JOptionPane.INFORMATION_MESSAGE);
+
+        if (r.estado.equals("Activa")) {
+            Object[] opciones = {"Hacer Checkout", "Cancelar Reserva", "Cerrar"};
+            int op = JOptionPane.showOptionDialog(this, msg, "Detalle de reserva",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
+                null, opciones, opciones[2]);
+
+            if (op == 0) {
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "<html>¿Confirmar checkout de <b>" + r.huesped + "</b>?<br>"
+                    + "La habitación " + r.habitacion + " quedará disponible.</html>",
+                    "Confirmar Checkout", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    realizarCheckout(r);
+                }
+            } else if (op == 1) {
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "¿Cancelar la reserva de " + r.huesped + "?",
+                    "Cancelar Reserva", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Cancelada");
+                    refreshUI();
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, msg, "Detalle de reserva", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void realizarCheckout(Reserva r) {
+        reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Completada");
+
+        // Liberar la habitación buscando por número
+        for (com.santaana.model.Habitacion h : habitacionDAO.listarTodas()) {
+            if (("Hab " + h.getNumero()).equals(r.habitacion)) {
+                habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                break;
+            }
+        }
+
+        JOptionPane.showMessageDialog(this,
+            "<html>Checkout realizado.<br><b>" + r.huesped + "</b> ha salido.<br>"
+            + r.habitacion + " está disponible nuevamente.</html>",
+            "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
+        refreshUI();
     }
 }
