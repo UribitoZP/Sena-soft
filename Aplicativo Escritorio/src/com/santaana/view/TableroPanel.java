@@ -70,9 +70,6 @@ public class TableroPanel extends JPanel {
 
         JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 8));
         mid.setOpaque(false);
-        JButton btnNuevaReserva = crearBotonAccion("+ Nueva Reserva", getPrimario(), Color.WHITE);
-        btnNuevaReserva.addActionListener(e -> { if (onNuevaReserva != null) onNuevaReserva.run(); });
-        mid.add(btnNuevaReserva);
         mid.add(crearBotonAccion("$ Venta Rápida",
             ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155),
             getPrimario()));
