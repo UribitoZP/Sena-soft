@@ -41,6 +41,28 @@ public class HabitacionDAO {
         return lista;
     }
 
+    public List<Habitacion> listarDisponiblesEnFechas(String desde, String hasta) {
+        List<Habitacion> lista = new ArrayList<>();
+        String sql =
+            "SELECT * FROM habitaciones WHERE estado != 'Mantenimiento' AND id NOT IN (" +
+            "  SELECT id_habitacion FROM reservas " +
+            "  WHERE estado = 'Activa' AND fecha_entrada < ? AND fecha_salida > ?" +
+            ") ORDER BY numero";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, hasta);
+            ps.setString(2, desde);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error listando disponibles por fechas: " + e.getMessage());
+        }
+        return lista;
+    }
+
     public boolean actualizarEstado(int id, String nuevoEstado) {
         String sql = "UPDATE habitaciones SET estado = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
