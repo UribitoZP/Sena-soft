@@ -365,7 +365,6 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         sidebarPanel.repaint();
     }
 
-    @Override
     private void abrirNuevaReserva() {
         NuevaReservaDialog dialog = new NuevaReservaDialog(this, idUsuario);
         dialog.setVisible(true);
