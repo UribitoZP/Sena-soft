@@ -245,19 +245,40 @@ public class GestHabitacionPanel extends JPanel {
     }
 
     private void mostrarGestion(Habitacion h) {
-        String[] estados = {"Disponible", "Ocupada", "Mantenimiento"};
-        String nuevo = (String) JOptionPane.showInputDialog(
-            this,
-            "Habitación " + h.getNumero() + "\nEstado actual: " + h.getEstado(),
-            "Cambiar estado",
-            JOptionPane.PLAIN_MESSAGE,
-            null,
-            estados,
-            h.getEstado()
-        );
-        if (nuevo != null && !nuevo.equals(h.getEstado())) {
-            habitacionDAO.actualizarEstado(h.getId(), nuevo);
+        JComboBox<String> cmbTipo   = new JComboBox<>(new String[]{"Simple","Doble","Suite"});
+        cmbTipo.setSelectedItem(h.getTipo());
+
+        JComboBox<String> cmbEstado = new JComboBox<>(new String[]{"Disponible","Ocupada","Mantenimiento"});
+        cmbEstado.setSelectedItem(h.getEstado());
+
+        JTextField tfPrecio = new JTextField(String.valueOf((int) h.getPrecio()));
+
+        Object[] campos = {
+            "Habitación N°: " + h.getNumero(),
+            " ",
+            "Tipo:",    cmbTipo,
+            "Estado:",  cmbEstado,
+            "Precio / noche ($):", tfPrecio
+        };
+
+        int res = JOptionPane.showConfirmDialog(this, campos,
+            "Gestionar habitación " + h.getNumero(),
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (res != JOptionPane.OK_OPTION) return;
+
+        try {
+            double nuevoPrecio = Double.parseDouble(tfPrecio.getText().trim());
+            String nuevoTipo   = (String) cmbTipo.getSelectedItem();
+            String nuevoEstado = (String) cmbEstado.getSelectedItem();
+
+            habitacionDAO.actualizarDatos(h.getId(), nuevoTipo, nuevoPrecio);
+            if (!nuevoEstado.equals(h.getEstado())) {
+                habitacionDAO.actualizarEstado(h.getId(), nuevoEstado);
+            }
             refreshUI();
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Precio inválido.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

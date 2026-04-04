@@ -94,6 +94,20 @@ public class HabitacionDAO {
         }
     }
 
+    public boolean actualizarDatos(int id, String tipo, double precio) {
+        String sql = "UPDATE habitaciones SET tipo = ?, precio = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, tipo);
+            ps.setDouble(2, precio);
+            ps.setInt(3, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error actualizando habitacion: " + e.getMessage());
+            return false;
+        }
+    }
+
     public boolean eliminar(int id) {
         String sql = "DELETE FROM habitaciones WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
