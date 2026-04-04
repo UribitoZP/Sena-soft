@@ -23,6 +23,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
 
+import com.santaana.dao.HabitacionDAO;
+import com.santaana.model.Habitacion;
 import com.santaana.util.ThemeManager;
 
 public class TableroPanel extends JPanel {
@@ -30,6 +32,7 @@ public class TableroPanel extends JPanel {
     private Runnable onNuevaReserva;
     private boolean isPlaceholderActive = true;
     private final String PLACEHOLDER = " Buscar habitación...";
+    private final HabitacionDAO habitacionDAO = new HabitacionDAO();
     
     private Color getBorde() { return ThemeManager.getBorder(); }
     private Color getPrimario() { return ThemeManager.getPrimary(); }
@@ -107,11 +110,17 @@ public class TableroPanel extends JPanel {
     }
 
     private JPanel statsRow() {
-        JPanel row = new JPanel(new GridLayout(1, 3, 14, 0));
+        java.util.List<Habitacion> todas = habitacionDAO.listarTodas();
+        long disponibles  = todas.stream().filter(h -> h.getEstado().equals("Disponible")).count();
+        long ocupadas     = todas.stream().filter(h -> h.getEstado().equals("Ocupada")).count();
+        long mantenimiento = todas.stream().filter(h -> h.getEstado().equals("Mantenimiento")).count();
+
+        JPanel row = new JPanel(new GridLayout(1, 4, 14, 0));
         row.setOpaque(false);
-        row.add(statCard("Habitaciones disponibles", "15", new Color(0x27AE60)));
-        row.add(statCard("Habitaciones ocupadas", "0", new Color(0xE67E22)));
-        row.add(statCard("Total habitaciones", "15", new Color(0x3A7BD5)));
+        row.add(statCard("Habitaciones disponibles",  String.valueOf(disponibles),   new Color(0x27AE60)));
+        row.add(statCard("Habitaciones ocupadas",     String.valueOf(ocupadas),      new Color(0xE74C3C)));
+        row.add(statCard("En mantenimiento",          String.valueOf(mantenimiento), new Color(0xE67E22)));
+        row.add(statCard("Total habitaciones",        String.valueOf(todas.size()),  new Color(0x3A7BD5)));
         return row;
     }
 
@@ -187,8 +196,13 @@ public class TableroPanel extends JPanel {
 
         JPanel grid = new JPanel(new GridLayout(0, 3, 12, 12));
         grid.setOpaque(false);
-        for (int i = 101; i <= 115; i++) {
-            grid.add(roomCard(String.valueOf(i)));
+        java.util.List<Habitacion> habitaciones = habitacionDAO.listarTodas();
+        if (habitaciones.isEmpty()) {
+            grid.add(new JLabel("No hay habitaciones registradas."));
+        } else {
+            for (Habitacion h : habitaciones) {
+                grid.add(roomCard(h));
+            }
         }
 
         JScrollPane scroll = new JScrollPane(grid);
@@ -199,7 +213,7 @@ public class TableroPanel extends JPanel {
         return area;
     }
 
-    private JPanel roomCard(String num) {
+    private JPanel roomCard(Habitacion h) {
         JPanel c = new JPanel() {
             public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -215,80 +229,34 @@ public class TableroPanel extends JPanel {
         c.setLayout(new BoxLayout(c, BoxLayout.Y_AXIS));
         c.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        JLabel n = new JLabel("Habitación " + num);
+        JLabel n = new JLabel("Habitación " + h.getNumero());
         n.setFont(new Font("Segoe UI", Font.BOLD, 15));
         n.setForeground(getTextCol());
         n.setAlignmentX(0.0f);
 
-        JLabel dispel = new JLabel("Disponible");
-        dispel.setForeground(new Color(0x27AE60));
-        dispel.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        dispel.setAlignmentX(0.0f);
+        Color colorEstado;
+        switch (h.getEstado()) {
+            case "Disponible":    colorEstado = new Color(0x27AE60); break;
+            case "Ocupada":       colorEstado = new Color(0xE74C3C); break;
+            case "Mantenimiento": colorEstado = new Color(0xE67E22); break;
+            default:              colorEstado = new Color(0x95A5A6);
+        }
+        JLabel estadoLbl = new JLabel(h.getEstado());
+        estadoLbl.setForeground(colorEstado);
+        estadoLbl.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        estadoLbl.setAlignmentX(0.0f);
 
-        JLabel info = new JLabel("<html>Individual<br>$70.000 / Noche</html>");
+        JLabel info = new JLabel(String.format("<html>%s<br>$%,.0f / Noche</html>", h.getTipo(), h.getPrecio()));
         info.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         info.setForeground(getLabel());
         info.setAlignmentX(0.0f);
-
-        JButton btn = new JButton("Gestionar ›") {
-            public void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getPrimario());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        JButton btn2 = new JButton("Ver detalles  \u203a") {
-            public void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                Color bg = ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT
-                        ? new Color(0xE8F1FD)
-                        : new Color(0x334155);
-
-                g2.setColor(getModel().isRollover() ? bg.darker() : bg);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
-
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        JPanel espacio = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        espacio.setOpaque(false);
-        if (userRole.equalsIgnoreCase("administrador")) {
-            espacio.add(btn);
-        }
-        espacio.add(btn2);
-        espacio.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        espacio.setAlignmentX(0.0f);
-
         info.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        btn.setForeground(Color.WHITE);
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
-        btn.setPreferredSize(null);
-        btn.setAlignmentX(0.0f);
-        //diselo de boton2 
-        btn2.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        btn2.setPreferredSize(null);
-        btn2.setForeground(getPrimario()); 
-        btn2.setContentAreaFilled(false);
-        btn2.setBorderPainted(false);
-        btn2.setFocusPainted(false);
-        btn2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         c.add(n);
         c.add(Box.createVerticalStrut(5));
-        c.add(dispel);
+        c.add(estadoLbl);
         c.add(Box.createVerticalStrut(10));
         c.add(info);
-        c.add(Box.createVerticalStrut(15));
-        c.add(espacio);
 
         return c;
     }
