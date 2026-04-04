@@ -35,6 +35,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private String userRole;
     private String currentView = "Tablero";
     private int idUsuario;
+    private ReservaPanel reservaPanel;
 
     public MainFrame(String role, String welcomeMessage, int idUsuario) {
         this.userRole  = role;
@@ -71,8 +72,9 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.setOpaque(false);
 
         // Agregar vistas
-        contentPanel.add(new TableroPanel(userRole, () -> new NuevaReservaDialog(this, idUsuario).setVisible(true)), "Tablero");
-        contentPanel.add(new ReservaPanel(userRole), "Reserva");
+        contentPanel.add(new TableroPanel(userRole, () -> abrirNuevaReserva()), "Tablero");
+        reservaPanel = new ReservaPanel(userRole);
+        contentPanel.add(reservaPanel, "Reserva");
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         contentPanel.add(new NotificacionPanel(), "Notificaciones");
 
@@ -125,7 +127,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         btnNuevaReserva.setFocusPainted(false);
         btnNuevaReserva.setPreferredSize(new Dimension(150, 36));
         btnNuevaReserva.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnNuevaReserva.addActionListener(e -> new NuevaReservaDialog(this, idUsuario).setVisible(true));
+        btnNuevaReserva.addActionListener(e -> abrirNuevaReserva());
         center.add(btnNuevaReserva);
         bar.add(center, BorderLayout.CENTER);
 
@@ -361,6 +363,16 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         
         sidebarPanel.revalidate();
         sidebarPanel.repaint();
+    }
+
+    @Override
+    private void abrirNuevaReserva() {
+        NuevaReservaDialog dialog = new NuevaReservaDialog(this, idUsuario);
+        dialog.setVisible(true);
+        // Al cerrar el dialog, refrescar el panel de reservas
+        if (reservaPanel != null) {
+            reservaPanel.refreshUI();
+        }
     }
 
     @Override
