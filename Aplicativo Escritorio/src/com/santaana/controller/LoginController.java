@@ -47,7 +47,7 @@ public class LoginController {
             }
 
             String bienvenida = "Bienvenido al sistema, " + usuario.getNombre() + ".";
-            MainFrame mainFrame = new MainFrame(usuario.getRol(), bienvenida);
+            MainFrame mainFrame = new MainFrame(usuario.getRol(), bienvenida, usuario.getId());
             mainFrame.setVisible(true);
             view.dispose();
         }
