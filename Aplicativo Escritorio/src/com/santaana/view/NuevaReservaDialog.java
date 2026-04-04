@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import javax.swing.*;
@@ -27,9 +28,9 @@ public class NuevaReservaDialog extends JDialog {
 
     // Campos de reserva
     private JDateChooser fechaEntrada;
-    private JTextField   horaEntrada;
+    private JSpinner     horaEntrada;
     private JDateChooser fechaSalida;
-    private JTextField   horaSalida;
+    private JSpinner     horaSalida;
     private JComboBox<String> tipoEstadia;
 
     // Pago
@@ -131,9 +132,9 @@ public class NuevaReservaDialog extends JDialog {
         p.add(titulo("Datos de la reserva"));
 
         fechaEntrada = dateChooser();
-        horaEntrada  = textField("14:00");
+        horaEntrada  = timeSpinner(14, 0);
         fechaSalida  = dateChooser();
-        horaSalida   = textField("12:00");
+        horaSalida   = timeSpinner(12, 0);
         tipoEstadia  = new JComboBox<>(new String[]{"Noche completa","Día completo","Media noche","Por horas"});
         estilizarCombo(tipoEstadia);
 
@@ -463,6 +464,27 @@ public class NuevaReservaDialog extends JDialog {
         w.add(lbl,   BorderLayout.NORTH);
         w.add(campo, BorderLayout.CENTER);
         return w;
+    }
+
+    private JSpinner timeSpinner(int hora, int minuto) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, hora);
+        cal.set(Calendar.MINUTE, minuto);
+        cal.set(Calendar.SECOND, 0);
+        SpinnerDateModel model = new SpinnerDateModel(
+            cal.getTime(), null, null, Calendar.MINUTE);
+        JSpinner spinner = new JSpinner(model);
+        JSpinner.DateEditor editor = new JSpinner.DateEditor(spinner, "HH:mm");
+        spinner.setEditor(editor);
+        spinner.setPreferredSize(new Dimension(0, 36));
+        spinner.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        spinner.setBackground(ThemeManager.getPanelBackground());
+        spinner.setForeground(ThemeManager.getTextPrimary());
+        spinner.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true));
+        editor.getTextField().setBackground(ThemeManager.getPanelBackground());
+        editor.getTextField().setForeground(ThemeManager.getTextPrimary());
+        editor.getTextField().setHorizontalAlignment(JTextField.CENTER);
+        return spinner;
     }
 
     private String formatearFecha(Date d) {
