@@ -5,15 +5,14 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JOptionPane;
 
+import com.santaana.dao.UsuarioDAO;
+import com.santaana.model.Usuario;
 import com.santaana.view.LoginFrame;
 import com.santaana.view.MainFrame;
-import com.santaana.view.NotificacionFrame;
-import com.santaana.view.ReservaFrame;
-import com.santaana.view.TableroFrame;
-
 
 public class LoginController {
     private LoginFrame view;
+    private UsuarioDAO usuarioDAO = new UsuarioDAO();
 
     public LoginController(LoginFrame view) {
         this.view = view;
@@ -23,34 +22,34 @@ public class LoginController {
     private class LoginListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String role = view.getSelectedRole();
-            String username = view.getUsername();
+            String rol      = view.getSelectedRole();
+            String username = view.getUsername().trim();
             String password = view.getPassword();
 
-            // 1. Validacion de Seleccion
-            if (role.equals("Seleccionar...")) {
-                view.showMessage("Por favor, seleccione un rol antes de ingresar.", "Advertencia",
-                        JOptionPane.WARNING_MESSAGE);
+            if (rol.equals("Seleccionar...")) {
+                view.showMessage("Por favor, seleccione un rol antes de ingresar.",
+                        "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             if (username.isEmpty() || password.isEmpty()) {
-                view.showMessage("Por favor, complete todos los campos.", "Campos vacíos", JOptionPane.ERROR_MESSAGE);
+                view.showMessage("Por favor, complete todos los campos.",
+                        "Campos vacíos", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            // 2. Captura de Perfil y Despacho de Vistas
-            processLogin(role, username);
+            Usuario usuario = usuarioDAO.autenticar(username, password, rol);
+
+            if (usuario == null) {
+                view.showMessage("Credenciales incorrectas o rol no coincide.",
+                        "Acceso denegado", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String bienvenida = "Bienvenido al sistema, " + usuario.getNombre() + ".";
+            MainFrame mainFrame = new MainFrame(usuario.getRol(), bienvenida);
+            mainFrame.setVisible(true);
+            view.dispose();
         }
-    }
-
-    private void processLogin(String role, String username) {
-        String welcomeMessage = "Bienvenido al sistema, " + username + ".";
-        
-        // Siempre abrir MainFrame, pero con el rol correspondiente
-        MainFrame mainFrame = new MainFrame(role, welcomeMessage);
-        mainFrame.setVisible(true);
-
-        view.dispose(); // Cerrar ventana de login
     }
 }
