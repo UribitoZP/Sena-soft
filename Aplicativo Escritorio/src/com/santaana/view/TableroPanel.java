@@ -108,16 +108,18 @@ public class TableroPanel extends JPanel {
 
     private JPanel statsRow() {
         java.util.List<Habitacion> todas = habitacionDAO.listarTodas();
-        long disponibles  = todas.stream().filter(h -> h.getEstado().equals("Disponible")).count();
-        long ocupadas     = todas.stream().filter(h -> h.getEstado().equals("Ocupada")).count();
+        long disponibles   = todas.stream().filter(h -> h.getEstado().equals("Disponible")).count();
+        long ocupadas      = todas.stream().filter(h -> h.getEstado().equals("Ocupada")).count();
+        long limpieza      = todas.stream().filter(h -> h.getEstado().equals("Limpieza")).count();
         long mantenimiento = todas.stream().filter(h -> h.getEstado().equals("Mantenimiento")).count();
 
-        JPanel row = new JPanel(new GridLayout(1, 4, 14, 0));
+        JPanel row = new JPanel(new GridLayout(1, 5, 14, 0));
         row.setOpaque(false);
-        row.add(statCard("Habitaciones disponibles",  String.valueOf(disponibles),   new Color(0x27AE60)));
-        row.add(statCard("Habitaciones ocupadas",     String.valueOf(ocupadas),      new Color(0xE74C3C)));
-        row.add(statCard("En mantenimiento",          String.valueOf(mantenimiento), new Color(0xE67E22)));
-        row.add(statCard("Total habitaciones",        String.valueOf(todas.size()),  new Color(0x3A7BD5)));
+        row.add(statCard("Disponibles",   String.valueOf(disponibles),   new Color(0x27AE60)));
+        row.add(statCard("Ocupadas",      String.valueOf(ocupadas),      new Color(0xE74C3C)));
+        row.add(statCard("En limpieza",   String.valueOf(limpieza),      new Color(0x3A7BD5)));
+        row.add(statCard("Mantenimiento", String.valueOf(mantenimiento), new Color(0xE67E22)));
+        row.add(statCard("Total",         String.valueOf(todas.size()),  new Color(0x95A5A6)));
         return row;
     }
 
@@ -235,6 +237,7 @@ public class TableroPanel extends JPanel {
         switch (h.getEstado()) {
             case "Disponible":    colorEstado = new Color(0x27AE60); break;
             case "Ocupada":       colorEstado = new Color(0xE74C3C); break;
+            case "Limpieza":      colorEstado = new Color(0x3A7BD5); break;
             case "Mantenimiento": colorEstado = new Color(0xE67E22); break;
             default:              colorEstado = new Color(0x95A5A6);
         }
