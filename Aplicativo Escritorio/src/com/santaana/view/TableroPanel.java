@@ -262,6 +262,75 @@ public class TableroPanel extends JPanel {
         c.add(Box.createVerticalStrut(10));
         c.add(info);
 
+        if (h.getEstado().equals("Ocupada")) {
+            JButton btnCheckout = crearBoton("Checkout", new Color(0xE74C3C));
+            btnCheckout.addActionListener(e -> hacerCheckout(h, c));
+            c.add(Box.createVerticalStrut(10));
+            c.add(btnCheckout);
+        }
+
+        if (h.getEstado().equals("Limpieza")) {
+            JButton btnHabilitar = crearBoton("✓ Habilitar", new Color(0x27AE60));
+            btnHabilitar.addActionListener(e -> {
+                habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                if (onEstadoCambiado != null) onEstadoCambiado.run();
+            });
+            c.add(Box.createVerticalStrut(10));
+            c.add(btnHabilitar);
+        }
+
         return c;
+    }
+
+    private JButton crearBoton(String texto, Color bg) {
+        JButton b = new JButton(texto) {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        b.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        b.setForeground(Color.WHITE);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        b.setAlignmentX(0.0f);
+        return b;
+    }
+
+    private void hacerCheckout(Habitacion h, JPanel card) {
+        // Buscar reserva activa de esta habitación
+        com.santaana.model.Reserva reservaActiva = null;
+        for (com.santaana.model.Reserva r : reservaDAO.listarTodas()) {
+            if (r.getIdHabitacion() == h.getId() && r.getEstado().equals("Activa")) {
+                reservaActiva = r;
+                break;
+            }
+        }
+
+        String cliente = reservaActiva != null ? reservaActiva.getClienteNombre() : "desconocido";
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "<html>¿Confirmar checkout de <b>" + cliente + "</b>?<br>"
+            + "Habitación " + h.getNumero() + " pasará a <b>Limpieza</b>.</html>",
+            "Confirmar Checkout", JOptionPane.YES_NO_OPTION);
+
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        if (reservaActiva != null) {
+            reservaDAO.actualizarEstado(reservaActiva.getId(), "Completada");
+        }
+        habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
+
+        JOptionPane.showMessageDialog(this,
+            "<html>Checkout realizado.<br>Habitación " + h.getNumero() + " en <b>Limpieza</b>.</html>",
+            "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
+
+        if (onEstadoCambiado != null) onEstadoCambiado.run();
     }
 }
