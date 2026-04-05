@@ -35,7 +35,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private String userRole;
     private String currentView = "Tablero";
     private int idUsuario;
-    private ReservaPanel reservaPanel;
+    private ReservaPanel  reservaPanel;
+    private TableroPanel  tableroPanel;
 
     public MainFrame(String role, String welcomeMessage, int idUsuario) {
         this.userRole  = role;
@@ -72,8 +73,10 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.setOpaque(false);
 
         // Agregar vistas
-        contentPanel.add(new TableroPanel(userRole, () -> abrirNuevaReserva()), "Tablero");
+        tableroPanel = new TableroPanel(userRole, () -> abrirNuevaReserva(), () -> refrescarTodo());
+        contentPanel.add(tableroPanel, "Tablero");
         reservaPanel = new ReservaPanel(userRole);
+        reservaPanel.setOnEstadoCambiado(() -> refrescarTodo());
         contentPanel.add(reservaPanel, "Reserva");
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         contentPanel.add(new NotificacionPanel(), "Notificaciones");
@@ -368,10 +371,12 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private void abrirNuevaReserva() {
         NuevaReservaDialog dialog = new NuevaReservaDialog(this, idUsuario);
         dialog.setVisible(true);
-        // Al cerrar el dialog, refrescar el panel de reservas
-        if (reservaPanel != null) {
-            reservaPanel.refreshUI();
-        }
+        refrescarTodo();
+    }
+
+    public void refrescarTodo() {
+        if (tableroPanel  != null) tableroPanel.refreshUI();
+        if (reservaPanel  != null) reservaPanel.refreshUI();
     }
 
     @Override

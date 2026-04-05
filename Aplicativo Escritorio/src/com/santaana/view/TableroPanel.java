@@ -24,16 +24,19 @@ import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
 
 import com.santaana.dao.HabitacionDAO;
+import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.ThemeManager;
 
 public class TableroPanel extends JPanel {
     private String userRole;
     private Runnable onNuevaReserva;
+    private Runnable onEstadoCambiado;
     private boolean isPlaceholderActive = true;
     private final String PLACEHOLDER = " Buscar habitación...";
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
-    
+    private final ReservaDAO    reservaDAO    = new ReservaDAO();
+
     private Color getBorde() { return ThemeManager.getBorder(); }
     private Color getPrimario() { return ThemeManager.getPrimary(); }
     private Color getLabel() { return ThemeManager.getTextSecondary(); }
@@ -41,9 +44,10 @@ public class TableroPanel extends JPanel {
     private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
     private Color getTextCol() { return ThemeManager.getTextPrimary(); }
 
-    public TableroPanel(String role, Runnable onNuevaReserva) {
-        this.userRole = role;
-        this.onNuevaReserva = onNuevaReserva;
+    public TableroPanel(String role, Runnable onNuevaReserva, Runnable onEstadoCambiado) {
+        this.userRole         = role;
+        this.onNuevaReserva   = onNuevaReserva;
+        this.onEstadoCambiado = onEstadoCambiado;
         setLayout(new BorderLayout());
         setBackground(getBackgroundCol());
         refreshUI();

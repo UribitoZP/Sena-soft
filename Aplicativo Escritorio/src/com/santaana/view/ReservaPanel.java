@@ -24,9 +24,14 @@ public class ReservaPanel extends JPanel {
     private YearMonth mesActual = YearMonth.now();
     private JPanel calendarGrid;
     private JLabel lblMesAnio;
+    private Runnable onEstadoCambiado;
 
     private final ReservaDAO reservaDAO = new ReservaDAO();
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
+
+    public void setOnEstadoCambiado(Runnable callback) {
+        this.onEstadoCambiado = callback;
+    }
 
     // ── Modelo de display para el calendario ─────────────────────────────────
     private static class Reserva {
@@ -477,6 +482,7 @@ public class ReservaPanel extends JPanel {
                 if (confirm == JOptionPane.YES_OPTION) {
                     reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Cancelada");
                     refreshUI();
+                    if (onEstadoCambiado != null) onEstadoCambiado.run();
                 }
             }
         } else {
@@ -487,18 +493,19 @@ public class ReservaPanel extends JPanel {
     private void realizarCheckout(Reserva r) {
         reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Completada");
 
-        // Liberar la habitación buscando por número
         for (com.santaana.model.Habitacion h : habitacionDAO.listarTodas()) {
             if (("Hab " + h.getNumero()).equals(r.habitacion)) {
-                habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
                 break;
             }
         }
 
         JOptionPane.showMessageDialog(this,
             "<html>Checkout realizado.<br><b>" + r.huesped + "</b> ha salido.<br>"
-            + r.habitacion + " está disponible nuevamente.</html>",
+            + r.habitacion + " pasó a <b>Limpieza</b>.</html>",
             "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
+
         refreshUI();
+        if (onEstadoCambiado != null) onEstadoCambiado.run();
     }
 }

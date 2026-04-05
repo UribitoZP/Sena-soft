@@ -210,6 +210,7 @@ public class GestHabitacionPanel extends JPanel {
         switch (h.getEstado()) {
             case "Disponible":    colorEstado = new Color(0x27AE60); break;
             case "Ocupada":       colorEstado = new Color(0xE74C3C); break;
+            case "Limpieza":      colorEstado = new Color(0x3A7BD5); break;
             case "Mantenimiento": colorEstado = new Color(0xE67E22); break;
             default:              colorEstado = new Color(0x95A5A6);
         }
@@ -231,13 +232,26 @@ public class GestHabitacionPanel extends JPanel {
         c.add(Box.createVerticalStrut(12));
         c.add(info);
 
+        if (h.getEstado().equals("Limpieza")) {
+            JButton btnHabilitar = crearBotonAccion("✓ Habilitar", new Color(0x27AE60), Color.WHITE);
+            btnHabilitar.setPreferredSize(new Dimension(120, 30));
+            btnHabilitar.setMaximumSize(new Dimension(120, 30));
+            btnHabilitar.setAlignmentX(0.0f);
+            btnHabilitar.addActionListener(e -> {
+                habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                refreshUI();
+            });
+            c.add(Box.createVerticalStrut(18));
+            c.add(btnHabilitar);
+        }
+
         if (userRole.equalsIgnoreCase("Administrador")) {
             JButton btn = crearBotonAccion("Gestionar ›", getPrimario(), Color.WHITE);
             btn.setPreferredSize(new Dimension(120, 30));
             btn.setMaximumSize(new Dimension(120, 30));
             btn.setAlignmentX(0.0f);
             btn.addActionListener(e -> mostrarGestion(h));
-            c.add(Box.createVerticalStrut(18));
+            c.add(Box.createVerticalStrut(h.getEstado().equals("Limpieza") ? 8 : 18));
             c.add(btn);
         }
 
