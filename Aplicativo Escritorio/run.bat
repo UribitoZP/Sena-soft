@@ -38,7 +38,13 @@ javac -cp ".;%LIB_DIR%\jcalendar-1.4.jar;%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;%LIB
     "%SRC_DIR%\com\santaana\view\NotificacionPanel.java" ^
     "%SRC_DIR%\com\santaana\view\NotificacionFrame.java" ^
     "%SRC_DIR%\com\santaana\view\NuevaReservaDialog.java" ^
-    "%SRC_DIR%\com\santaana\view\InfoHabitacionFrame.java"
+    "%SRC_DIR%\com\santaana\view\InfoHabitacionFrame.java" ^
+    "%SRC_DIR%\com\santaana\server\JsonUtil.java" ^
+    "%SRC_DIR%\com\santaana\server\AuthHandler.java" ^
+    "%SRC_DIR%\com\santaana\server\HabitacionesHandler.java" ^
+    "%SRC_DIR%\com\santaana\server\ReservasHandler.java" ^
+    "%SRC_DIR%\com\santaana\server\StatsHandler.java" ^
+    "%SRC_DIR%\com\santaana\server\RestServer.java"
 
 if %errorlevel% neq 0 (
     echo [!] Error de compilacion.
