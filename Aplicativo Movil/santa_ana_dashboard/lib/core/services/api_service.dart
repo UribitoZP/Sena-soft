@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-/// URL base del servidor REST Java.
-/// Cambiar la IP a la del PC donde corre el escritorio.
-/// En emulador Android: 10.0.2.2 apunta al localhost del host.
-const String _baseUrl = 'http://10.0.2.2:8080';
-
 class ApiService {
   static const Duration _timeout = Duration(seconds: 10);
+
+  /// IP del servidor. Se actualiza desde la pantalla de login.
+  static String serverIp = '10.0.2.2';
+
+  static String get _baseUrl => 'http://$serverIp:8080';
 
   // ── Auth ────────────────────────────────────────────────────
 

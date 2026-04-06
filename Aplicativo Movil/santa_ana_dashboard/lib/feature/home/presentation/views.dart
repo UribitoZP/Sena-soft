@@ -19,14 +19,8 @@ class Views extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (_) => const DashboardView()),
           );
-        } else if (state is AppFailure) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => FailureView(message: state.message),
-            ),
-          );
         }
+        // AppFailure se muestra directamente en InitialView
       },
       child: const InitialView(),
     );

@@ -12,9 +12,17 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       emit(AppLoading());
       try {
         final userData = await _api.login(event.username, event.password);
+        if (userData['rol'] != 'Administrador') {
+          emit(const AppFailure(
+              message: 'Acceso denegado.\nEsta app es solo para administradores.'));
+          return;
+        }
         emit(AppLoginSuccess(data: userData));
-      } catch (_) {
-        emit(const AppFailure(message: 'Credenciales incorrectas'));
+      } catch (e) {
+        final msg = e.toString().contains('Credenciales')
+            ? 'Credenciales incorrectas'
+            : 'No se pudo conectar al servidor.\nVerifica la IP y que el escritorio esté abierto.';
+        emit(AppFailure(message: msg));
       }
     });
 
