@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const SYSTEM_VERSION = 'v1.3.2';
+    const SYSTEM_VERSION = 'v2.0.0';
 
     // --- Control de Versión Centralizado ---
     const setupVersion = () => {
