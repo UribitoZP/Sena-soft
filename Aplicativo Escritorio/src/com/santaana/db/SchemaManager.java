@@ -10,25 +10,33 @@ public class SchemaManager {
     private static final int SCHEMA_VERSION = 3;
 
     public static void inicializar() {
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement stmt = conn.createStatement()) {
+        Connection conn = null;
+        Statement  stmt = null;
+        try {
+            conn = DatabaseConnection.getConnection();
+            stmt = conn.createStatement();
 
-            int version = getUserVersion(conn);
+            // Leer version
+            int version = 0;
+            ResultSet rv = stmt.executeQuery("PRAGMA user_version");
+            if (rv.next()) version = rv.getInt(1);
+            rv.close();
 
             if (version < SCHEMA_VERSION) {
                 migrar(conn, stmt);
-                setUserVersion(conn, SCHEMA_VERSION);
+                stmt.executeUpdate("PRAGMA user_version = " + SCHEMA_VERSION);
             }
 
             System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
         } catch (SQLException e) {
             System.err.println("Error inicializando esquema: " + e.getMessage());
+        } finally {
+            try { if (stmt != null) stmt.close(); } catch (SQLException ignored) {}
         }
     }
 
     private static void migrar(Connection conn, Statement stmt) throws SQLException {
-        // Tablas que no cambian: crear si no existen
         stmt.executeUpdate(
             "CREATE TABLE IF NOT EXISTS usuarios (" +
             "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -52,10 +60,9 @@ public class SchemaManager {
             ")"
         );
 
-        // Habitaciones: recrear con constraint correcto usando el mismo stmt
         stmt.executeUpdate("DROP TABLE IF EXISTS habitaciones_old");
 
-        // Verificar si la tabla existe usando el mismo statement
+        // Verificar si habitaciones existe
         ResultSet rs = stmt.executeQuery(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='habitaciones'"
         );
@@ -64,22 +71,8 @@ public class SchemaManager {
 
         if (existe) {
             stmt.executeUpdate("ALTER TABLE habitaciones RENAME TO habitaciones_old");
-            crearTablaHabitaciones(stmt);
-            stmt.executeUpdate(
-                "INSERT INTO habitaciones (id, numero, tipo, precio, estado) " +
-                "SELECT id, numero, tipo, precio, " +
-                "CASE WHEN estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza') " +
-                "     THEN estado ELSE 'Disponible' END " +
-                "FROM habitaciones_old"
-            );
-            stmt.executeUpdate("DROP TABLE habitaciones_old");
-            System.out.println("Migración: tabla habitaciones actualizada con estado Limpieza.");
-        } else {
-            crearTablaHabitaciones(stmt);
         }
-    }
 
-    private static void crearTablaHabitaciones(Statement stmt) throws SQLException {
         stmt.executeUpdate(
             "CREATE TABLE habitaciones (" +
             "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -90,14 +83,17 @@ public class SchemaManager {
             "       CHECK(estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza'))" +
             ")"
         );
-    }
 
-    private static int getUserVersion(Connection conn) throws SQLException {
-        ResultSet rs = conn.createStatement().executeQuery("PRAGMA user_version");
-        return rs.next() ? rs.getInt(1) : 0;
-    }
-
-    private static void setUserVersion(Connection conn, int v) throws SQLException {
-        conn.createStatement().executeUpdate("PRAGMA user_version = " + v);
+        if (existe) {
+            stmt.executeUpdate(
+                "INSERT INTO habitaciones (id, numero, tipo, precio, estado) " +
+                "SELECT id, numero, tipo, precio, " +
+                "CASE WHEN estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza') " +
+                "     THEN estado ELSE 'Disponible' END " +
+                "FROM habitaciones_old"
+            );
+            stmt.executeUpdate("DROP TABLE habitaciones_old");
+            System.out.println("Migración: tabla habitaciones actualizada con estado Limpieza.");
+        }
     }
 }
