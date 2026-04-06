@@ -22,12 +22,14 @@ public class AuthHandler implements HttpHandler {
         String clave   = extraer(body, "clave");
         String rol     = extraer(body, "rol");
 
-        if (usuario.isEmpty() || clave.isEmpty() || rol.isEmpty()) {
-            JsonUtil.enviar(ex, 400, "{\"error\":\"Campos requeridos: usuario, clave, rol\"}");
+        if (usuario.isEmpty() || clave.isEmpty()) {
+            JsonUtil.enviar(ex, 400, "{\"error\":\"Campos requeridos: usuario, clave\"}");
             return;
         }
 
-        Usuario u = dao.autenticar(usuario, clave, rol);
+        Usuario u = rol.isEmpty()
+            ? dao.autenticarSinRol(usuario, clave)
+            : dao.autenticar(usuario, clave, rol);
         if (u == null) {
             JsonUtil.enviar(ex, 401, "{\"error\":\"Credenciales incorrectas\"}");
             return;
