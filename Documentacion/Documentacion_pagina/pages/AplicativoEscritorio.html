@@ -4,21 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenida | Documentación del Sistema</title>
+    <title>Aplicativo Escritorio | Documentación del Sistema</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <script>
         (function () {
             const theme = localStorage.getItem("theme");
-            if (theme === "dark") {
-                document.documentElement.setAttribute("data-theme", "dark");
-            }
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
         })();
     </script>
-
     <link rel="stylesheet" href="../css/variables.css">
     <link rel="stylesheet" href="../css/codigo.css">
     <link rel="stylesheet" href="../css/style.css">
@@ -36,9 +31,10 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v1.3.1</span>
+            <span class="version-tag">v2.0.0</span>
         </div>
     </header>
+
     <div class="container">
         <aside class="sidebar">
             <div class="barra-busqueda">
@@ -66,8 +62,7 @@
                 <div class="nav-group">
                     <h3>Galería</h3>
                     <ul>
-                        <li><a href="../pages/AplicativoEscritorio.html" class="active">Aplicativo de escritorio</a>
-                        </li>
+                        <li><a href="../pages/AplicativoEscritorio.html" class="active">Aplicativo de escritorio</a></li>
                         <li><a href="../pages/AplicativoMovil.html">Aplicativo móvil</a></li>
                     </ul>
                 </div>
@@ -80,116 +75,417 @@
                 </div>
             </nav>
         </aside>
+
         <main class="content">
-            <section id="ejecucion">
-                <h1>Guía de Ejecución</h1>
-                <p class="lead">Pasos necesarios para poner en marcha el aplicativo de escritorio.</p>
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 1 — REQUISITOS
+            ══════════════════════════════════════════ -->
+            <section id="requisitos">
+                <h1>Aplicativo de Escritorio</h1>
+                <p class="lead">Guía completa de instalación, configuración y funcionamiento del sistema de gestión hotelera Hotel Santa Ana.</p>
                 <hr>
 
                 <h2>1. Requisitos del Sistema</h2>
-                <p>Para asegurar el correcto funcionamiento del software, su entorno de desarrollo debe contar con:</p>
-                <ul>
-                    <li><strong>JDK 17+:</strong> El proyecto utiliza características de Java 17.</li>
-                    <li><strong>MySQL / MariaDB:</strong> Motor de base de datos para persistencia.</li>
-                    <li><strong>Bibliotecas en <code>/lib</code>:</strong>
-                        <pre><code>/lib
-└── jcalendar-1.4.jar  // Gestión de fechas visual</code></pre>
-                    </li>
-                </ul>
-
-                <h2>2. Instalación y Compilación</h2>
-                <p>Si no utiliza un IDE (como IntelliJ o NetBeans), puede compilar y ejecutar el proyecto manualmente desde la terminal usando los siguientes comandos (estando en la raíz de "Aplicativo Escritorio"):</p>
-                
-                <div class="code-block">
-                    <pre><code># 1. Crear carpeta para binarios
-mkdir bin
-
-# 2. Compilar el proyecto incluyendo librerías
-javac -cp ".;lib/*" -d bin -sourcepath src src/com/santaana/main/ApplicationMain.java
-
-# 3. Ejecutar la aplicación
-java -cp "bin;lib/*" com.santaana.main.ApplicationMain</code></pre>
-                </div>
-
-                <div class="callout warning">
-                    <p><strong>Automatización:</strong> Puede utilizar el archivo <code>run.bat</code> incluido en la carpeta raíz del aplicativo para automatizar este proceso en sistemas Windows.</p>
-                </div>
-
-                <h2>3. Configuración de Base de Datos</h2>
-                <ol>
-                    <li>Importar el esquema SQL (ubicado en la carpeta de base de datos).</li>
-                    <li>Verificar que el puerto 3306 esté abierto.</li>
-                </ol>
-            </section>
-
-            <section id="arquitectura">
-                <h1>Arquitectura del Sistema</h1>
-                <p class="lead">Diseño Modular Orientada a Roles (Java Swing)</p>
-                <hr>
-
-                <h2>1. Estructura de Paquetes</h2>
-                <p>Hemos implementado una estructura basada en el principio de responsabilidad única:</p>
-
-                <pre><code>com.santaana
-├── controller    // Lógica de negocio y control
-├── main          // Punto de entrada (ApplicationMain)
-├── util          // Utilidades (ThemeManager, etc)
-└── view          // Interfaces de usuario (JFrame, JPanel)</code></pre>
-
-                <div class="callout info">
-                    <p><strong>Ventaja:</strong> Permite que los desarrolladores trabajen en módulos independientes sin generar conflictos.</p>
-                </div>
-
-                <h2>2. Orquestación de Vistas</h2>
-                <p>El sistema utiliza una ventana principal (<code>HomeFrame</code>) que actúa como un contenedor dinámico según el perfil.</p>
+                <p>Antes de ejecutar el aplicativo, asegúrate de tener instalado lo siguiente en tu máquina:</p>
 
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Componente</th>
-                                <th>Responsabilidad</th>
-                                <th>Estado</th>
+                                <th>Requisito</th>
+                                <th>Versión mínima</th>
+                                <th>Notas</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><code>TableroFrame</code></td>
-                                <td>Dashboard principal para Administradores.</td>
-                                <td style="color: #22c55e;">Optimizado</td>
+                                <td><strong>JDK (Java Development Kit)</strong></td>
+                                <td>17 o superior</td>
+                                <td>Necesario para compilar y ejecutar el proyecto</td>
                             </tr>
                             <tr>
-                                <td><code>ReservaFrame</code></td>
-                                <td>Gestión operativa de huéspedes.</td>
-                                <td style="color: #22c55e;">Optimizado</td>
+                                <td><strong>Sistema Operativo</strong></td>
+                                <td>Windows 10/11</td>
+                                <td>El script <code>run.bat</code> es para Windows</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Espacio en disco</strong></td>
+                                <td>~50 MB</td>
+                                <td>Incluye JARs, binarios y base de datos</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Red local (opcional)</strong></td>
+                                <td>WiFi o LAN</td>
+                                <td>Solo si se usará el aplicativo móvil</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <h2>3. Personalización: Modo Oscuro "Dark Blue"</h2>
-                <p>Se ha implementado un sistema robusto de temas para alternar entre un modo claro y un modo oscuro basado en una paleta de <b>azul profundo</b>.</p>
-                
-                <div class="gallery">
-                  <div class="gallery-item">
-                    <img src="../img_dashboard/light_mode.png" alt="Modo Claro" class="zoom-img" style="cursor:pointer;">
-                    <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Interfaz Original (Modo Claro)</p>
-                  </div>
-                  <div class="gallery-item">
-                    <img src="../img_dashboard/dark_mode.png" alt="Modo Oscuro" class="zoom-img" style="cursor:pointer;">
-                    <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Nueva Interfaz "Dark Blue" (Modo Oscuro)</p>
-                  </div>
+                <div class="callout info">
+                    <p><strong>Sin base de datos externa:</strong> El sistema usa <strong>SQLite embebido</strong>. No necesitas instalar MySQL, MariaDB ni ningún servidor de base de datos. La base de datos se crea automáticamente al ejecutar por primera vez.</p>
                 </div>
 
-                <h3>¿Cómo se hizo? (Patrón Observer)</h3>
-                <ul>
-                    <li><strong>ThemeManager:</strong> Utilidad central (<code>com.santaana.util.ThemeManager</code>).</li>
-                    <li><strong>ThemeListener:</strong> Sistema de notificaciones en tiempo real para todas las ventanas.</li>
-                </ul>
+                <h2>2. Librerías incluidas (carpeta <code>/lib</code>)</h2>
+                <p>El proyecto ya incluye todas las dependencias en la carpeta <code>Aplicativo Escritorio/lib/</code>. No necesitas descargar nada adicional.</p>
+
+                <pre><code>Aplicativo Escritorio/
+└── lib/
+    ├── jcalendar-1.4.jar          // Selector visual de fechas
+    ├── sqlite-jdbc-3.45.1.0.jar   // Driver de conexión a SQLite
+    ├── slf4j-api-1.7.36.jar       // Interfaz de logging (requerida por SQLite)
+    └── slf4j-nop-1.7.36.jar       // Suprime los mensajes de log internos</code></pre>
             </section>
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 2 — INSTALACIÓN
+            ══════════════════════════════════════════ -->
+            <section id="instalacion">
+                <h1>Instalación y Ejecución</h1>
+                <hr>
+
+                <h2>Opción A — Ejecución con <code>run.bat</code> (Recomendada)</h2>
+                <p>Abre el Explorador de archivos, navega a la carpeta <code>Aplicativo Escritorio/</code> y haz doble clic en <code>run.bat</code>.</p>
+
+                <p>El script realiza automáticamente estos pasos:</p>
+                <ol>
+                    <li>Crea la carpeta <code>bin/</code> si no existe.</li>
+                    <li>Compila todos los archivos <code>.java</code> del proyecto incluyendo las librerías.</li>
+                    <li>Copia los recursos gráficos a la carpeta de binarios.</li>
+                    <li>Ejecuta la aplicación.</li>
+                </ol>
+
+                <div class="code-block">
+                    <pre><code>:: run.bat (simplificado)
+javac -cp ".;lib\jcalendar-1.4.jar;lib\sqlite-jdbc-3.45.1.0.jar;..." ^
+      -d bin -sourcepath src src\com\santaana\main\ApplicationMain.java ...
+
+java -cp ".;..\lib\jcalendar-1.4.jar;..." com.santaana.main.ApplicationMain</code></pre>
+                </div>
+
+                <div class="callout warning">
+                    <p><strong>Error de compilación:</strong> Si aparece un error, verifica que el JDK esté instalado y que la variable de entorno <code>JAVA_HOME</code> esté configurada. Puedes comprobarlo ejecutando <code>java -version</code> en la terminal.</p>
+                </div>
+
+                <h2>Opción B — Ejecución Manual desde terminal</h2>
+                <div class="code-block">
+                    <pre><code># Desde la carpeta "Aplicativo Escritorio/"
+
+# 1. Crear carpeta de binarios
+mkdir bin
+
+# 2. Compilar (Windows — usar ; como separador de classpath)
+javac -cp ".;lib\jcalendar-1.4.jar;lib\sqlite-jdbc-3.45.1.0.jar;lib\slf4j-api-1.7.36.jar;lib\slf4j-nop-1.7.36.jar" ^
+      -d bin -sourcepath src src\com\santaana\main\ApplicationMain.java
+
+# 3. Ejecutar (desde la carpeta bin/)
+cd bin
+java -cp ".;..\lib\jcalendar-1.4.jar;..\lib\sqlite-jdbc-3.45.1.0.jar;..\lib\slf4j-api-1.7.36.jar;..\lib\slf4j-nop-1.7.36.jar" ^
+     com.santaana.main.ApplicationMain</code></pre>
+                </div>
+
+                <h2>Primera ejecución — ¿Qué pasa automáticamente?</h2>
+                <p>Al iniciar por primera vez, el sistema realiza en orden:</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Paso</th>
+                                <th>Clase responsable</th>
+                                <th>Qué hace</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><code>SchemaManager</code></td>
+                                <td>Crea el archivo <code>santaana.db</code> y las tablas <code>usuarios</code>, <code>habitaciones</code> y <code>reservas</code>.</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><code>SeedData</code></td>
+                                <td>Si la base está vacía, inserta 2 usuarios y 6 habitaciones de prueba.</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><code>RestServer</code></td>
+                                <td>Levanta el servidor HTTP en el puerto <strong>8080</strong> para el aplicativo móvil.</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td><code>LoginFrame</code></td>
+                                <td>Muestra la pantalla de inicio de sesión.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>Credenciales de acceso</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Contraseña</th>
+                                <th>Rol</th>
+                                <th>Acceso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>admin</code></td>
+                                <td><code>1234</code></td>
+                                <td>Administrador</td>
+                                <td>Tablero, Reservas, Gestión de habitaciones</td>
+                            </tr>
+                            <tr>
+                                <td><code>recepcion</code></td>
+                                <td><code>1234</code></td>
+                                <td>Recepcionista</td>
+                                <td>Reservas (sin gestión de habitaciones)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 3 — ARQUITECTURA
+            ══════════════════════════════════════════ -->
+            <section id="arquitectura">
+                <h1>Arquitectura del Sistema</h1>
+                <p class="lead">Diseño en capas con patrón MVC y base de datos SQLite embebida.</p>
+                <hr>
+
+                <h2>1. Estructura de Paquetes</h2>
+                <pre><code>src/com/santaana/
+├── main/         // Punto de entrada: ApplicationMain.java
+├── db/           // Base de datos
+│   ├── DatabaseConnection.java   // Singleton de conexión SQLite
+│   ├── SchemaManager.java        // Creación y migración de tablas
+│   └── SeedData.java             // Datos iniciales de prueba
+├── model/        // Modelos de datos (POJO)
+│   ├── Usuario.java
+│   ├── Habitacion.java
+│   └── Reserva.java
+├── dao/          // Acceso a datos (consultas SQL)
+│   ├── UsuarioDAO.java
+│   ├── HabitacionDAO.java
+│   └── ReservaDAO.java
+├── controller/   // Lógica de negocio
+│   └── LoginController.java
+├── view/         // Interfaces gráficas (Java Swing)
+│   ├── LoginFrame.java
+│   ├── MainFrame.java
+│   ├── TableroPanel.java         // Dashboard con estadísticas
+│   ├── ReservaPanel.java         // Calendario de reservas
+│   ├── GestHabitacionPanel.java  // Gestión de habitaciones
+│   └── NuevaReservaDialog.java   // Formulario de nueva reserva
+├── server/       // Servidor REST para el móvil
+│   ├── RestServer.java
+│   ├── AuthHandler.java          // POST /auth/login
+│   ├── HabitacionesHandler.java  // GET  /habitaciones
+│   ├── ReservasHandler.java      // GET  /reservas
+│   ├── StatsHandler.java         // GET  /stats
+│   └── JsonUtil.java
+└── util/
+    └── ThemeManager.java         // Modo claro / oscuro</code></pre>
+
+                <h2>2. Base de Datos SQLite Embebida</h2>
+                <p>A diferencia de sistemas que requieren un servidor de base de datos separado (MySQL, PostgreSQL), este sistema usa <strong>SQLite</strong>. El archivo de base de datos (<code>santaana.db</code>) vive dentro de la misma carpeta del proyecto y no requiere ningún proceso externo corriendo.</p>
+
+                <h3>¿Por qué SQLite?</h3>
+                <ul>
+                    <li><strong>Sin instalación:</strong> La librería viene incluida en el JAR, no hay que instalar nada.</li>
+                    <li><strong>Portabilidad:</strong> Toda la información queda en un solo archivo que se puede copiar o respaldar fácilmente.</li>
+                    <li><strong>Ideal para un solo equipo:</strong> Perfecta para aplicaciones de escritorio de uso local.</li>
+                </ul>
+
+                <h3>Esquema de la base de datos</h3>
+                <div class="code-block">
+                    <pre><code>-- Tabla usuarios
+CREATE TABLE usuarios (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre   TEXT NOT NULL,
+    usuario  TEXT NOT NULL UNIQUE,
+    clave    TEXT NOT NULL,
+    rol      TEXT NOT NULL CHECK(rol IN ('Administrador','Recepcionista'))
+);
+
+-- Tabla habitaciones
+CREATE TABLE habitaciones (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero  TEXT NOT NULL UNIQUE,
+    tipo    TEXT NOT NULL,
+    precio  REAL NOT NULL,
+    estado  TEXT NOT NULL CHECK(estado IN ('Disponible','Ocupada','Limpieza','Mantenimiento'))
+);
+
+-- Tabla reservas
+CREATE TABLE reservas (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_habitacion   INTEGER NOT NULL,
+    id_usuario      INTEGER NOT NULL,
+    cliente_nombre  TEXT NOT NULL,
+    cliente_doc     TEXT NOT NULL,
+    fecha_entrada   TEXT NOT NULL,
+    fecha_salida    TEXT NOT NULL,
+    estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada'))
+);</code></pre>
+                </div>
+
+                <h2>3. Patrón DAO (Data Access Object)</h2>
+                <p>Cada entidad del sistema tiene su propio DAO que centraliza todas las consultas SQL. Las vistas nunca acceden directamente a la base de datos — siempre lo hacen a través del DAO correspondiente.</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>DAO</th>
+                                <th>Métodos principales</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>HabitacionDAO</code></td>
+                                <td><code>listarTodas()</code>, <code>listarDisponiblesEnFechas(desde, hasta)</code>, <code>actualizarEstado(id, estado)</code>, <code>actualizarDatos(id, tipo, precio)</code>, <code>agregar()</code>, <code>eliminar()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ReservaDAO</code></td>
+                                <td><code>listarTodas()</code>, <code>crear(idHab, idUsuario, cliente, doc, entrada, salida)</code>, <code>actualizarEstado(id, estado)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>UsuarioDAO</code></td>
+                                <td><code>autenticar(usuario, clave, rol)</code>, <code>autenticarSinRol(usuario, clave)</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>4. Ciclo de vida de una habitación</h2>
+                <p>El sistema controla los estados de las habitaciones con el siguiente flujo obligatorio:</p>
+
+                <div class="code-block">
+                    <pre><code>Disponible  ──[Nueva reserva]──►  Ocupada
+Ocupada     ──[Checkout]────────►  Limpieza
+Limpieza    ──[Habilitar]────────►  Disponible
+
+Cualquier estado  ──[Gestión]──►  Mantenimiento
+Mantenimiento     ──[Gestión]──►  Disponible</code></pre>
+                </div>
+
+                <h2>5. Servidor REST integrado</h2>
+                <p>Al iniciar el aplicativo, se levanta automáticamente un servidor HTTP en el puerto <strong>8080</strong> usando la librería <code>com.sun.net.httpserver</code> incluida en el JDK (sin dependencias externas). Este servidor expone los datos de solo lectura para el aplicativo móvil.</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Método</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/auth/login</code></td>
+                                <td>POST</td>
+                                <td>Autentica usuario. Recibe <code>{"usuario":"...","clave":"..."}</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>/habitaciones</code></td>
+                                <td>GET</td>
+                                <td>Retorna todas las habitaciones con id, numero, tipo, precio y estado</td>
+                            </tr>
+                            <tr>
+                                <td><code>/reservas</code></td>
+                                <td>GET</td>
+                                <td>Retorna todas las reservas con datos del cliente y número de habitación</td>
+                            </tr>
+                            <tr>
+                                <td><code>/stats</code></td>
+                                <td>GET</td>
+                                <td>Retorna conteos agrupados de habitaciones y reservas por estado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout info">
+                    <p><strong>Seguridad:</strong> El servidor solo escucha en la red local. Todos los endpoints incluyen el header <code>Access-Control-Allow-Origin: *</code> para permitir conexiones desde la app móvil.</p>
+                </div>
+
+                <h2>6. Personalización: Modo Oscuro "Dark Blue"</h2>
+                <p>El sistema incluye un alternador de tema claro/oscuro implementado con el patrón <strong>Observer</strong>.</p>
+                <ul>
+                    <li><strong>ThemeManager:</strong> Clase central que almacena el tema activo y notifica a todos los oyentes registrados.</li>
+                    <li><strong>ThemeListener:</strong> Interfaz que implementa cada ventana para recibir actualizaciones en tiempo real.</li>
+                </ul>
+
+                <div class="gallery">
+                    <div class="gallery-item">
+                        <img src="../img_dashboard/light_mode.png" alt="Modo Claro" class="zoom-img" style="cursor:pointer;">
+                        <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Interfaz Modo Claro</p>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="../img_dashboard/dark_mode.png" alt="Modo Oscuro" class="zoom-img" style="cursor:pointer;">
+                        <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Interfaz Modo Oscuro "Dark Blue"</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 4 — SOLUCIÓN DE PROBLEMAS
+            ══════════════════════════════════════════ -->
+            <section id="problemas">
+                <h1>Solución de Problemas Comunes</h1>
+                <hr>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Error</th>
+                                <th>Causa</th>
+                                <th>Solución</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>java: command not found</code></td>
+                                <td>JDK no instalado o no en PATH</td>
+                                <td>Instalar JDK 17+ y agregar <code>JAVA_HOME</code> a las variables de entorno</td>
+                            </tr>
+                            <tr>
+                                <td><code>NoClassDefFoundError: org/slf4j/LoggerFactory</code></td>
+                                <td>Faltan los JARs de SLF4J en el classpath</td>
+                                <td>Verificar que <code>slf4j-api-1.7.36.jar</code> y <code>slf4j-nop-1.7.36.jar</code> estén en <code>/lib</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>[SQLITE_CONSTRAINT_CHECK]</code></td>
+                                <td>Valor inválido para una columna con restricción CHECK</td>
+                                <td>Verificar que el estado sea exactamente: <code>Disponible</code>, <code>Ocupada</code>, <code>Limpieza</code> o <code>Mantenimiento</code></td>
+                            </tr>
+                            <tr>
+                                <td>Puerto 8080 ocupado</td>
+                                <td>Otro proceso usa el puerto 8080</td>
+                                <td>Ejecutar <code>netstat -ano | findstr :8080</code> para identificar el proceso y cerrarlo</td>
+                            </tr>
+                            <tr>
+                                <td>Datos no se actualizan en pantalla</td>
+                                <td>El panel no se refresca después de una acción</td>
+                                <td>Usar el botón de recarga o cerrar y reabrir la sección. El sistema usa <code>SwingUtilities.invokeLater()</code> para refrescos seguros.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
         </main>
     </div>
-    
+
     <div class="sidebar-overlay"></div>
     <script src="../js/main.js"></script>
 </body>

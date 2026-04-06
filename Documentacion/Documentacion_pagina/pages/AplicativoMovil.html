@@ -7,18 +7,13 @@
     <title>Aplicativo Móvil | Documentación del Sistema</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
     <script>
         (function () {
             const theme = localStorage.getItem("theme");
-            if (theme === "dark") {
-                document.documentElement.setAttribute("data-theme", "dark");
-            }
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
         })();
     </script>
-
     <link rel="stylesheet" href="../css/variables.css">
     <link rel="stylesheet" href="../css/codigo.css">
     <link rel="stylesheet" href="../css/style.css">
@@ -36,9 +31,10 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v1.3.0</span>
+            <span class="version-tag">v2.0.0</span>
         </div>
     </header>
+
     <div class="container">
         <aside class="sidebar">
             <div class="barra-busqueda">
@@ -79,113 +75,369 @@
                 </div>
             </nav>
         </aside>
+
         <main class="content">
-            <section id="arquitectura-movil">
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 1 — INTRODUCCIÓN
+            ══════════════════════════════════════════ -->
+            <section id="intro-movil">
                 <h1>Aplicativo Móvil</h1>
-                <p class="lead">Dashboard Administrativo de Santa Ana (Desarrollado en Flutter)</p>
+                <p class="lead">Dashboard administrativo de solo lectura para el Hotel Santa Ana. Desarrollado en Flutter, se conecta en tiempo real al aplicativo de escritorio mediante una API REST.</p>
                 <hr>
 
-                <h2>1. Arquitectura de Software</h2>
-                <p>El aplicativo móvil utiliza una arquitectura basada en **Clean Architecture** adaptada para Flutter,
-                    empleando **Bloc (Business Logic Component)** como patrón de gestión de estado principal.</p>
-
-                <pre><code>lib/</code>
-<code>├── core/             // Elementos compartidos (Themes, Widgets, Constants)</code>
-<code>├── feature/</code>
-<code>│   └── home/         // Módulo principal del Dashboard</code>
-<code>│       ├── data/     // Repositorios y fuentes de datos</code>
-<code>│       ├── domain/   // Entidades y casos de uso</code>
-<code>│       └── presentation/</code>
-<code>│           ├── bloc/ // Manejo de estados y eventos</code>
-<code>│           └── views/ // Pantallas y componentes UI</code>
-<code>└── main.dart         // Punto de entrada de la aplicación</code></pre>
-
                 <div class="callout info">
-                    <p><strong>Dato Técnico:</strong> El uso de Bloc permite separar completamente la lógica de negocio
-                        de la interfaz de usuario, facilitando las pruebas unitarias y la escalabilidad del sistema.</p>
+                    <p><strong>Importante:</strong> Esta app es de <strong>solo lectura</strong> y <strong>exclusiva para administradores</strong>. No permite crear, editar ni eliminar datos. Toda la gestión se realiza desde el aplicativo de escritorio.</p>
                 </div>
 
-                <h2>2. Gestión de Identidad Visual (Tematización)</h2>
-                <p>Para garantizar una experiencia visual coherente con la marca Santa Ana, se ha implementado un
-                    sistema de temas centralizado en la clase <code>AppTheme</code>. Esto permite cambiar aspectos
-                    visuales de toda la aplicación desde un solo punto.</p>
-
-                <h3>Misión del Código de Tema</h3>
-                <p>El siguiente fragmento gestiona la transición entre el modo claro y oscuro, definiendo los colores
-                    primarios y la tipografía estándar:</p>
-
-                <pre><code>// Definición del Tema Global (AppTheme)</code>
-<code>static ThemeData get lightTheme {</code>
-<code>  return ThemeData(</code>
-<code>    useMaterial3: true,</code>
-<code>    colorScheme: ColorScheme.fromSeed(</code>
-<code>      seedColor: primaryColor,</code>
-<code>      primary: primaryColor,</code>
-<code>      secondary: accentColor,
-    ),</code>
-<code>    appBarTheme: const AppBarTheme(</code>
-<code>      centerTitle: true,</code>
-<code>      elevation: 0,
-    ),</code>
-<code>  );</code>
-<code>}</code></pre>
-
-                <h2>3. Gestión de Estado con Bloc</h2>
-                <p>La lógica de negocio se maneja mediante eventos y estados. El <code>BlocBloc</code> (u HomeBloc) es
-                    el cerebro que recibe acciones del usuario y emite nuevos estados hacia la interfaz.</p>
-
-                <h3>Misión del Manejo de Estados</h3>
-                <p>Este código asegura que la UI sea reactiva. Cuando ocurre un evento (como pulsar un botón de
-                    reporte), el Bloc procesa la información y emite un estado que la pantalla "escucha" para
-                    actualizarse:</p>
-
-                <pre><code>class BlocBloc extends Bloc&lt;BlocEvent, BlocState&gt; {</code>
-<code>  BlocBloc() : super(BlocInitial()) {</code>
-<code>    on&lt;BlocEvent&gt;((event, emit) {</code>
-<code>      // Aquí se procesa la lógica antes de cambiar la pantalla</code>
-<code>      // emit(LoadingState()); -> procesar -> emit(LoadedState());</code>
-<code>    });</code>
-<code>  }</code>
-<code>}</code></pre>
-
-                <h2>4. Tecnologías y Estándares</h2>
+                <h2>Requisitos</h2>
                 <div class="table-container">
                     <table>
                         <thead>
                             <tr>
-                                <th>Tecnología</th>
-                                <th>Propósito</th>
-                                <th>Versión</th>
+                                <th>Requisito</th>
+                                <th>Detalle</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Flutter</td>
-                                <td>Framework multiplataforma (UI)</td>
-                                <td>3.x.x</td>
+                                <td><strong>Dispositivo</strong></td>
+                                <td>Android 7.0 (API 24) o superior</td>
                             </tr>
                             <tr>
-                                <td>Bloc / Flutter Bloc</td>
-                                <td>Gestión de estado reactivo</td>
-                                <td>8.1.x</td>
+                                <td><strong>Red</strong></td>
+                                <td>Misma red WiFi o LAN que el PC con el aplicativo de escritorio</td>
                             </tr>
                             <tr>
-                                <td>Material 3</td>
-                                <td>Sistema de diseño moderno</td>
-                                <td>Latest</td>
+                                <td><strong>Aplicativo de escritorio</strong></td>
+                                <td>Debe estar <strong>abierto y ejecutándose</strong> en el PC para que la app móvil tenga datos</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Puerto</strong></td>
+                                <td>El puerto <strong>8080</strong> del PC no debe estar bloqueado por el firewall</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 2 — INSTALACIÓN
+            ══════════════════════════════════════════ -->
+            <section id="instalacion-movil">
+                <h1>Instalación en el Dispositivo</h1>
+                <hr>
+
+                <h2>Opción A — Instalar el APK directamente (Recomendada para usuarios finales)</h2>
+                <ol>
+                    <li>Copia el archivo <code>app-debug.apk</code> al dispositivo (vía USB, WhatsApp o Google Drive).<br>
+                        <small>Ubicación del APK: <code>Aplicativo Movil/santa_ana_dashboard/build/app/outputs/flutter-apk/app-debug.apk</code></small></li>
+                    <li>En el celular, abre el archivo APK. Si aparece una advertencia de "fuente desconocida", ve a <strong>Ajustes → Seguridad → Instalar apps desconocidas</strong> y habilita el permiso para tu administrador de archivos.</li>
+                    <li>Toca <strong>Instalar</strong> y espera que finalice.</li>
+                    <li>Abre la app desde el cajón de aplicaciones.</li>
+                </ol>
+
+                <div class="callout warning">
+                    <p><strong>Firewall de Windows:</strong> La primera vez que se levanta el servidor REST, Windows puede mostrar una alerta de firewall. Es necesario hacer clic en <strong>"Permitir acceso"</strong> para que el celular pueda conectarse.</p>
+                </div>
+
+                <h2>Opción B — Compilar e instalar desde el código fuente (Para desarrolladores)</h2>
+                <p>Requiere tener Flutter instalado en el PC.</p>
+
+                <div class="code-block">
+                    <pre><code># 1. Ir a la carpeta del proyecto Flutter
+cd "Aplicativo Movil/santa_ana_dashboard"
+
+# 2. Instalar dependencias
+flutter pub get
+
+# 3. Conectar el celular por USB con depuración USB activada
+
+# 4. Verificar que el dispositivo es reconocido
+flutter devices
+
+# 5. Ejecutar en el dispositivo
+flutter run -d &lt;ID_DEL_DISPOSITIVO&gt;
+
+# O compilar el APK para distribuir
+flutter build apk --debug</code></pre>
+                </div>
+
+                <h2>Configuración de la IP del servidor</h2>
+                <p>La app necesita conocer la dirección IP del PC donde corre el aplicativo de escritorio. Esta se configura directamente desde la pantalla de login:</p>
+
+                <ol>
+                    <li>Abre la app → en la pantalla de login toca <strong>"⚙ IP del servidor"</strong>.</li>
+                    <li>Escribe la IP local del PC (ejemplo: <code>192.168.0.105</code>).</li>
+                    <li>Para conocer la IP del PC: abre <strong>cmd</strong> y ejecuta <code>ipconfig</code>. Busca la dirección IPv4 de la red WiFi.</li>
+                </ol>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Escenario</th>
+                                <th>IP a usar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Emulador Android en el mismo PC</td>
+                                <td><code>10.0.2.2</code> (valor por defecto)</td>
+                            </tr>
+                            <tr>
+                                <td>Dispositivo físico en la misma red WiFi</td>
+                                <td>IP local del PC, ej: <code>192.168.0.105</code></td>
+                            </tr>
+                            <tr>
+                                <td>Dispositivo físico por cable USB con ADB</td>
+                                <td><code>localhost</code> o <code>127.0.0.1</code> con port forwarding</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div class="callout danger" style="margin-top:2rem;">
-                    <p><strong>Importante:</strong> Se debe evitar el uso de <code>setState()</code> en componentes
-                        grandes. Siempre prefiera <code>BlocBuilder</code> o <code>BlocListener</code> para mantener un
-                        rendimiento óptimo.</p>
+                <h2>Credenciales de acceso</h2>
+                <div class="callout danger">
+                    <p><strong>Solo administradores:</strong> Si intentas ingresar con la cuenta de recepcionista, la app mostrará el mensaje <em>"Acceso denegado. Esta app es solo para administradores."</em></p>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Contraseña</th>
+                                <th>Acceso permitido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>admin</code></td>
+                                <td><code>1234</code></td>
+                                <td>✓ Sí</td>
+                            </tr>
+                            <tr>
+                                <td><code>recepcion</code></td>
+                                <td><code>1234</code></td>
+                                <td>✗ Denegado</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 3 — CÓMO FUNCIONA
+            ══════════════════════════════════════════ -->
+            <section id="como-funciona">
+                <h1>¿Cómo y por qué funciona así?</h1>
+                <hr>
+
+                <h2>1. Diagrama de comunicación</h2>
+                <div class="code-block">
+                    <pre><code>┌─────────────────────────────────────────────────────────┐
+│                    Red WiFi local                        │
+│                                                         │
+│  ┌──────────────────┐    HTTP/JSON     ┌─────────────┐  │
+│  │  App Flutter     │ ◄──────────────► │  Escritorio │  │
+│  │  (Android)       │  puerto 8080     │  Java Swing │  │
+│  │                  │                  │  + SQLite   │  │
+│  └──────────────────┘                  └─────────────┘  │
+└─────────────────────────────────────────────────────────┘</code></pre>
+                </div>
+
+                <p>El aplicativo de escritorio funciona como un <strong>servidor y cliente al mismo tiempo</strong>:</p>
+                <ul>
+                    <li>Como <strong>cliente</strong>: el personal del hotel lo usa para gestionar habitaciones y reservas.</li>
+                    <li>Como <strong>servidor</strong>: expone la información en formato JSON a través del puerto 8080 para que el móvil la consulte.</li>
+                </ul>
+
+                <h2>2. Flujo de autenticación</h2>
+                <p>Cuando el administrador ingresa su usuario y contraseña en la app móvil:</p>
+                <ol>
+                    <li>La app envía una solicitud <code>POST /auth/login</code> con el usuario y la clave en formato JSON.</li>
+                    <li>El servidor Java verifica las credenciales contra la base de datos SQLite.</li>
+                    <li>Si son correctas, retorna el perfil del usuario incluyendo su <strong>rol</strong>.</li>
+                    <li>La app verifica que el rol sea <code>"Administrador"</code>. Si no lo es, deniega el acceso aunque la clave sea correcta.</li>
+                    <li>Si todo está bien, navega al dashboard principal.</li>
+                </ol>
+
+                <div class="code-block">
+                    <pre><code>// Petición desde Flutter
+POST http://192.168.0.105:8080/auth/login
+Content-Type: application/json
+
+{"usuario": "admin", "clave": "1234", "rol": ""}
+
+// Respuesta del servidor Java
+{
+  "id": 1,
+  "nombre": "Administrador Principal",
+  "usuario": "admin",
+  "rol": "Administrador"
+}</code></pre>
+                </div>
+
+                <h2>3. Carga de datos en las vistas</h2>
+                <p>Cada sección de la app carga sus datos de forma independiente usando <code>FutureBuilder</code>, que muestra un indicador de carga mientras espera la respuesta del servidor y luego renderiza la información:</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Vista</th>
+                                <th>Endpoint que consume</th>
+                                <th>Datos que muestra</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Inicio (Home)</strong></td>
+                                <td><code>GET /stats</code></td>
+                                <td>% de ocupación, habitaciones por estado, reservas activas/completadas/canceladas</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Habitaciones</strong></td>
+                                <td><code>GET /habitaciones</code></td>
+                                <td>Listado de todas las habitaciones con tipo, precio y estado. Filtros por estado.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Reservas</strong></td>
+                                <td><code>GET /reservas</code></td>
+                                <td>Listado de todas las reservas con cliente, documento, habitación, fechas y estado. Búsqueda y filtros.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>4. Actualización de datos (Pull to Refresh)</h2>
+                <p>La app no actualiza los datos automáticamente. Para ver los cambios más recientes realizados desde el escritorio, el usuario puede deslizar la pantalla hacia abajo (<strong>pull to refresh</strong>) en cualquier vista. Esto dispara una nueva petición al servidor y recarga la información.</p>
+
+                <h2>5. Arquitectura Flutter — Patrón BLoC + ApiService</h2>
+                <pre><code>lib/
+├── core/
+│   ├── services/
+│   │   └── api_service.dart      // Centraliza todas las llamadas HTTP
+│   ├── theme/
+│   │   └── app_theme.dart        // Colores y tipografía globales
+│   └── constants/
+│       └── app_strings.dart      // Textos de la interfaz
+└── feature/
+    └── home/
+        └── presentation/
+            ├── bloc/
+            │   ├── bloc_bloc.dart    // Lógica: login, carga de datos
+            │   ├── bloc_event.dart   // Acciones: LoginRequested, LoadDashboardData
+            │   └── bloc_state.dart   // Estados: Loading, LoginSuccess, Failure
+            └── views/
+                ├── Login_view.dart         // Pantalla de login con campo de IP
+                ├── dashboard_view.dart     // Navegación con barra inferior
+                ├── home_view.dart          // Vista de estadísticas generales
+                ├── habitaciones_view.dart  // Vista de habitaciones
+                └── reservas_view.dart      // Vista de reservas</code></pre>
+
+                <div class="callout info">
+                    <p><strong>¿Por qué BLoC para el login y FutureBuilder para los datos?</strong><br>
+                    El login necesita gestión de estado reactiva (loading → success/error) que afecta la navegación global, por eso usa BLoC. Las vistas de datos son independientes entre sí y solo necesitan cargar y mostrar información, por eso usan el más simple <code>FutureBuilder</code> directamente.</p>
+                </div>
+
+                <h2>6. Tecnologías utilizadas</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tecnología</th>
+                                <th>Versión</th>
+                                <th>Propósito</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Flutter</td>
+                                <td>3.x</td>
+                                <td>Framework de UI multiplataforma</td>
+                            </tr>
+                            <tr>
+                                <td>flutter_bloc</td>
+                                <td>8.x</td>
+                                <td>Gestión de estado para el flujo de login</td>
+                            </tr>
+                            <tr>
+                                <td>http</td>
+                                <td>^1.6.0</td>
+                                <td>Librería para peticiones HTTP hacia la API REST</td>
+                            </tr>
+                            <tr>
+                                <td>equatable</td>
+                                <td>latest</td>
+                                <td>Comparación de objetos en eventos y estados BLoC</td>
+                            </tr>
+                            <tr>
+                                <td>Material 3</td>
+                                <td>latest</td>
+                                <td>Sistema de diseño con tema oscuro personalizado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 4 — SOLUCIÓN DE PROBLEMAS
+            ══════════════════════════════════════════ -->
+            <section id="problemas-movil">
+                <h1>Solución de Problemas Comunes</h1>
+                <hr>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Problema</th>
+                                <th>Causa probable</th>
+                                <th>Solución</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>La app muestra "Sin conexión al servidor"</td>
+                                <td>IP incorrecta o el escritorio no está abierto</td>
+                                <td>Verifica que el aplicativo de escritorio esté corriendo. Confirma la IP con <code>ipconfig</code> en cmd y actualízala en la pantalla de login.</td>
+                            </tr>
+                            <tr>
+                                <td>"Acceso denegado" al ingresar</td>
+                                <td>Se intentó ingresar con cuenta de recepcionista</td>
+                                <td>Usar el usuario <code>admin</code> con contraseña <code>1234</code>.</td>
+                            </tr>
+                            <tr>
+                                <td>"Credenciales incorrectas"</td>
+                                <td>Usuario o contraseña erróneos</td>
+                                <td>Verificar usuario y contraseña. Las credenciales son las mismas que en el escritorio.</td>
+                            </tr>
+                            <tr>
+                                <td>Las habitaciones/reservas no se cargan</td>
+                                <td>El servidor no responde o hubo un error de red</td>
+                                <td>Hacer <strong>pull to refresh</strong> (deslizar hacia abajo). Verificar que ambos dispositivos estén en la misma red WiFi.</td>
+                            </tr>
+                            <tr>
+                                <td>El celular no aparece al ejecutar <code>flutter devices</code></td>
+                                <td>Depuración USB no activada o no autorizada</td>
+                                <td>Activar <strong>Opciones de desarrollador</strong> y <strong>Depuración USB</strong> en el celular. Aceptar el diálogo de autorización que aparece al conectar el cable.</td>
+                            </tr>
+                            <tr>
+                                <td>Los datos no reflejan los últimos cambios</td>
+                                <td>La app no se actualiza automáticamente</td>
+                                <td>Deslizar hacia abajo en la vista para recargar (pull to refresh).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
         </main>
     </div>
+
     <div class="sidebar-overlay"></div>
     <script src="../js/main.js"></script>
 </body>
