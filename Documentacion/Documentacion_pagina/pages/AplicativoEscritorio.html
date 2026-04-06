@@ -417,6 +417,11 @@ Mantenimiento     ──[Gestión]──►  Disponible</code></pre>
                     <p><strong>Seguridad:</strong> El servidor solo escucha en la red local. Todos los endpoints incluyen el header <code>Access-Control-Allow-Origin: *</code> para permitir conexiones desde la app móvil.</p>
                 </div>
 
+                <div class="callout warning">
+                    <p><strong>Arquitectura actual — Modo de pruebas:</strong> Actualmente el servidor REST se ejecuta en el mismo PC que el aplicativo de escritorio. Esta configuración fue adoptada para <strong>pruebas de conexión y evidencia del proyecto académico</strong>.</p>
+                    <p style="margin-top:0.5rem;">En una etapa próxima, el servidor será migrado a un <strong>equipo dedicado</strong> (PC adaptado para servidor) que estará encendido de forma permanente. De esta manera la app móvil podrá consultar los datos en cualquier momento sin depender de que el escritorio esté abierto.</p>
+                </div>
+
                 <h2>6. Personalización: Modo Oscuro "Dark Blue"</h2>
                 <p>El sistema incluye un alternador de tema claro/oscuro implementado con el patrón <strong>Observer</strong>.</p>
                 <ul>
