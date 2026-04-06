@@ -482,7 +482,7 @@ public class ReservaPanel extends JPanel {
                 if (confirm == JOptionPane.YES_OPTION) {
                     reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Cancelada");
                     refreshUI();
-                    if (onEstadoCambiado != null) onEstadoCambiado.run();
+                    if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
                 }
             }
         } else {
@@ -506,6 +506,6 @@ public class ReservaPanel extends JPanel {
             "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
 
         refreshUI();
-        if (onEstadoCambiado != null) onEstadoCambiado.run();
+        if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
     }
 }

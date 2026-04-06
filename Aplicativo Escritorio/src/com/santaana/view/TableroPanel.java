@@ -13,6 +13,7 @@ import java.awt.RenderingHints;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 
+import javax.swing.SwingUtilities;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -274,7 +275,7 @@ public class TableroPanel extends JPanel {
             JButton btnHabilitar = crearBoton("✓ Habilitar", new Color(0x27AE60));
             btnHabilitar.addActionListener(e -> {
                 habitacionDAO.actualizarEstado(h.getId(), "Disponible");
-                if (onEstadoCambiado != null) onEstadoCambiado.run();
+                if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
             });
             c.add(Box.createVerticalStrut(10));
             c.add(btnHabilitar);
@@ -332,6 +333,6 @@ public class TableroPanel extends JPanel {
             "<html>Checkout realizado.<br>Habitación " + h.getNumero() + " en <b>Limpieza</b>.</html>",
             "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
 
-        if (onEstadoCambiado != null) onEstadoCambiado.run();
+        if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
     }
 }
