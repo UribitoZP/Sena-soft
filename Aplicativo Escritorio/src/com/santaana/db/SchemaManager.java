@@ -52,16 +52,22 @@ public class SchemaManager {
             ")"
         );
 
-        // Habitaciones: siempre recrear con el constraint correcto
+        // Habitaciones: recrear con constraint correcto usando el mismo stmt
         stmt.executeUpdate("DROP TABLE IF EXISTS habitaciones_old");
 
-        if (tablaExiste(conn, "habitaciones")) {
+        // Verificar si la tabla existe usando el mismo statement
+        ResultSet rs = stmt.executeQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='habitaciones'"
+        );
+        boolean existe = rs.next();
+        rs.close();
+
+        if (existe) {
             stmt.executeUpdate("ALTER TABLE habitaciones RENAME TO habitaciones_old");
             crearTablaHabitaciones(stmt);
             stmt.executeUpdate(
                 "INSERT INTO habitaciones (id, numero, tipo, precio, estado) " +
                 "SELECT id, numero, tipo, precio, " +
-                // Si el estado era un valor invalido para el nuevo schema, poner Disponible
                 "CASE WHEN estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza') " +
                 "     THEN estado ELSE 'Disponible' END " +
                 "FROM habitaciones_old"
@@ -84,13 +90,6 @@ public class SchemaManager {
             "       CHECK(estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza'))" +
             ")"
         );
-    }
-
-    private static boolean tablaExiste(Connection conn, String nombre) throws SQLException {
-        ResultSet rs = conn.createStatement().executeQuery(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='" + nombre + "'"
-        );
-        return rs.next();
     }
 
     private static int getUserVersion(Connection conn) throws SQLException {
