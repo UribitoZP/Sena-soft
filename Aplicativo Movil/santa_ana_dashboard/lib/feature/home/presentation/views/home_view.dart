@@ -1,11 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:santa_ana_dashboard/core/services/api_service.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
 
 
 //  DASHBOARD VIEW
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  final _api = ApiService();
+  late Future<Map<String, dynamic>> _statsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _statsFuture = _api.getStats();
+  }
+
+  void _refresh() {
+    setState(() {
+      _statsFuture = _api.getStats();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,28 +35,63 @@ class HomeView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // ── Contenido scrolleable ──
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    _DashboardHeader(),
-                    SizedBox(height: 4),
-                    _DateStrip(),
-                    SizedBox(height: 8),
-                    _OccupancyCard(),
-                    SizedBox(height: 12),
-                    _StatsRow(),
-                    SizedBox(height: 20),
-                    _ReservationsList(),
-                    SizedBox(height: 16),
-                  ],
-                ),
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: _statsFuture,
+                builder: (context, snap) {
+                  final stats = snap.data;
+                  final hab   = stats?['habitaciones'] as Map<String, dynamic>?;
+                  final res   = stats?['reservas']     as Map<String, dynamic>?;
+
+                  return RefreshIndicator(
+                    onRefresh: () async => _refresh(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(
+                          parent: BouncingScrollPhysics()),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const _DashboardHeader(),
+                          const SizedBox(height: 4),
+                          const _DateStrip(),
+                          const SizedBox(height: 8),
+                          if (snap.connectionState == ConnectionState.waiting)
+                            const Padding(
+                              padding: EdgeInsets.all(32),
+                              child: Center(child: CircularProgressIndicator(color: AppTheme.goldColor)),
+                            )
+                          else if (snap.hasError)
+                            Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(
+                                'Sin conexión al servidor.\nVerifica la IP en ApiService.',
+                                style: TextStyle(color: AppTheme.errorColor),
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          else ...[
+                            _OccupancyCard(
+                              total:       (hab?['total']       ?? 0) as int,
+                              ocupadas:    (hab?['ocupadas']    ?? 0) as int,
+                              disponibles: (hab?['disponibles'] ?? 0) as int,
+                              limpieza:    (hab?['limpieza']    ?? 0) as int,
+                              mantenimiento:(hab?['mantenimiento'] ?? 0) as int,
+                            ),
+                            const SizedBox(height: 12),
+                            _ReservasStatsRow(
+                              activas:     (res?['activas']     ?? 0) as int,
+                              completadas: (res?['completadas'] ?? 0) as int,
+                              canceladas:  (res?['canceladas']  ?? 0) as int,
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-
           ],
         ),
       ),
@@ -160,17 +216,22 @@ class _DateStrip extends StatelessWidget {
 //  OCCUPANCY CARD
 
 class _OccupancyCard extends StatelessWidget {
-  const _OccupancyCard();
-
-  // Datos de ejemplo — después vendrán del BLoC
-  static const int totalRooms      = 120;
-  static const int occupiedRooms   = 104;
-  static const int maintenanceRooms = 3;
+  final int total, ocupadas, disponibles, limpieza, mantenimiento;
+  const _OccupancyCard({
+    required this.total,
+    required this.ocupadas,
+    required this.disponibles,
+    required this.limpieza,
+    required this.mantenimiento,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final freeRooms = totalRooms - occupiedRooms - maintenanceRooms;
-    final pct = (occupiedRooms / totalRooms * 100).round();
+    final totalRooms      = total;
+    final occupiedRooms   = ocupadas;
+    final maintenanceRooms = mantenimiento;
+    final freeRooms = disponibles;
+    final pct = totalRooms == 0 ? 0 : (occupiedRooms / totalRooms * 100).round();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -340,443 +401,77 @@ class _LegendItem extends StatelessWidget {
 }
 
 
-//  STATS ROW  (Ingresos + Check-ins)
+//  RESERVAS STATS ROW
 
 
-class _StatsRow extends StatelessWidget {
-  const _StatsRow();
+class _ReservasStatsRow extends StatelessWidget {
+  final int activas, completadas, canceladas;
+  const _ReservasStatsRow({
+    required this.activas,
+    required this.completadas,
+    required this.canceladas,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final items = [
+      ('$activas',     'Activas',     AppTheme.goldColor),
+      ('$completadas', 'Completadas', AppTheme.successColor),
+      ('$canceladas',  'Canceladas',  AppTheme.errorColor),
+    ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: const [
-          Expanded(child: _IncomeCard()),
-          SizedBox(width: 10),
-          Expanded(child: _CheckinCard()),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Income Card ───────────────────────────────────────────────
-
-class _IncomeCard extends StatelessWidget {
-  const _IncomeCard();
-
-  static const List<double> weekData = [0.4, 0.55, 0.65, 0.5, 0.75, 0.9, 1.0];
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Text('Reservas',
+                style: Theme.of(context).textTheme.titleMedium),
+          ),
           Row(
-            children: [
-              const Icon(Icons.attach_money_rounded,
-                  color: AppTheme.goldColor, size: 14),
-              const SizedBox(width: 4),
-              Text(
-                'INGRESOS HOY',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppTheme.textMuted,
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Valor
-          Text(
-            '\$14.2k',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 24,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '↑ 12% vs ayer',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.successColor,
-            ),
-          ),
-
-          // Mini bar chart
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 30,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: weekData.asMap().entries.map((e) {
-                final isToday = e.key == weekData.length - 1;
-                return Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                    decoration: BoxDecoration(
-                      color: isToday
-                          ? AppTheme.goldColor
-                          : e.key >= 2
-                              ? AppTheme.goldColor.withOpacity(0.35)
-                              : AppTheme.borderColor,
-                      borderRadius:
-                          const BorderRadius.vertical(top: Radius.circular(3)),
-                    ),
-                    height: 30 * e.value,
+            children: items.asMap().entries.map((e) {
+              final (val, label, color) = e.value;
+              return Expanded(
+                child: Container(
+                  margin: EdgeInsets.only(left: e.key == 0 ? 0 : 8),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppTheme.borderColor),
                   ),
-                );
-              }).toList(),
-            ),
-          ),
-
-          // Barra inferior dorada
-          const SizedBox(height: 10),
-          Container(
-            height: 2,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppTheme.goldColor, Colors.transparent],
-              ),
-              borderRadius: BorderRadius.circular(1),
-            ),
+                  child: Column(
+                    children: [
+                      Text(
+                        val,
+                        style: TextStyle(
+                          fontFamily: 'Georgia',
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: color,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        label.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: AppTheme.textMuted,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         ],
       ),
     );
   }
 }
-
-// ── Check-in Card ─────────────────────────────────────────────
-
-class _CheckinCard extends StatelessWidget {
-  const _CheckinCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Label
-          Row(
-            children: [
-              const Icon(Icons.key_rounded,
-                  color: AppTheme.successColor, size: 14),
-              const SizedBox(width: 4),
-              Text(
-                'CHECK-INS HOY',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: AppTheme.textMuted,
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Valor
-          Text(
-            '18',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontSize: 24,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '↑ 3 pendientes',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.successColor,
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // Progreso check-ins
-          _ProgressRow(label: 'Check-ins', done: 15, total: 18,
-              color: AppTheme.successColor),
-          const SizedBox(height: 8),
-
-          // Progreso check-outs
-          _ProgressRow(label: 'Check-outs', done: 9, total: 12,
-              color: AppTheme.errorColor),
-
-          // Barra inferior verde
-          const SizedBox(height: 10),
-          Container(
-            height: 2,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppTheme.successColor, Colors.transparent],
-              ),
-              borderRadius: BorderRadius.circular(1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProgressRow extends StatelessWidget {
-  final String label;
-  final int done, total;
-  final Color color;
-  const _ProgressRow({
-    required this.label,
-    required this.done,
-    required this.total,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final pct = done / total;
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(fontSize: 10)),
-            Text('$done/$total',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: color, fontSize: 10)),
-          ],
-        ),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(2),
-          child: LinearProgressIndicator(
-            value: pct,
-            minHeight: 4,
-            backgroundColor: AppTheme.borderColor,
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-
-//  RESERVATIONS LIST
-
-
-enum ReservationStatus { checkIn, checkOut, reserved }
-
-class _ReservationData {
-  final String initials, name, detail, room;
-  final ReservationStatus status;
-  final Color avatarColor, avatarBorder;
-
-  const _ReservationData({
-    required this.initials,
-    required this.name,
-    required this.detail,
-    required this.room,
-    required this.status,
-    required this.avatarColor,
-    required this.avatarBorder,
-  });
-}
-
-const _mockReservations = [
-  _ReservationData(
-    initials: 'AM', name: 'Andrés Martínez',
-    detail: '2 noches · Suite Deluxe · 10:00 AM',
-    room: '301', status: ReservationStatus.checkIn,
-    avatarColor: Color(0x265B8DEE), avatarBorder: Color(0x4D5B8DEE),
-  ),
-  _ReservationData(
-    initials: 'SR', name: 'Sofia Restrepo',
-    detail: '4 noches · Habitación Estándar',
-    room: '215', status: ReservationStatus.checkOut,
-    avatarColor: Color(0x26C9A84C), avatarBorder: Color(0x4DC9A84C),
-  ),
-  _ReservationData(
-    initials: 'JL', name: 'Juan López',
-    detail: '1 noche · Junior Suite · Mañana',
-    room: '418', status: ReservationStatus.reserved,
-    avatarColor: Color(0x264CAF82), avatarBorder: Color(0x4D4CAF82),
-  ),
-];
-
-class _ReservationsList extends StatelessWidget {
-  const _ReservationsList();
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Header de sección
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Reservas del día',
-                  style: Theme.of(context).textTheme.titleMedium),
-              TextButton(
-                onPressed: () {},
-                child: const Text('Ver todas →'),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 4),
-
-        // Cards
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: _mockReservations
-                .map((r) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _ReservationCard(data: r),
-                    ))
-                .toList(),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ReservationCard extends StatelessWidget {
-  final _ReservationData data;
-  const _ReservationCard({super.key, required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: data.avatarColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: data.avatarBorder, width: 1),
-            ),
-            child: Center(
-              child: Text(
-                data.initials,
-                style: const TextStyle(
-                  fontFamily: 'Georgia',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textColor,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(data.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontSize: 13,
-                    )),
-                const SizedBox(height: 2),
-                Text(data.detail,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(fontSize: 11)),
-              ],
-            ),
-          ),
-
-          // Room + badge
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                data.room,
-                style: const TextStyle(
-                  fontFamily: 'Georgia',
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.goldColor,
-                ),
-              ),
-              const SizedBox(height: 3),
-              _StatusBadge(status: data.status),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final ReservationStatus status;
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final (label, color, bg) = switch (status) {
-      ReservationStatus.checkIn  => ('CHECK-IN',  AppTheme.successColor, const Color(0x264CAF82)),
-      ReservationStatus.checkOut => ('CHECK-OUT', AppTheme.errorColor,   const Color(0x26E05C5C)),
-      ReservationStatus.reserved => ('RESERVA',   AppTheme.infoColor,    const Color(0x265B8DEE)),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 8,
-          fontWeight: FontWeight.w700,
-          color: color,
-          letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-}
-
-
-//  BOTTOM NAV
 
 

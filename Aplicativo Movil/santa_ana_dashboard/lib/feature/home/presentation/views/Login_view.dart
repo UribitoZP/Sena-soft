@@ -75,14 +75,14 @@ class _InitialViewState extends State<InitialView> {
 
                   const SizedBox(height: 40),
 
-                  /// INPUT EMAIL
+                  /// INPUT USUARIO
                   TextField(
                     controller: emailController,
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType: TextInputType.text,
                     decoration: InputDecoration(
-                      labelText: 'Correo electrónico',
-                      hintText: 'ejemplo@email.com',
-                      prefixIcon: const Icon(Icons.email_outlined),
+                      labelText: 'Usuario',
+                      hintText: 'admin',
+                      prefixIcon: const Icon(Icons.person_outline),
                       filled: true,
                       fillColor: Colors.grey.withOpacity(0.08),
                       border: OutlineInputBorder(
