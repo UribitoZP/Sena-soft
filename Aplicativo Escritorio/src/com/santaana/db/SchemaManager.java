@@ -7,7 +7,6 @@ import java.sql.Statement;
 
 public class SchemaManager {
 
-    // Incrementar cuando cambie el esquema
     private static final int SCHEMA_VERSION = 2;
 
     public static void inicializar() {
@@ -17,7 +16,7 @@ public class SchemaManager {
             int version = getUserVersion(conn);
 
             if (version < SCHEMA_VERSION) {
-                migrar(stmt, version);
+                migrar(conn, stmt);
                 setUserVersion(conn, SCHEMA_VERSION);
             }
 
@@ -28,64 +27,70 @@ public class SchemaManager {
         }
     }
 
-    private static void migrar(Statement stmt, int desde) throws SQLException {
-        if (desde < 1) {
-            // Creacion inicial
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS usuarios (" +
-                "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "  nombre   TEXT    NOT NULL," +
-                "  usuario  TEXT    NOT NULL UNIQUE," +
-                "  clave    TEXT    NOT NULL," +
-                "  rol      TEXT    NOT NULL CHECK(rol IN ('Administrador','Recepcionista'))" +
-                ")"
-            );
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS habitaciones (" +
-                "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "  numero   TEXT    NOT NULL UNIQUE," +
-                "  tipo     TEXT    NOT NULL," +
-                "  precio   REAL    NOT NULL," +
-                "  estado   TEXT    NOT NULL DEFAULT 'Disponible'" +
-                "       CHECK(estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza'))" +
-                ")"
-            );
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS reservas (" +
-                "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "  id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id)," +
-                "  id_usuario      INTEGER NOT NULL REFERENCES usuarios(id)," +
-                "  cliente_nombre  TEXT    NOT NULL," +
-                "  cliente_doc     TEXT    NOT NULL," +
-                "  fecha_entrada   TEXT    NOT NULL," +
-                "  fecha_salida    TEXT    NOT NULL," +
-                "  estado          TEXT    NOT NULL DEFAULT 'Activa'" +
-                "       CHECK(estado IN ('Activa','Completada','Cancelada'))" +
-                ")"
-            );
-        }
+    private static void migrar(Connection conn, Statement stmt) throws SQLException {
+        // Tablas que no cambian: crear si no existen
+        stmt.executeUpdate(
+            "CREATE TABLE IF NOT EXISTS usuarios (" +
+            "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  nombre   TEXT    NOT NULL," +
+            "  usuario  TEXT    NOT NULL UNIQUE," +
+            "  clave    TEXT    NOT NULL," +
+            "  rol      TEXT    NOT NULL CHECK(rol IN ('Administrador','Recepcionista'))" +
+            ")"
+        );
+        stmt.executeUpdate(
+            "CREATE TABLE IF NOT EXISTS reservas (" +
+            "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id)," +
+            "  id_usuario      INTEGER NOT NULL REFERENCES usuarios(id)," +
+            "  cliente_nombre  TEXT    NOT NULL," +
+            "  cliente_doc     TEXT    NOT NULL," +
+            "  fecha_entrada   TEXT    NOT NULL," +
+            "  fecha_salida    TEXT    NOT NULL," +
+            "  estado          TEXT    NOT NULL DEFAULT 'Activa'" +
+            "       CHECK(estado IN ('Activa','Completada','Cancelada'))" +
+            ")"
+        );
 
-        if (desde == 1) {
-            // v1 → v2: agregar estado Limpieza a habitaciones
-            // SQLite no permite ALTER TABLE para cambiar CHECK, se recrea la tabla
+        // Habitaciones: siempre recrear con el constraint correcto
+        stmt.executeUpdate("DROP TABLE IF EXISTS habitaciones_old");
+
+        if (tablaExiste(conn, "habitaciones")) {
             stmt.executeUpdate("ALTER TABLE habitaciones RENAME TO habitaciones_old");
+            crearTablaHabitaciones(stmt);
             stmt.executeUpdate(
-                "CREATE TABLE habitaciones (" +
-                "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "  numero   TEXT    NOT NULL UNIQUE," +
-                "  tipo     TEXT    NOT NULL," +
-                "  precio   REAL    NOT NULL," +
-                "  estado   TEXT    NOT NULL DEFAULT 'Disponible'" +
-                "       CHECK(estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza'))" +
-                ")"
-            );
-            stmt.executeUpdate(
-                "INSERT INTO habitaciones SELECT id, numero, tipo, precio, estado " +
+                "INSERT INTO habitaciones (id, numero, tipo, precio, estado) " +
+                "SELECT id, numero, tipo, precio, " +
+                // Si el estado era un valor invalido para el nuevo schema, poner Disponible
+                "CASE WHEN estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza') " +
+                "     THEN estado ELSE 'Disponible' END " +
                 "FROM habitaciones_old"
             );
             stmt.executeUpdate("DROP TABLE habitaciones_old");
-            System.out.println("Migración v1→v2: estado Limpieza agregado.");
+            System.out.println("Migración: tabla habitaciones actualizada con estado Limpieza.");
+        } else {
+            crearTablaHabitaciones(stmt);
         }
+    }
+
+    private static void crearTablaHabitaciones(Statement stmt) throws SQLException {
+        stmt.executeUpdate(
+            "CREATE TABLE habitaciones (" +
+            "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
+            "  numero   TEXT    NOT NULL UNIQUE," +
+            "  tipo     TEXT    NOT NULL," +
+            "  precio   REAL    NOT NULL," +
+            "  estado   TEXT    NOT NULL DEFAULT 'Disponible'" +
+            "       CHECK(estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza'))" +
+            ")"
+        );
+    }
+
+    private static boolean tablaExiste(Connection conn, String nombre) throws SQLException {
+        ResultSet rs = conn.createStatement().executeQuery(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='" + nombre + "'"
+        );
+        return rs.next();
     }
 
     private static int getUserVersion(Connection conn) throws SQLException {
