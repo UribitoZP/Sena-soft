@@ -145,8 +145,8 @@ public class LoginFrame extends JFrame {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-                Color c1 = new Color(252, 163, 17);
-                Color c2 = new Color(214, 137, 12);
+                Color c1 = new Color(30, 144, 255);
+                Color c2 = new Color(0, 102, 204);
 
                 if (getModel().isPressed()) {
                     g2.setPaint(new GradientPaint(0, 0, c2, getWidth(), 0, c1));
@@ -209,7 +209,7 @@ public class LoginFrame extends JFrame {
     private void styleComponent(JComponent c) {
         c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         c.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        c.setBackground(new Color(250, 250, 250));
+        c.setBackground(new Color(230, 240, 255));
 
         if (c instanceof JComboBox) {
             DefaultListCellRenderer renderer = new DefaultListCellRenderer();
@@ -219,7 +219,7 @@ public class LoginFrame extends JFrame {
 
         // Borde inicial
         c.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(230, 230, 230)),
+                BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(100, 149, 237)),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)));
 
         // Efecto Focus
@@ -227,14 +227,14 @@ public class LoginFrame extends JFrame {
             @Override
             public void focusGained(FocusEvent e) {
                 c.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(252, 163, 17)),
+                        BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(30, 144, 255)),
                         BorderFactory.createEmptyBorder(5, 10, 5, 10)));
             }
 
             @Override
             public void focusLost(FocusEvent e) {
                 c.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(230, 230, 230)),
+                        BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(100, 149, 237)),
                         BorderFactory.createEmptyBorder(5, 10, 5, 10)));
             }
         });
