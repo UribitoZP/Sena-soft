@@ -27,6 +27,7 @@ import com.santaana.util.ThemeManager;
 
 public class TableroPanel extends JPanel {
     private String userRole;
+    private Runnable onNuevaReserva;
     private boolean isPlaceholderActive = true;
     private final String PLACEHOLDER = " Buscar habitación...";
     
@@ -37,8 +38,9 @@ public class TableroPanel extends JPanel {
     private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
     private Color getTextCol() { return ThemeManager.getTextPrimary(); }
 
-    public TableroPanel(String role) {
+    public TableroPanel(String role, Runnable onNuevaReserva) {
         this.userRole = role;
+        this.onNuevaReserva = onNuevaReserva;
         setLayout(new BorderLayout());
         setBackground(getBackgroundCol());
         refreshUI();
@@ -65,9 +67,11 @@ public class TableroPanel extends JPanel {
 
         JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 8));
         mid.setOpaque(false);
-        mid.add(crearBotonAccion("+ Nueva Reserva", getPrimario(), Color.WHITE));
-        mid.add(crearBotonAccion("$ Venta Rápida", 
-            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155), 
+        JButton btnNuevaReserva = crearBotonAccion("+ Nueva Reserva", getPrimario(), Color.WHITE);
+        btnNuevaReserva.addActionListener(e -> { if (onNuevaReserva != null) onNuevaReserva.run(); });
+        mid.add(btnNuevaReserva);
+        mid.add(crearBotonAccion("$ Venta Rápida",
+            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155),
             getPrimario()));
         navbar.add(mid, BorderLayout.CENTER);
 
