@@ -34,10 +34,13 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel sidebarPanel;
     private String userRole;
     private String currentView = "Tablero";
+    private int idUsuario;
+    private ReservaPanel  reservaPanel;
+    private TableroPanel  tableroPanel;
 
-
-    public MainFrame(String role, String welcomeMessage) {
-        this.userRole = role;
+    public MainFrame(String role, String welcomeMessage, int idUsuario) {
+        this.userRole  = role;
+        this.idUsuario = idUsuario;
         setTitle("Hotel Santa Ana — Sistema de Gestión");
         setSize(1280, 800);
         setMinimumSize(new Dimension(1100, 720));
@@ -70,8 +73,11 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.setOpaque(false);
 
         // Agregar vistas
-        contentPanel.add(new TableroPanel(userRole, () -> new NuevaReservaDialog(this).setVisible(true)), "Tablero");
-        contentPanel.add(new ReservaPanel(userRole), "Reserva");
+        tableroPanel = new TableroPanel(userRole, () -> abrirNuevaReserva(), () -> refrescarTodo());
+        contentPanel.add(tableroPanel, "Tablero");
+        reservaPanel = new ReservaPanel(userRole);
+        reservaPanel.setOnEstadoCambiado(() -> refrescarTodo());
+        contentPanel.add(reservaPanel, "Reserva");
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         contentPanel.add(new NotificacionPanel(), "Notificaciones");
 
@@ -124,7 +130,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         btnNuevaReserva.setFocusPainted(false);
         btnNuevaReserva.setPreferredSize(new Dimension(150, 36));
         btnNuevaReserva.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnNuevaReserva.addActionListener(e -> new NuevaReservaDialog(this).setVisible(true));
+        btnNuevaReserva.addActionListener(e -> abrirNuevaReserva());
         center.add(btnNuevaReserva);
         bar.add(center, BorderLayout.CENTER);
 
@@ -360,6 +366,17 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         
         sidebarPanel.revalidate();
         sidebarPanel.repaint();
+    }
+
+    private void abrirNuevaReserva() {
+        NuevaReservaDialog dialog = new NuevaReservaDialog(this, idUsuario);
+        dialog.setVisible(true);
+        refrescarTodo();
+    }
+
+    public void refrescarTodo() {
+        if (tableroPanel  != null) tableroPanel.refreshUI();
+        if (reservaPanel  != null) reservaPanel.refreshUI();
     }
 
     @Override

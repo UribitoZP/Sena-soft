@@ -1,71 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:santa_ana_dashboard/core/services/api_service.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
-import 'package:santa_ana_dashboard/feature/home/presentation/views/home_view.dart';
 
 //  MODELOS
 
-enum ReservationStatus { checkIn, checkOut, inStay, reserved }
+enum ReservationStatus { activa, completada, cancelada }
 
 class ReservationModel {
-  final String id, initials, guestName, subtitle, room, time, extra;
-  final int totalNights, currentNight;
-  final DateTime checkInDate, checkOutDate;
+  final int id;
+  final String guestName, doc, room, entrada, salida;
   final ReservationStatus status;
-  final Color avatarColor, avatarBorder;
 
   const ReservationModel({
     required this.id,
-    required this.initials,
     required this.guestName,
-    required this.subtitle,
+    required this.doc,
     required this.room,
-    required this.time,
-    required this.extra,
-    required this.totalNights,
-    required this.currentNight,
-    required this.checkInDate,
-    required this.checkOutDate,
+    required this.entrada,
+    required this.salida,
     required this.status,
-    required this.avatarColor,
-    required this.avatarBorder,
   });
-}
 
-// Datos de ejemplo — reemplazar con datos del BLoC
-final _mockReservations = [
-  ReservationModel(
-    id: '#RES-2841', initials: 'AM', guestName: 'Andrés Martínez',
-    subtitle: 'Suite Deluxe', room: '301', time: '10:00 AM',
-    extra: '2 huésp.', totalNights: 3, currentNight: 0,
-    checkInDate: DateTime(2026, 3, 4), checkOutDate: DateTime(2026, 3, 7),
-    status: ReservationStatus.checkIn,
-    avatarColor: Color(0x265B8DEE), avatarBorder: Color(0x4D5B8DEE),
-  ),
-  ReservationModel(
-    id: '#RES-2798', initials: 'SR', guestName: 'Sofia Restrepo',
-    subtitle: 'Habitación Estándar', room: '215', time: '12:00 PM',
-    extra: '\$420k', totalNights: 4, currentNight: 4,
-    checkInDate: DateTime(2026, 2, 29), checkOutDate: DateTime(2026, 3, 4),
-    status: ReservationStatus.checkOut,
-    avatarColor: Color(0x26C9A84C), avatarBorder: Color(0x4DC9A84C),
-  ),
-  ReservationModel(
-    id: '#RES-2801', initials: 'CG', guestName: 'Carlos Gómez',
-    subtitle: 'Junior Suite', room: '512', time: 'Día 2/5',
-    extra: '3 huésp.', totalNights: 5, currentNight: 2,
-    checkInDate: DateTime(2026, 3, 2), checkOutDate: DateTime(2026, 3, 7),
-    status: ReservationStatus.inStay,
-    avatarColor: Color(0x264CAF82), avatarBorder: Color(0x4D4CAF82),
-  ),
-  ReservationModel(
-    id: '#RES-2855', initials: 'JL', guestName: 'Juan López',
-    subtitle: 'Habitación Estándar', room: '418', time: 'Mañana',
-    extra: '\$280k', totalNights: 1, currentNight: 0,
-    checkInDate: DateTime(2026, 3, 5), checkOutDate: DateTime(2026, 3, 6),
-    status: ReservationStatus.reserved,
-    avatarColor: Color(0x265B8DEE), avatarBorder: Color(0x4D5B8DEE),
-  ),
-];
+  factory ReservationModel.fromJson(Map<String, dynamic> j) {
+    final est = j['estado'] as String;
+    final status = switch (est) {
+      'Completada' => ReservationStatus.completada,
+      'Cancelada'  => ReservationStatus.cancelada,
+      _            => ReservationStatus.activa,
+    };
+    return ReservationModel(
+      id:        (j['id'] as num).toInt(),
+      guestName: j['cliente']   as String,
+      doc:       j['doc']       as String,
+      room:      j['habitacion'] as String,
+      entrada:   j['entrada']   as String,
+      salida:    j['salida']    as String,
+      status:    status,
+    );
+  }
+
+  String get initials {
+    final parts = guestName.trim().split(' ');
+    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    return guestName.substring(0, guestName.length.clamp(0, 2)).toUpperCase();
+  }
+}
 
 //  RESERVATIONS VIEW
 
@@ -77,21 +56,47 @@ class ReservationsView extends StatefulWidget {
 }
 
 class _ReservationsViewState extends State<ReservationsView> {
+  final _api = ApiService();
+  late Future<List<ReservationModel>> _reservasFuture;
   int _selectedFilter = 0;
-  final _filters = ['Todas', 'Check-in', 'Check-out', 'En estadía', 'Pendientes'];
+  final _filters = ['Todas', 'Activas', 'Completadas', 'Canceladas'];
   final _searchController = TextEditingController();
+  String _search = '';
 
-  List<ReservationModel> get _filtered {
-    if (_selectedFilter == 0) return _mockReservations;
-    final map = {
-      1: ReservationStatus.checkIn,
-      2: ReservationStatus.checkOut,
-      3: ReservationStatus.inStay,
-      4: ReservationStatus.reserved,
-    };
-    return _mockReservations
-        .where((r) => r.status == map[_selectedFilter])
-        .toList();
+  @override
+  void initState() {
+    super.initState();
+    _loadReservas();
+    _searchController.addListener(() {
+      setState(() => _search = _searchController.text.toLowerCase());
+    });
+  }
+
+  void _loadReservas() {
+    _reservasFuture = _api
+        .getReservas()
+        .then((list) => list.map(ReservationModel.fromJson).toList());
+  }
+
+  List<ReservationModel> _applyFilter(List<ReservationModel> all) {
+    var result = all;
+    if (_selectedFilter > 0) {
+      final map = {
+        1: ReservationStatus.activa,
+        2: ReservationStatus.completada,
+        3: ReservationStatus.cancelada,
+      };
+      result = result.where((r) => r.status == map[_selectedFilter]).toList();
+    }
+    if (_search.isNotEmpty) {
+      result = result
+          .where((r) =>
+              r.guestName.toLowerCase().contains(_search) ||
+              r.room.contains(_search) ||
+              r.doc.contains(_search))
+          .toList();
+    }
+    return result;
   }
 
   @override
@@ -105,41 +110,63 @@ class _ReservationsViewState extends State<ReservationsView> {
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
+        child: FutureBuilder<List<ReservationModel>>(
+          future: _reservasFuture,
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Center(
+                  child: CircularProgressIndicator(color: AppTheme.goldColor));
+            }
+            if (snap.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Sin conexión al servidor.\n${snap.error}',
+                    style: const TextStyle(color: AppTheme.errorColor),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              );
+            }
+            final allReservas = snap.data ?? [];
+            final filtered = _applyFilter(allReservas);
+            final activas     = allReservas.where((r) => r.status == ReservationStatus.activa).length;
+            final completadas = allReservas.where((r) => r.status == ReservationStatus.completada).length;
+            final canceladas  = allReservas.where((r) => r.status == ReservationStatus.cancelada).length;
+
+            return RefreshIndicator(
+              onRefresh: () async => setState(() => _loadReservas()),
               child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics()),
                 slivers: [
-                  // Header
                   SliverToBoxAdapter(child: _buildHeader()),
-                  // Filtros
                   SliverToBoxAdapter(child: _buildFilterTabs()),
-                  // Búsqueda
                   SliverToBoxAdapter(child: _buildSearchBar()),
-                  // Stats
-                  SliverToBoxAdapter(child: _buildStatsStrip()),
-                  // Título sección
-                  SliverToBoxAdapter(child: _buildSectionTitle()),
-                  // Lista
+                  SliverToBoxAdapter(child: _buildStatsStrip(
+                    activas: activas,
+                    completadas: completadas,
+                    canceladas: canceladas,
+                  )),
+                  SliverToBoxAdapter(child: _buildSectionTitle(filtered.length)),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, i) => Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: _ReservationCard(data: _filtered[i]),
+                          child: _ReservationCard(data: filtered[i]),
                         ),
-                        childCount: _filtered.length,
+                        childCount: filtered.length,
                       ),
                     ),
                   ),
                   const SliverToBoxAdapter(child: SizedBox(height: 16)),
                 ],
               ),
-            ),
-
-          ],
+            );
+          },
         ),
       ),
     );
@@ -269,12 +296,16 @@ class _ReservationsViewState extends State<ReservationsView> {
 
   // ── Stats strip ──────────────────────────────────────────────
 
-  Widget _buildStatsStrip() {
+  Widget _buildStatsStrip({
+    required int activas,
+    required int completadas,
+    required int canceladas,
+  }) {
     final stats = [
-      ('24', 'Total',      AppTheme.goldColor),
-      ('8',  'Check-in',   AppTheme.successColor),
-      ('5',  'Check-out',  AppTheme.errorColor),
-      ('11', 'En estadía', AppTheme.infoColor),
+      ('${activas + completadas + canceladas}', 'Total',      AppTheme.goldColor),
+      ('$activas',     'Activas',     AppTheme.successColor),
+      ('$completadas', 'Completadas', AppTheme.infoColor),
+      ('$canceladas',  'Canceladas',  AppTheme.errorColor),
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -322,24 +353,18 @@ class _ReservationsViewState extends State<ReservationsView> {
 
   // ── Section title ────────────────────────────────────────────
 
-  Widget _buildSectionTitle() {
+  Widget _buildSectionTitle(int count) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 18, 24, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Hoy · Miércoles 4 Mar',
-              style: Theme.of(context).textTheme.titleMedium),
-          Text('${_filtered.length} reservas',
-              style: Theme.of(context).textTheme.bodySmall),
+          Text('Reservas', style: Theme.of(context).textTheme.titleMedium),
+          Text('$count en total', style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     );
   }
-
-  // ── Bottom nav ───────────────────────────────────────────────
-
-  
 }
 
 //  RESERVATION CARD
@@ -348,16 +373,16 @@ class _ReservationCard extends StatelessWidget {
   final ReservationModel data;
   const _ReservationCard({required this.data});
 
-  // Colores según estado
-  Color get _accentColor => switch (data.status) {
-    ReservationStatus.checkIn  => AppTheme.successColor,
-    ReservationStatus.checkOut => AppTheme.errorColor,
-    ReservationStatus.inStay   => AppTheme.goldColor,
-    ReservationStatus.reserved => AppTheme.infoColor,
+  (Color, String, Color, Color) get _statusProps => switch (data.status) {
+    ReservationStatus.activa     => (AppTheme.goldColor,    'ACTIVA',     AppTheme.goldColor,    const Color(0x26C9A84C)),
+    ReservationStatus.completada => (AppTheme.successColor, 'COMPLETADA', AppTheme.successColor, const Color(0x264CAF82)),
+    ReservationStatus.cancelada  => (AppTheme.errorColor,   'CANCELADA',  AppTheme.errorColor,   const Color(0x26E05C5C)),
   };
 
   @override
   Widget build(BuildContext context) {
+    final (accentColor, label, badgeColor, badgeBg) = _statusProps;
+
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.cardColor,
@@ -368,20 +393,89 @@ class _ReservationCard extends StatelessWidget {
       child: IntrinsicHeight(
         child: Row(
           children: [
-            // Barra lateral de color
-            Container(width: 3, color: _accentColor),
-            // Contenido
+            Container(width: 3, color: accentColor),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTop(context),
+                    // ── Top: avatar + nombre + badge ──
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Avatar
+                        Container(
+                          width: 40, height: 40,
+                          decoration: BoxDecoration(
+                            color: accentColor.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: accentColor.withOpacity(0.4)),
+                          ),
+                          child: Center(
+                            child: Text(
+                              data.initials,
+                              style: const TextStyle(
+                                fontFamily: 'Georgia',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(data.guestName,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontSize: 13)),
+                              const SizedBox(height: 2),
+                              Text('CC ${data.doc}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(fontSize: 11)),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Badge estado
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: badgeBg,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: badgeColor.withOpacity(0.4)),
+                          ),
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w700,
+                              color: badgeColor,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: 12),
-                    _buildChips(context),
-                    const SizedBox(height: 12),
-                    _buildTimeline(),
+
+                    // ── Chips: habitación, entrada, salida ──
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        _Chip(icon: Icons.bed_rounded,          label: 'Hab. ${data.room}'),
+                        _Chip(icon: Icons.login_rounded,        label: data.entrada),
+                        _Chip(icon: Icons.logout_rounded,       label: data.salida),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -391,272 +485,36 @@ class _ReservationCard extends StatelessWidget {
       ),
     );
   }
-
-  // ── Top row (avatar + nombre + badge) ───────────────────────
-
-  Widget _buildTop(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Avatar
-        Container(
-          width: 40, height: 40,
-          decoration: BoxDecoration(
-            color: data.avatarColor,
-            shape: BoxShape.circle,
-            border: Border.all(color: data.avatarBorder),
-          ),
-          child: Center(
-            child: Text(
-              data.initials,
-              style: const TextStyle(
-                fontFamily: 'Georgia',
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppTheme.textColor,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        // Info
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(data.guestName,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontSize: 13)),
-              const SizedBox(height: 2),
-              Text('${data.id} · ${data.subtitle}',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(fontSize: 11)),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        // Badge
-        _StatusBadge(status: data.status),
-      ],
-    );
-  }
-
-  // ── Detail chips ─────────────────────────────────────────────
-
-  Widget _buildChips(BuildContext context) {
-    final chips = [
-      (Icons.bed_rounded,    'Hab. ${data.room}'),
-      (Icons.access_time_rounded, data.time),
-      (Icons.person_rounded, data.extra),
-    ];
-    return Row(
-      children: chips.map((c) {
-        return Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.04),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.borderColor),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(c.$1, size: 12, color: AppTheme.textMuted),
-                const SizedBox(width: 5),
-                Text(
-                  c.$2,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: AppTheme.textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  // ── Timeline ─────────────────────────────────────────────────
-
-  Widget _buildTimeline() {
-    final isCheckOut = data.status == ReservationStatus.checkOut;
-    final isInStay   = data.status == ReservationStatus.inStay;
-    final isReserved = data.status == ReservationStatus.reserved;
-
-    final startColor = isCheckOut
-        ? AppTheme.textMuted
-        : isReserved
-            ? AppTheme.infoColor
-            : AppTheme.goldColor;
-
-    final endColor = isCheckOut
-        ? AppTheme.errorColor
-        : isInStay
-            ? AppTheme.textMuted
-            : isReserved
-                ? AppTheme.borderColor
-                : AppTheme.textMuted;
-
-    final lineStart = isCheckOut
-        ? AppTheme.borderColor
-        : isReserved
-            ? AppTheme.infoColor
-            : AppTheme.goldColor;
-
-    return Row(
-      children: [
-        // Punto inicio
-        Container(
-          width: 6, height: 6,
-          decoration: BoxDecoration(
-            color: startColor,
-            shape: BoxShape.circle,
-          ),
-        ),
-        const SizedBox(width: 4),
-        // Fecha inicio
-        _TlDate(
-          day: data.checkInDate.day.toString(),
-          month: _monthShort(data.checkInDate.month),
-          color: isCheckOut ? AppTheme.textMuted : AppTheme.textColor,
-        ),
-        // Línea con label
-        Expanded(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                height: 1,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [lineStart, AppTheme.borderColor],
-                  ),
-                ),
-              ),
-              Container(
-                color: AppTheme.cardColor,
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  '${data.totalNights} noches',
-                  style: const TextStyle(
-                    fontSize: 9,
-                    color: AppTheme.goldColor,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Fecha fin
-        _TlDate(
-          day: data.checkOutDate.day.toString(),
-          month: _monthShort(data.checkOutDate.month),
-          color: isCheckOut
-              ? AppTheme.errorColor
-              : isInStay
-                  ? AppTheme.textColor
-                  : AppTheme.textMuted,
-        ),
-        const SizedBox(width: 4),
-        // Punto fin
-        Container(
-          width: 6, height: 6,
-          decoration: BoxDecoration(
-            color: endColor,
-            shape: BoxShape.circle,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _monthShort(int month) {
-    const months = [
-      '', 'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-      'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-    ];
-    return months[month];
-  }
 }
 
-// ── Timeline date widget ──────────────────────────────────────
-
-class _TlDate extends StatelessWidget {
-  final String day, month;
-  final Color color;
-  const _TlDate({
-    required this.day,
-    required this.month,
-    required this.color,
-  });
+class _Chip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _Chip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          day,
-          style: TextStyle(
-            fontFamily: 'Georgia',
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: color,
-            height: 1,
-          ),
-        ),
-        Text(
-          month.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 8,
-            color: AppTheme.textMuted,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Status badge ──────────────────────────────────────────────
-
-class _StatusBadge extends StatelessWidget {
-  final ReservationStatus status;
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final (label, color, bg) = switch (status) {
-      ReservationStatus.checkIn  => ('CHECK-IN',   AppTheme.successColor, const Color(0x264CAF82)),
-      ReservationStatus.checkOut => ('CHECK-OUT',  AppTheme.errorColor,   const Color(0x26E05C5C)),
-      ReservationStatus.inStay   => ('EN ESTADÍA', AppTheme.goldColor,    const Color(0x26C9A84C)),
-      ReservationStatus.reserved => ('RESERVA',    AppTheme.infoColor,    const Color(0x265B8DEE)),
-    };
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4)),
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderColor),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 8,
-          fontWeight: FontWeight.w700,
-          color: color,
-          letterSpacing: 0.5,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: AppTheme.textMuted),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppTheme.textColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

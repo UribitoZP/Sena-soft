@@ -8,10 +8,14 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
+import com.santaana.dao.HabitacionDAO;
+import com.santaana.dao.ReservaDAO;
 import com.santaana.util.ThemeManager;
 
 public class ReservaPanel extends JPanel {
@@ -20,8 +24,16 @@ public class ReservaPanel extends JPanel {
     private YearMonth mesActual = YearMonth.now();
     private JPanel calendarGrid;
     private JLabel lblMesAnio;
+    private Runnable onEstadoCambiado;
 
-    // ── Modelo simple de reserva ──────────────────────────────────────────────
+    private final ReservaDAO reservaDAO = new ReservaDAO();
+    private final HabitacionDAO habitacionDAO = new HabitacionDAO();
+
+    public void setOnEstadoCambiado(Runnable callback) {
+        this.onEstadoCambiado = callback;
+    }
+
+    // ── Modelo de display para el calendario ─────────────────────────────────
     private static class Reserva {
         final String id, huesped, habitacion, estado;
         final LocalDate inicio, fin;
@@ -39,25 +51,42 @@ public class ReservaPanel extends JPanel {
         }
     }
 
-    // ── Datos de ejemplo ─────────────────────────────────────────────────────
+    // ── Carga de reservas desde la base de datos ─────────────────────────────
     private final List<Reserva> reservas = new ArrayList<>();
 
     private void cargarDatosEjemplo() {
-        int anio = mesActual.getYear();
-        int mes  = mesActual.getMonthValue();
         reservas.clear();
-        reservas.add(new Reserva("001","Juan Pérez",      "Hab 101", LocalDate.of(anio,mes, 1), LocalDate.of(anio,mes, 3), "Confirmada", new Color(0x27AE60)));
-        reservas.add(new Reserva("002","María López",     "Hab 102", LocalDate.of(anio,mes, 2), LocalDate.of(anio,mes, 5), "Pendiente",  new Color(0xE67E22)));
-        reservas.add(new Reserva("003","Carlos Rodríguez","Hab 103", LocalDate.of(anio,mes, 3), LocalDate.of(anio,mes, 6), "Check-in",   new Color(0x3A7BD5)));
-        reservas.add(new Reserva("004","Ana Gómez",       "Hab 104", LocalDate.of(anio,mes, 7), LocalDate.of(anio,mes, 9), "Check-out",  new Color(0x8E44AD)));
-        reservas.add(new Reserva("005","Luis Martínez",   "Hab 105", LocalDate.of(anio,mes, 5), LocalDate.of(anio,mes, 8), "Confirmada", new Color(0x27AE60)));
-        reservas.add(new Reserva("006","Sandra Torres",   "Hab 101", LocalDate.of(anio,mes,10), LocalDate.of(anio,mes,13), "Pendiente",  new Color(0xE67E22)));
-        reservas.add(new Reserva("007","Andrés Vargas",   "Hab 102", LocalDate.of(anio,mes, 9), LocalDate.of(anio,mes,11), "Cancelada",  new Color(0xE74C3C)));
-        reservas.add(new Reserva("008","Patricia Silva",  "Hab 103", LocalDate.of(anio,mes,14), LocalDate.of(anio,mes,17), "Confirmada", new Color(0x27AE60)));
-        reservas.add(new Reserva("009","Jorge Mendoza",   "Hab 104", LocalDate.of(anio,mes,18), LocalDate.of(anio,mes,22), "Pendiente",  new Color(0xE67E22)));
-        reservas.add(new Reserva("010","Claudia Herrera", "Hab 102", LocalDate.of(anio,mes,20), LocalDate.of(anio,mes,24), "Confirmada", new Color(0x27AE60)));
-        reservas.add(new Reserva("011","Roberto Castro",  "Hab 105", LocalDate.of(anio,mes,25), LocalDate.of(anio,mes,28), "Confirmada", new Color(0x27AE60)));
-        reservas.add(new Reserva("012","Diana Morales",   "Hab 101", LocalDate.of(anio,mes,22), LocalDate.of(anio,mes,26), "Check-in",   new Color(0x3A7BD5)));
+
+        // Mapa id -> numero de habitacion para mostrar en el calendario
+        Map<Integer, String> numHab = new HashMap<>();
+        for (com.santaana.model.Habitacion h : habitacionDAO.listarTodas()) {
+            numHab.put(h.getId(), "Hab " + h.getNumero());
+        }
+
+        for (com.santaana.model.Reserva r : reservaDAO.listarTodas()) {
+            try {
+                LocalDate entrada = LocalDate.parse(r.getFechaEntrada());
+                LocalDate salida  = LocalDate.parse(r.getFechaSalida());
+                String hab        = numHab.getOrDefault(r.getIdHabitacion(), "Hab ?");
+
+                Color color;
+                switch (r.getEstado()) {
+                    case "Activa":     color = new Color(0x27AE60); break;
+                    case "Completada": color = new Color(0x8E44AD); break;
+                    case "Cancelada":  color = new Color(0xE74C3C); break;
+                    default:           color = new Color(0x3A7BD5);
+                }
+
+                reservas.add(new Reserva(
+                    String.valueOf(r.getId()),
+                    r.getClienteNombre(),
+                    hab,
+                    entrada, salida,
+                    r.getEstado(),
+                    color
+                ));
+            } catch (Exception ignored) {}
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -423,13 +452,60 @@ public class ReservaPanel extends JPanel {
     }
 
     private void mostrarDetalleReserva(Reserva r) {
+        String colorHex = String.format("#%06X", r.color.getRGB() & 0xFFFFFF);
         String msg = "<html><b>Reserva #" + r.id + "</b><br><br>"
-            + "<b>Huésped:</b> " + r.huesped + "<br>"
+            + "<b>Huésped:</b> "    + r.huesped    + "<br>"
             + "<b>Habitación:</b> " + r.habitacion + "<br>"
-            + "<b>Entrada:</b> " + r.inicio + "<br>"
-            + "<b>Salida:</b> " + r.fin + "<br>"
-            + "<b>Estado:</b> <font color='" + String.format("#%06X", r.color.getRGB() & 0xFFFFFF) + "'>" + r.estado + "</font>"
+            + "<b>Entrada:</b> "    + r.inicio     + "<br>"
+            + "<b>Salida:</b> "     + r.fin        + "<br>"
+            + "<b>Estado:</b> <font color='" + colorHex + "'>" + r.estado + "</font>"
             + "</html>";
-        JOptionPane.showMessageDialog(this, msg, "Detalle de reserva", JOptionPane.INFORMATION_MESSAGE);
+
+        if (r.estado.equals("Activa")) {
+            Object[] opciones = {"Hacer Checkout", "Cancelar Reserva", "Cerrar"};
+            int op = JOptionPane.showOptionDialog(this, msg, "Detalle de reserva",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
+                null, opciones, opciones[2]);
+
+            if (op == 0) {
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "<html>¿Confirmar checkout de <b>" + r.huesped + "</b>?<br>"
+                    + "La habitación " + r.habitacion + " quedará disponible.</html>",
+                    "Confirmar Checkout", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    realizarCheckout(r);
+                }
+            } else if (op == 1) {
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "¿Cancelar la reserva de " + r.huesped + "?",
+                    "Cancelar Reserva", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Cancelada");
+                    refreshUI();
+                    if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, msg, "Detalle de reserva", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    private void realizarCheckout(Reserva r) {
+        reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Completada");
+
+        for (com.santaana.model.Habitacion h : habitacionDAO.listarTodas()) {
+            if (("Hab " + h.getNumero()).equals(r.habitacion)) {
+                habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
+                break;
+            }
+        }
+
+        JOptionPane.showMessageDialog(this,
+            "<html>Checkout realizado.<br><b>" + r.huesped + "</b> ha salido.<br>"
+            + r.habitacion + " pasó a <b>Limpieza</b>.</html>",
+            "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
+
+        refreshUI();
+        if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
     }
 }
