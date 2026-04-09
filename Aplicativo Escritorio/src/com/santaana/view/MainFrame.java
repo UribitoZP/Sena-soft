@@ -34,10 +34,13 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel sidebarPanel;
     private String userRole;
     private String currentView = "Tablero";
+    private int idUsuario;
+    private ReservaPanel  reservaPanel;
+    private TableroPanel  tableroPanel;
 
-
-    public MainFrame(String role, String welcomeMessage) {
-        this.userRole = role;
+    public MainFrame(String role, String welcomeMessage, int idUsuario) {
+        this.userRole  = role;
+        this.idUsuario = idUsuario;
         setTitle("Hotel Santa Ana — Sistema de Gestión");
         setSize(1280, 800);
         setMinimumSize(new Dimension(1100, 720));
@@ -70,8 +73,11 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.setOpaque(false);
 
         // Agregar vistas
-        contentPanel.add(new TableroPanel(userRole), "Tablero");
-        contentPanel.add(new ReservaPanel(userRole), "Reserva");
+        tableroPanel = new TableroPanel(userRole, () -> abrirNuevaReserva(), () -> refrescarTodo());
+        contentPanel.add(tableroPanel, "Tablero");
+        reservaPanel = new ReservaPanel(userRole);
+        reservaPanel.setOnEstadoCambiado(() -> refrescarTodo());
+        contentPanel.add(reservaPanel, "Reserva");
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         contentPanel.add(new NotificacionPanel(), "Notificaciones");
 
@@ -102,6 +108,31 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         
         left.add(logo);
         left.add(brand);
+
+        // Centro: Botón Nueva Reserva
+        JPanel center = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 12));
+        center.setOpaque(false);
+        JButton btnNuevaReserva = new JButton("+ Nueva Reserva") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(ThemeManager.getPrimary());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnNuevaReserva.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnNuevaReserva.setForeground(Color.WHITE);
+        btnNuevaReserva.setContentAreaFilled(false);
+        btnNuevaReserva.setBorderPainted(false);
+        btnNuevaReserva.setFocusPainted(false);
+        btnNuevaReserva.setPreferredSize(new Dimension(150, 36));
+        btnNuevaReserva.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnNuevaReserva.addActionListener(e -> abrirNuevaReserva());
+        center.add(btnNuevaReserva);
+        bar.add(center, BorderLayout.CENTER);
 
         // Derecha: Notificaciones, Tema y Usuario
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 12));
@@ -335,6 +366,17 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         
         sidebarPanel.revalidate();
         sidebarPanel.repaint();
+    }
+
+    private void abrirNuevaReserva() {
+        NuevaReservaDialog dialog = new NuevaReservaDialog(this, idUsuario);
+        dialog.setVisible(true);
+        refrescarTodo();
+    }
+
+    public void refrescarTodo() {
+        if (tableroPanel  != null) tableroPanel.refreshUI();
+        if (reservaPanel  != null) reservaPanel.refreshUI();
     }
 
     @Override
