@@ -29,8 +29,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
 
-//import org.w3c.dom.events.MouseEvent;
-
 import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
