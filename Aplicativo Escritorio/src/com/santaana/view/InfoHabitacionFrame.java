@@ -1,439 +1,322 @@
 package com.santaana.view;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Image;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.border.MatteBorder;
+import com.santaana.dao.ReservaDAO;
+import com.santaana.model.Habitacion;
+import com.santaana.model.Reserva;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
 
-public class InfoHabitacionFrame extends JFrame {
+public class InfoHabitacionFrame extends JDialog {
 
-    private String role;
+    private Habitacion habitacion;
+    private Reserva reservaActiva;
 
-    private static final Color COLOR_PRIMARIO = new Color(0x3A7BD5);
-    private static final Color COLOR_FONDO    = new Color(0xF0F6FF);
-    private static final Color COLOR_PANEL    = Color.WHITE;
-    private static final Color COLOR_BORDE    = new Color(0xEAF2FB);
-    private static final Color COLOR_TEXTO    = new Color(40, 50, 70);
-    private static final Color COLOR_VERDE    = new Color(0, 170, 90);
-    private static final Color COLOR_LABEL    = new Color(110, 120, 140);
-    private static final Color COLOR_AMARILLO = new Color(0xFFD600);
+    private static final Color COLOR_FONDO      = new Color(0xF8FAFF);
+    private static final Color COLOR_CARD       = Color.WHITE;
+    private static final Color COLOR_BORDE      = new Color(0xE4EDF8);
+    private static final Color COLOR_TEXTO      = new Color(30, 42, 62);
+    private static final Color COLOR_LABEL      = new Color(120, 135, 160);
+    private static final Color COLOR_AZUL       = new Color(0x3A7BD5);
+    private static final Color COLOR_VERDE      = new Color(0x00AA5A);
+    private static final Color COLOR_NARANJA    = new Color(0xF59E0B);
 
-    //Datos de la reserva ( vendrían por constructor)
-    private String numeroHabitacion = "07";
-    private String huesped          = "Carlos Elles";
-    private String serviciosExtra   = "Lavandería, servicio a la habitación";
-    private String tipoPago         = "Tarjeta";
-    private String pagoAnticipado   = "$0";
-    private String cargosExtra      = "$50.000";
-    private String telefono         = "3024567324";
-    private String correo           = "KrlosEllz@gmail.com";
-    private String tipoEstadia       = "Por hora";
-    private String fechaEntrada     = "02/02/2026 1:15 pm";
-    private String fechaSalida      = "02/02/2026 12:45 pm";
-    private String totalPago        = "$15.000";
+    public InfoHabitacionFrame(JFrame parent, Habitacion habitacion) {
+        super(parent, "Detalle de Habitación", true);
+        this.habitacion = habitacion;
+        buscarReservaActiva();
+        configurarVentana();
+        construirUI();
+        setLocationRelativeTo(parent);
+    }
 
-    //Constructor
-    public InfoHabitacionFrame(String role, String welcomeMessage) {
-        this.role = role;
+    private void buscarReservaActiva() {
+        ReservaDAO dao = new ReservaDAO();
+        for (Reserva r : dao.listarTodas()) {
+            if (r.getIdHabitacion() == habitacion.getId()
+                    && "Activa".equalsIgnoreCase(r.getEstado())) {
+                this.reservaActiva = r;
+                break;
+            }
+        }
+    }
 
-        setTitle("Hotel Santa Ana — Información de la Habitación");
-        setSize(1280, 800);
-        setMinimumSize(new Dimension(1100, 720));
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+    private void configurarVentana() {
+        setSize(460, reservaActiva != null ? 580 : 420);
+        setResizable(false);
         setLayout(new BorderLayout());
-
-        add(crearNavbar(),    BorderLayout.NORTH);
-        add(sidebar(),        BorderLayout.WEST);
-        add(crearContenido(), BorderLayout.CENTER);
-
-        setVisible(true);
+        getContentPane().setBackground(COLOR_FONDO);
     }
 
+    private void construirUI() {
+        add(crearHeader(), BorderLayout.NORTH);
 
-    //  NAVBAR
-    private JPanel crearNavbar() {
-        JPanel navbar = new JPanel(new BorderLayout());
-        navbar.setBackground(Color.WHITE);
-        navbar.setPreferredSize(new Dimension(0, 60));
-        navbar.setBorder(new MatteBorder(0, 0, 1, 0, COLOR_BORDE));
+        JPanel cuerpo = new JPanel();
+        cuerpo.setLayout(new BoxLayout(cuerpo, BoxLayout.Y_AXIS));
+        cuerpo.setBackground(COLOR_FONDO);
+        cuerpo.setBorder(new EmptyBorder(20, 22, 10, 22));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 10));
-        left.setOpaque(false);
+        cuerpo.add(crearCardHabitacion());
+        cuerpo.add(Box.createVerticalStrut(14));
 
-        JLabel logo = new JLabel();
-        try {
-            ImageIcon icon = new ImageIcon("resources/logo.png");
-            Image scaled = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-            logo.setIcon(new ImageIcon(scaled));
-        } catch (Exception ignored) {}
+        if (reservaActiva != null) {
+            cuerpo.add(crearCardReserva());
+        } else {
+            cuerpo.add(crearEstadoDisponible());
+        }
 
-        JLabel nombre = new JLabel("<html><b>HOTEL SANTA ANA</b><br>"
-                + "<span style='font-size:9px;color:#6B84A0'>Sistema de gestión hotelera</span></html>");
-
-        JLabel notifLbl = new JLabel("🔔");
-        notifLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 17));
-        notifLbl.setForeground(COLOR_PRIMARIO);
-
-        left.add(logo);
-        left.add(nombre);
-        left.add(notifLbl);
-
-        JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 12));
-        mid.setOpaque(false);
-        mid.add(crearBotonNavbar("+ Nueva reserva", COLOR_PRIMARIO, Color.WHITE));
-        mid.add(crearBotonNavbar("Venta rápida", new Color(0xE8F1FD), COLOR_PRIMARIO));
-
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 14));
-        right.setOpaque(false);
-        right.add(userPanel());
-
-        navbar.add(left,  BorderLayout.WEST);
-        navbar.add(mid,   BorderLayout.CENTER);
-        navbar.add(right, BorderLayout.EAST);
-        return navbar;
+        add(cuerpo, BorderLayout.CENTER);
+        add(crearFooter(), BorderLayout.SOUTH);
     }
 
-    private JButton crearBotonNavbar(String texto, Color bg, Color fg) {
-        JButton btn = new JButton(texto);
-        btn.setBackground(bg);
-        btn.setForeground(fg);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(150, 34));
-        return btn;
+    // ── HEADER ──────────────────────────────────────────────────────────────
+
+    private JPanel crearHeader() {
+        Color colorHeader = colorSegunEstado();
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(colorHeader);
+        header.setBorder(new EmptyBorder(22, 26, 18, 26));
+
+        // Número y tipo
+        JPanel izq = new JPanel();
+        izq.setLayout(new BoxLayout(izq, BoxLayout.Y_AXIS));
+        izq.setOpaque(false);
+
+        JLabel lblNumero = new JLabel("Habitación " + habitacion.getNumero());
+        lblNumero.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        lblNumero.setForeground(Color.WHITE);
+
+        JLabel lblTipo = new JLabel(habitacion.getTipo());
+        lblTipo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblTipo.setForeground(new Color(255, 255, 255, 200));
+
+        izq.add(lblNumero);
+        izq.add(Box.createVerticalStrut(3));
+        izq.add(lblTipo);
+
+        // Badge de estado
+        JLabel badge = crearBadgeEstado();
+
+        header.add(izq, BorderLayout.WEST);
+        header.add(badge, BorderLayout.EAST);
+        return header;
     }
 
-    private JPanel userPanel() {
-        JPanel p = new JPanel();
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setOpaque(false);
-
-        JLabel name = new JLabel("Usuario");
-        name.setFont(new Font("Segoe UI", Font.BOLD, 12));
-
-        JLabel rol = new JLabel(role);
-        rol.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        rol.setForeground(COLOR_LABEL);
-
-        p.add(name);
-        p.add(rol);
-        return p;
-    }
-
-    
-    //  SIDEBAR
-    private JPanel sidebar() {
-        JPanel side = new JPanel();
-        side.setLayout(new BoxLayout(side, BoxLayout.Y_AXIS));
-        side.setBackground(Color.WHITE);
-        side.setPreferredSize(new Dimension(190, 0));
-        side.setBorder(new MatteBorder(0, 0, 0, 1, COLOR_BORDE));
-
-        side.add(Box.createVerticalStrut(20));
-
-        String[] items = {
-            "Tablero",
-            "Gestión de Habitaciones",
-            "Reserva",
-            "Punto de venta",
-            "Historial",
-            "Reporte"
+    private JLabel crearBadgeEstado() {
+        String estado = habitacion.getEstado();
+        JLabel badge = new JLabel(estado) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(255, 255, 255, 50));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                g2.dispose();
+                super.paintComponent(g);
+            }
         };
+        badge.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        badge.setForeground(Color.WHITE);
+        badge.setBorder(new EmptyBorder(5, 12, 5, 12));
+        badge.setOpaque(false);
+        return badge;
+    }
 
-        for (int i = 0; i < items.length; i++) {
-            side.add(sideBtn(items[i], i == 1));
-            side.add(Box.createVerticalStrut(8));
+    private Color colorSegunEstado() {
+        switch (habitacion.getEstado().toLowerCase()) {
+            case "ocupada":    return COLOR_AZUL;
+            case "disponible": return COLOR_VERDE;
+            default:           return COLOR_NARANJA; // mantenimiento u otro
         }
-
-        side.add(Box.createVerticalGlue());
-        return side;
     }
 
-    private JPanel sideBtn(String text, boolean active) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setMaximumSize(new Dimension(180, 36));
-        p.setBorder(BorderFactory.createEmptyBorder(8, 14, 8, 8));
-        p.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    // ── CARD HABITACIÓN ─────────────────────────────────────────────────────
 
-        JLabel lbl = new JLabel(text);
-        lbl.setFont(new Font("Segoe UI", active ? Font.BOLD : Font.PLAIN, 12));
-        lbl.setForeground(active ? COLOR_PRIMARIO : COLOR_LABEL);
+    private JPanel crearCardHabitacion() {
+        JPanel card = crearCard();
 
-        p.setBackground(active ? new Color(0xE8F1FD) : Color.WHITE);
-        p.add(lbl, BorderLayout.CENTER);
-        return p;
-    }
-
-    private JScrollPane crearContenido() {
-        JPanel main = new JPanel();
-        main.setLayout(new BoxLayout(main, BoxLayout.Y_AXIS));
-        main.setBackground(COLOR_FONDO);
-        main.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
-
-        main.add(buildHabitacionHeader());
-        main.add(Box.createVerticalStrut(20));
-        main.add(buildHuespedHeader());
-        main.add(Box.createVerticalStrut(18));
-        main.add(buildDatosReservaCard());
-        main.add(Box.createVerticalStrut(24));
-        main.add(buildBotonFinalizar());
-        main.add(Box.createVerticalStrut(10));
-
-        JScrollPane scroll = new JScrollPane(main);
-        scroll.setBorder(null);
-        scroll.getViewport().setBackground(COLOR_FONDO);
-        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        return scroll;
-    }
-
-
-    private JPanel buildHabitacionHeader() {
-        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
-        p.setOpaque(false);
-
-        JPanel imgBox = new JPanel(new BorderLayout());
-        imgBox.setPreferredSize(new Dimension(60, 60));
-        imgBox.setBackground(new Color(0xDDE8F7));
-        imgBox.setBorder(BorderFactory.createLineBorder(COLOR_BORDE));
-
-        try {
-            ImageIcon ico = new ImageIcon(getClass().getResource("/resources/habitacion1.png"));
-            Image scaled = ico.getImage().getScaledInstance(60, 60, Image.SCALE_SMOOTH);
-            imgBox.add(new JLabel(new ImageIcon(scaled)), BorderLayout.CENTER);
-        } catch (Exception e) {
-            JLabel x = new JLabel(" ", SwingConstants.CENTER);
-            x.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 28));
-            imgBox.add(x, BorderLayout.CENTER);
-        }
-
-        JLabel titulo = new JLabel("Habitación " + numeroHabitacion);
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        titulo.setForeground(COLOR_PRIMARIO);
-
-        p.add(imgBox);
-        p.add(titulo);
-        
-        return p;
-    }
-
-    private JPanel buildHuespedHeader() {
-        JPanel p = new JPanel();
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setOpaque(false);
-
-        JLabel lbl = new JLabel("Huésped titular : " + huesped);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lbl.setForeground(COLOR_TEXTO);
-        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JSeparator sep = new JSeparator();
-        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        sep.setForeground(COLOR_BORDE);
-        sep.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        p.add(lbl);
-        p.add(Box.createVerticalStrut(6));
-        p.add(sep);
-        return p;
-    }
-
-    private JPanel buildDatosReservaCard() {
-        JPanel card = new JPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBackground(COLOR_PANEL);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(COLOR_BORDE),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel titulo = new JLabel("Datos de reserva");
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        titulo.setForeground(COLOR_PRIMARIO);
-        card.setMaximumSize(new Dimension(800, Integer.MAX_VALUE));
-        titulo.setHorizontalAlignment(SwingConstants.CENTER);
-        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel titulo = crearTituloSeccion("INFORMACIÓN DE LA HABITACIÓN");
         card.add(titulo);
         card.add(Box.createVerticalStrut(14));
 
-        card.add(buildFilaDoble(
-                "Servicios extra adquiridos:", serviciosExtra,
-                "Tipo de pago:", tipoPago));
-        card.add(Box.createVerticalStrut(10));
+        JPanel grid = new JPanel(new GridLayout(1, 2, 16, 0));
+        grid.setOpaque(false);
+        grid.setAlignmentX(Component.LEFT_ALIGNMENT);
+        grid.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
 
-        card.add(buildFilaSimple("Pago anticipado:", pagoAnticipado));
-        card.add(Box.createVerticalStrut(8));
+        grid.add(crearCampo("Tipo de habitación", habitacion.getTipo()));
+        grid.add(crearCampo("Precio por noche",
+                String.format("$ %,.0f", habitacion.getPrecio())));
 
-        card.add(buildFilaCargos());
-        card.add(Box.createVerticalStrut(12));
+        card.add(grid);
+        return card;
+    }
 
-        card.add(separador());
-        card.add(Box.createVerticalStrut(12));
+    // ── CARD RESERVA ─────────────────────────────────────────────────────────
 
-        card.add(buildFilaSimple("Número de teléfono:", telefono));
-        card.add(Box.createVerticalStrut(8));
+    private JPanel crearCardReserva() {
+        JPanel card = crearCard();
 
-        card.add(buildFilaSimple("Correo electrónico:", correo));
-        card.add(Box.createVerticalStrut(8));
-
-        card.add(buildFilaSimple("Tipo de estadía:", tipoEstadia));
+        JLabel titulo = crearTituloSeccion("RESERVA ACTIVA");
+        card.add(titulo);
         card.add(Box.createVerticalStrut(14));
 
-        card.add(separador());
-        card.add(Box.createVerticalStrut(12));
+        // Fila 1: Huésped y Documento
+        JPanel fila1 = new JPanel(new GridLayout(1, 2, 16, 0));
+        fila1.setOpaque(false);
+        fila1.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fila1.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        fila1.add(crearCampo("Huésped titular", reservaActiva.getClienteNombre()));
+        fila1.add(crearCampo("Documento", reservaActiva.getClienteDoc()));
+        card.add(fila1);
+        card.add(Box.createVerticalStrut(16));
 
-        card.add(buildFilaFecha("Fecha y hora de entrada:", fechaEntrada));
-        card.add(Box.createVerticalStrut(10));
-        card.add(buildFilaFecha("Fecha y hora de salida:", fechaSalida));
-        card.add(Box.createVerticalStrut(14));
+        // Fila 2: Fechas
+        JPanel fila2 = new JPanel(new GridLayout(1, 2, 16, 0));
+        fila2.setOpaque(false);
+        fila2.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fila2.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        fila2.add(crearCampo("Fecha de entrada", reservaActiva.getFechaEntrada()));
+        fila2.add(crearCampo("Fecha de salida", reservaActiva.getFechaSalida()));
+        card.add(fila2);
+        card.add(Box.createVerticalStrut(16));
 
-        card.add(separador());
-        card.add(Box.createVerticalStrut(12));
-
-        card.add(buildFilaTotal());
+        // Fila 3: Total estimado
+        JPanel fila3 = new JPanel(new GridLayout(1, 2, 16, 0));
+        fila3.setOpaque(false);
+        fila3.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fila3.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        fila3.add(crearCampo("ID Reserva", "#" + reservaActiva.getId()));
+        fila3.add(crearCampoDestacado("Estado", reservaActiva.getEstado(), COLOR_AZUL));
+        card.add(fila3);
 
         return card;
     }
 
-    //Botón
-    private JPanel buildBotonFinalizar() {
-        JPanel wrap = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        wrap.setOpaque(false);
-        wrap.setAlignmentX(Component.CENTER_ALIGNMENT);
+    // ── ESTADO DISPONIBLE ────────────────────────────────────────────────────
 
-        JButton btn = new JButton("Finalizar hospedaje y realizar cobro");
-        btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        btn.setForeground(COLOR_TEXTO);
-        btn.setBackground(Color.WHITE);
-        btn.setBorder(BorderFactory.createLineBorder(COLOR_TEXTO, 1));
-        btn.setFocusPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setPreferredSize(new Dimension(300, 36));
+    private JPanel crearEstadoDisponible() {
+        JPanel card = crearCard();
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) {
-                btn.setBackground(COLOR_PRIMARIO);
-                btn.setForeground(Color.WHITE);
-                btn.setBorder(BorderFactory.createLineBorder(COLOR_PRIMARIO, 1));
+        JPanel circulo = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0x00AA5A, false));
+                g2.fillOval(0, 0, 48, 48);
+                g2.setColor(Color.WHITE);
+                g2.setFont(new Font("Arial", Font.BOLD, 22));
+                FontMetrics fm = g2.getFontMetrics();
+                String tick = "OK";
+                int x = (48 - fm.stringWidth(tick)) / 2;
+                int y = (48 + fm.getAscent() - fm.getDescent()) / 2;
+                g2.drawString(tick, x, y);
+                g2.dispose();
             }
-            @Override public void mouseExited(MouseEvent e) {
-                btn.setBackground(Color.WHITE);
-                btn.setForeground(COLOR_TEXTO);
-                btn.setBorder(BorderFactory.createLineBorder(COLOR_TEXTO, 1));
-            }
-        });
+        };
+        circulo.setPreferredSize(new Dimension(48, 48));
+        circulo.setMaximumSize(new Dimension(48, 48));
+        circulo.setMinimumSize(new Dimension(48, 48));
+        circulo.setOpaque(false);
+        circulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        wrap.add(btn);
-        return wrap;
+        JLabel msg = new JLabel("Habitacion disponible");
+        msg.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        msg.setForeground(COLOR_TEXTO);
+        msg.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel sub = new JLabel("No hay reservas activas asignadas.");
+        sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        sub.setForeground(COLOR_LABEL);
+        sub.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        card.add(Box.createVerticalStrut(14));
+        card.add(circulo);
+        card.add(Box.createVerticalStrut(12));
+        card.add(msg);
+        card.add(Box.createVerticalStrut(4));
+        card.add(sub);
+        card.add(Box.createVerticalStrut(14));
+        return card;
     }
 
-    //filas
+    // ── FOOTER ───────────────────────────────────────────────────────────────
 
-    private JPanel buildFilaDoble(String l1, String v1, String l2, String v2) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        row.setOpaque(false);
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.add(labelGris(l1));
-        row.add(Box.createHorizontalStrut(6));
-        row.add(valorNormal(v1));
-        row.add(Box.createHorizontalStrut(40));
-        row.add(labelGris(l2));
-        row.add(Box.createHorizontalStrut(6));
-        row.add(valorNormal(v2));
-        return row;
+    private JPanel crearFooter() {
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        footer.setBackground(COLOR_FONDO);
+        footer.setBorder(new EmptyBorder(8, 22, 20, 22));
+
+        JButton btnCerrar = new JButton("Cerrar");
+        btnCerrar.setPreferredSize(new Dimension(110, 36));
+        btnCerrar.setBackground(COLOR_AZUL);
+        btnCerrar.setForeground(Color.WHITE);
+        btnCerrar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnCerrar.setFocusPainted(false);
+        btnCerrar.setBorderPainted(false);
+        btnCerrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnCerrar.addActionListener(e -> dispose());
+
+        footer.add(btnCerrar);
+        return footer;
     }
 
-    private JPanel buildFilaSimple(String labelTxt, String valorTxt) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        row.setOpaque(false);
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.add(labelGris(labelTxt));
-        row.add(Box.createHorizontalStrut(6));
-        row.add(valorNormal(valorTxt));
-        return row;
+    // ── HELPERS ──────────────────────────────────────────────────────────────
+
+    private JPanel crearCard() {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(COLOR_CARD);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(COLOR_BORDE, 1),
+                new EmptyBorder(16, 18, 16, 18)));
+        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        return card;
     }
 
-    private JPanel buildFilaCargos() {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        row.setOpaque(false);
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.add(labelGris("Cargos extra:"));
-        row.add(Box.createHorizontalStrut(6));
-        row.add(valorNormal(cargosExtra));
-        row.add(Box.createHorizontalStrut(8));
-
-        return row;
+    private JLabel crearTituloSeccion(String texto) {
+        JLabel lbl = new JLabel(texto);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        lbl.setForeground(COLOR_LABEL);
+        lbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return lbl;
     }
 
-    private JPanel buildFilaFecha(String labelTxt, String valor) {
-    JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    row.setOpaque(false);
-    row.setAlignmentX(Component.LEFT_ALIGNMENT);
+    private JPanel crearCampo(String etiqueta, String valor) {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setOpaque(false);
 
-    row.add(labelGris(labelTxt));
-    row.add(Box.createHorizontalStrut(6));
-    row.add(valorNormal(valor));
-    row.add(Box.createHorizontalStrut(6));
+        JLabel lbl = new JLabel(etiqueta);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lbl.setForeground(COLOR_LABEL);
 
-    return row;
-}
-
-    private JPanel buildFilaTotal() {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        row.setOpaque(false);
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.add(labelGris("Total de pago:"));
-        row.add(Box.createHorizontalStrut(6));
-
-        JLabel val = new JLabel(totalPago);
+        JLabel val = new JLabel(valor != null && !valor.isEmpty() ? valor : "—");
         val.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        val.setForeground(COLOR_VERDE);
-        row.add(val);
-        return row;
+        val.setForeground(COLOR_TEXTO);
+
+        p.add(lbl);
+        p.add(Box.createVerticalStrut(2));
+        p.add(val);
+        return p;
     }
 
-    private JSeparator separador() {
-        JSeparator sep = new JSeparator();
-        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
-        sep.setForeground(COLOR_BORDE);
-        sep.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return sep;
-    }
-
-
-    private JLabel labelGris(String text) {
-        JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        l.setForeground(COLOR_LABEL);
-        return l;
-    }
-
-    private JLabel valorNormal(String text) {
-        JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        l.setForeground(COLOR_TEXTO);
-        return l;
+    private JPanel crearCampoDestacado(String etiqueta, String valor, Color colorValor) {
+        JPanel p = crearCampo(etiqueta, valor);
+        // Reemplaza el color del último componente añadido (el valor)
+        Component[] comps = p.getComponents();
+        for (Component c : comps) {
+            if (c instanceof JLabel) {
+                JLabel lbl = (JLabel) c;
+                if (lbl.getFont().isBold()) {
+                    lbl.setForeground(colorValor);
+                }
+            }
+        }
+        return p;
     }
 }

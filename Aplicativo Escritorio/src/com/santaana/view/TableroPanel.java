@@ -12,6 +12,9 @@ import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.Window;
 
 import javax.swing.SwingUtilities;
 import javax.swing.BorderFactory;
@@ -21,6 +24,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
@@ -281,6 +285,18 @@ public class TableroPanel extends JPanel {
             c.add(btnHabilitar);
         }
 
+        c.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        c.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    abrirDetalleHabitacion(h);
+                }
+            }
+        });
+
+
         return c;
     }
 
@@ -334,5 +350,18 @@ public class TableroPanel extends JPanel {
             "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
 
         if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
+    }
+
+    private void abrirDetalleHabitacion(Habitacion h) {
+
+        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+
+        if (parentWindow instanceof JFrame) {
+            InfoHabitacionFrame dialog = new InfoHabitacionFrame((JFrame) parentWindow, h);
+            dialog.setVisible(true);
+        } else {
+            InfoHabitacionFrame dialog = new InfoHabitacionFrame(null, h);
+            dialog.setVisible(true);
+        }
     }
 }
