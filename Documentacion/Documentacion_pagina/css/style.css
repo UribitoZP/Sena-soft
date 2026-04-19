@@ -742,16 +742,16 @@ tbody td:nth-child(2) {
     }
 
     .reading-progress-container::after {
-        content: attr(data-pct) '%';
+        content: '↑ ' attr(data-pct) '%';
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 48px;
-        height: 48px;
+        width: 52px;
+        height: 52px;
         border-radius: 50%;
         background: var(--color-primary);
         color: #fff;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 700;
         font-family: var(--font-family-mono);
         box-shadow: 0 4px 12px rgba(37,99,235,0.4);
