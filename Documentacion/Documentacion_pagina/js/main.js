@@ -100,6 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(bar);
         document.body.prepend(container);
 
+        container.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
         window.addEventListener('scroll', () => {
             const winScroll = window.scrollY || document.documentElement.scrollTop;
             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;

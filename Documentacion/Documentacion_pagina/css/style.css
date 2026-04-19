@@ -730,6 +730,7 @@ tbody td:nth-child(2) {
         top: auto;
         bottom: 1.5rem;
         left: auto;
+        cursor: pointer;
         right: 1rem;
         width: auto;
         height: auto;
