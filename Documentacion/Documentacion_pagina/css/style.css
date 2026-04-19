@@ -724,6 +724,45 @@ tbody td:nth-child(2) {
     box-shadow: 0 0 10px var(--color-primary);
 }
 
+/* En móvil: pill flotante con porcentaje en esquina */
+@media (max-width: 768px) {
+    .reading-progress-container {
+        top: auto;
+        bottom: 1.5rem;
+        left: auto;
+        right: 1rem;
+        width: auto;
+        height: auto;
+        background: transparent;
+    }
+
+    .reading-progress-bar {
+        display: none;
+    }
+
+    .reading-progress-container::after {
+        content: attr(data-pct) '%';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--color-primary);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        font-family: var(--font-family-mono);
+        box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .reading-progress-container.visible::after {
+        opacity: 1;
+    }
+}
+
 /* ===== BREADCRUMBS (MIGAS DE PAN) ===== */
 .breadcrumbs {
     margin-bottom: 2rem;
@@ -863,6 +902,10 @@ h3 {
 }
 
 /* ===== HERO ===== */
+[data-theme="dark"] .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a6e 50%, #1e40af 100%);
+}
+
 .hero {
     background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
     color: #fff;

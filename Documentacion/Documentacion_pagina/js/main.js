@@ -103,8 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('scroll', () => {
             const winScroll = window.scrollY || document.documentElement.scrollTop;
             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
+            const scrolled = Math.round((winScroll / height) * 100);
             bar.style.width = scrolled + "%";
+            container.setAttribute('data-pct', scrolled);
+            if (scrolled > 2) container.classList.add('visible');
+            else container.classList.remove('visible');
         });
     };
 
