@@ -84,8 +84,55 @@ public class TableroPanel extends JPanel {
         cont.setOpaque(false);
         cont.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         cont.add(statsRow(), BorderLayout.NORTH);
+
+        JPanel alertas = crearAlertasVencidas();
+        if (alertas != null) cont.add(alertas, BorderLayout.SOUTH);
+
         cont.add(roomsArea(), BorderLayout.CENTER);
         return cont;
+    }
+
+    private JPanel crearAlertasVencidas() {
+        String hoy = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+        java.util.List<com.santaana.model.Reserva> vencidas = new java.util.ArrayList<>();
+        for (com.santaana.model.Reserva r : reservaDAO.listarTodas()) {
+            if (r.getEstado().equals("Activa") && r.getFechaSalida().compareTo(hoy) < 0) {
+                vencidas.add(r);
+            }
+        }
+        if (vencidas.isEmpty()) return null;
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(new Color(0xFFF3CD));
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(0xFFC107), 1),
+            BorderFactory.createEmptyBorder(10, 14, 10, 14)));
+
+        JLabel titulo = new JLabel("⚠  Checkouts vencidos (" + vencidas.size() + ")");
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        titulo.setForeground(new Color(0x856404));
+        titulo.setAlignmentX(0f);
+        panel.add(titulo);
+        panel.add(Box.createVerticalStrut(6));
+
+        for (com.santaana.model.Reserva r : vencidas) {
+            JLabel fila = new JLabel("  · Hab. " + obtenerNumeroHabitacion(r.getIdHabitacion())
+                + "  —  " + r.getClienteNombre()
+                + "  —  Salida: " + r.getFechaSalida());
+            fila.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+            fila.setForeground(new Color(0x856404));
+            fila.setAlignmentX(0f);
+            panel.add(fila);
+        }
+        return panel;
+    }
+
+    private String obtenerNumeroHabitacion(int idHabitacion) {
+        return habitacionDAO.listarTodas().stream()
+            .filter(h -> h.getId() == idHabitacion)
+            .map(Habitacion::getNumero)
+            .findFirst().orElse("?");
     }
 
     private JPanel statsRow() {
@@ -277,6 +324,31 @@ public class TableroPanel extends JPanel {
             });
             c.add(Box.createVerticalStrut(10));
             c.add(btnHabilitar);
+        }
+
+        if (h.getEstado().equals("Disponible")) {
+            JButton btnMant = crearBoton("Mantenimiento", new Color(0xE67E22));
+            btnMant.addActionListener(e -> {
+                int ok = JOptionPane.showConfirmDialog(this,
+                    "¿Poner habitación " + h.getNumero() + " en Mantenimiento?",
+                    "Confirmar", JOptionPane.YES_NO_OPTION);
+                if (ok == JOptionPane.YES_OPTION) {
+                    habitacionDAO.actualizarEstado(h.getId(), "Mantenimiento");
+                    if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
+                }
+            });
+            c.add(Box.createVerticalStrut(6));
+            c.add(btnMant);
+        }
+
+        if (h.getEstado().equals("Mantenimiento")) {
+            JButton btnDisp = crearBoton("✓ Disponible", new Color(0x27AE60));
+            btnDisp.addActionListener(e -> {
+                habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
+            });
+            c.add(Box.createVerticalStrut(6));
+            c.add(btnDisp);
         }
 
         JButton btnHistorial = crearBoton("Historial", new Color(0x6366F1));
