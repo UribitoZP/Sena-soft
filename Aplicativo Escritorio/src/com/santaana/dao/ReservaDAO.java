@@ -61,6 +61,21 @@ public class ReservaDAO {
         }
     }
 
+    public List<Reserva> listarUltimasPorHabitacion(int idHabitacion, int limite) {
+        List<Reserva> lista = new ArrayList<>();
+        String sql = "SELECT * FROM reservas WHERE id_habitacion = ? ORDER BY id DESC LIMIT ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idHabitacion);
+            ps.setInt(2, limite);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) lista.add(mapear(rs));
+        } catch (SQLException e) {
+            System.err.println("Error listando historial: " + e.getMessage());
+        }
+        return lista;
+    }
+
     private Reserva mapear(ResultSet rs) throws SQLException {
         return new Reserva(
             rs.getInt("id"),
