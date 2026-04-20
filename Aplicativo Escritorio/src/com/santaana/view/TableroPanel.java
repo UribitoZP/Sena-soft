@@ -93,10 +93,12 @@ public class TableroPanel extends JPanel {
     }
 
     private JPanel crearAlertasVencidas() {
-        String hoy = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+        String ahora = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date());
         java.util.List<com.santaana.model.Reserva> vencidas = new java.util.ArrayList<>();
-        for (com.santaana.model.Reserva r : reservaDAO.listarTodas()) {
-            if (r.getEstado().equals("Activa") && r.getFechaSalida().compareTo(hoy) < 0) {
+        for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
+            if ("Indefinido".equals(r.getTipoEstadia())) continue;
+            String salida = r.getFechaSalida() + " " + r.getHoraSalida();
+            if (salida.compareTo(ahora) < 0) {
                 vencidas.add(r);
             }
         }
@@ -119,7 +121,7 @@ public class TableroPanel extends JPanel {
         for (com.santaana.model.Reserva r : vencidas) {
             JLabel fila = new JLabel("  · Hab. " + obtenerNumeroHabitacion(r.getIdHabitacion())
                 + "  —  " + r.getClienteNombre()
-                + "  —  Salida: " + r.getFechaSalida());
+                + "  —  Salida: " + r.getFechaSalida() + " " + r.getHoraSalida());
             fila.setFont(new Font("Segoe UI", Font.PLAIN, 11));
             fila.setForeground(new Color(0x856404));
             fila.setAlignmentX(0f);
@@ -252,18 +254,27 @@ public class TableroPanel extends JPanel {
                 || h.getEstado().toLowerCase().contains(filtro))
             .collect(java.util.stream.Collectors.toList());
 
+        // Cargar próximas reservas (check-in futuro) para mostrar en tarjetas
+        java.util.Map<Integer, com.santaana.model.Reserva> proximas = new java.util.HashMap<>();
+        String hoyStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+        for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
+            if (r.getFechaEntrada().compareTo(hoyStr) > 0) {
+                proximas.putIfAbsent(r.getIdHabitacion(), r);
+            }
+        }
+
         if (lista.isEmpty()) {
             JLabel msg = new JLabel("No se encontraron habitaciones.");
             msg.setForeground(getLabel());
             roomsGrid.add(msg);
         } else {
-            for (Habitacion h : lista) roomsGrid.add(roomCard(h));
+            for (Habitacion h : lista) roomsGrid.add(roomCard(h, proximas.get(h.getId())));
         }
         roomsGrid.revalidate();
         roomsGrid.repaint();
     }
 
-    private JPanel roomCard(Habitacion h) {
+    private JPanel roomCard(Habitacion h, com.santaana.model.Reserva proximaReserva) {
         JPanel c = new JPanel() {
             public void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -309,54 +320,128 @@ public class TableroPanel extends JPanel {
         c.add(Box.createVerticalStrut(10));
         c.add(info);
 
+        if (proximaReserva != null && h.getEstado().equals("Disponible")) {
+            JLabel badge = new JLabel("Reservada: " + proximaReserva.getFechaEntrada()
+                + " " + proximaReserva.getHoraEntrada());
+            badge.setFont(new Font("Segoe UI", Font.BOLD, 10));
+            badge.setForeground(new Color(0xE67E22));
+            badge.setAlignmentX(0.0f);
+            c.add(Box.createVerticalStrut(4));
+            c.add(badge);
+        }
+
+        JLabel hint = new JLabel("Doble clic para acciones");
+        hint.setFont(new Font("Segoe UI", Font.ITALIC, 10));
+        hint.setForeground(new Color(180, 190, 210));
+        hint.setAlignmentX(0.0f);
+        c.add(Box.createVerticalStrut(8));
+        c.add(hint);
+
+        c.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        c.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) abrirAcciones(h, proximaReserva);
+            }
+        });
+
+        return c;
+    }
+
+    private void abrirAcciones(Habitacion h, com.santaana.model.Reserva proximaReserva) {
+        javax.swing.JDialog dialog = new javax.swing.JDialog(
+            SwingUtilities.getWindowAncestor(this) instanceof javax.swing.JFrame
+                ? (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this) : null,
+            "Habitación " + h.getNumero(), true);
+        dialog.setSize(320, 260);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        // Header
+        Color headerColor;
+        switch (h.getEstado()) {
+            case "Ocupada":       headerColor = new Color(0xE74C3C); break;
+            case "Limpieza":      headerColor = new Color(0x3A7BD5); break;
+            case "Mantenimiento": headerColor = new Color(0xE67E22); break;
+            default:              headerColor = new Color(0x27AE60);
+        }
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(headerColor);
+        header.setBorder(BorderFactory.createEmptyBorder(14, 18, 14, 18));
+        JLabel titulo = new JLabel("Habitación " + h.getNumero() + "  —  " + h.getEstado());
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        titulo.setForeground(Color.WHITE);
+        header.add(titulo);
+        dialog.add(header, BorderLayout.NORTH);
+
+        // Botones de acción
+        JPanel acciones = new JPanel();
+        acciones.setLayout(new BoxLayout(acciones, BoxLayout.Y_AXIS));
+        acciones.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
+        acciones.setBackground(getPanelCol());
+
         if (h.getEstado().equals("Ocupada")) {
-            JButton btnCheckout = crearBoton("Checkout", new Color(0xE74C3C));
-            btnCheckout.addActionListener(e -> hacerCheckout(h, c));
-            c.add(Box.createVerticalStrut(10));
-            c.add(btnCheckout);
+            JButton btn = crearBoton("Hacer Checkout", new Color(0xE74C3C));
+            btn.addActionListener(e -> { dialog.dispose(); hacerCheckout(h, null); });
+            acciones.add(btn);
+            acciones.add(Box.createVerticalStrut(10));
         }
 
         if (h.getEstado().equals("Limpieza")) {
-            JButton btnHabilitar = crearBoton("✓ Habilitar", new Color(0x27AE60));
-            btnHabilitar.addActionListener(e -> {
+            JButton btn = crearBoton("✓ Marcar Disponible", new Color(0x27AE60));
+            btn.addActionListener(e -> {
                 habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                dialog.dispose();
                 if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
             });
-            c.add(Box.createVerticalStrut(10));
-            c.add(btnHabilitar);
+            acciones.add(btn);
+            acciones.add(Box.createVerticalStrut(10));
         }
 
         if (h.getEstado().equals("Disponible")) {
-            JButton btnMant = crearBoton("Mantenimiento", new Color(0xE67E22));
-            btnMant.addActionListener(e -> {
-                int ok = JOptionPane.showConfirmDialog(this,
+            if (proximaReserva != null) {
+                JButton btnCI = crearBoton("Check-in: " + proximaReserva.getClienteNombre(),
+                    new Color(0xE74C3C));
+                btnCI.addActionListener(e -> {
+                    habitacionDAO.actualizarEstado(h.getId(), "Ocupada");
+                    dialog.dispose();
+                    if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
+                });
+                acciones.add(btnCI);
+                acciones.add(Box.createVerticalStrut(10));
+            }
+            JButton btn = crearBoton("Poner en Mantenimiento", new Color(0xE67E22));
+            btn.addActionListener(e -> {
+                int ok = JOptionPane.showConfirmDialog(dialog,
                     "¿Poner habitación " + h.getNumero() + " en Mantenimiento?",
                     "Confirmar", JOptionPane.YES_NO_OPTION);
                 if (ok == JOptionPane.YES_OPTION) {
                     habitacionDAO.actualizarEstado(h.getId(), "Mantenimiento");
+                    dialog.dispose();
                     if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
                 }
             });
-            c.add(Box.createVerticalStrut(6));
-            c.add(btnMant);
+            acciones.add(btn);
+            acciones.add(Box.createVerticalStrut(10));
         }
 
         if (h.getEstado().equals("Mantenimiento")) {
-            JButton btnDisp = crearBoton("✓ Disponible", new Color(0x27AE60));
-            btnDisp.addActionListener(e -> {
+            JButton btn = crearBoton("✓ Marcar Disponible", new Color(0x27AE60));
+            btn.addActionListener(e -> {
                 habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                dialog.dispose();
                 if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
             });
-            c.add(Box.createVerticalStrut(6));
-            c.add(btnDisp);
+            acciones.add(btn);
+            acciones.add(Box.createVerticalStrut(10));
         }
 
-        JButton btnHistorial = crearBoton("Historial", new Color(0x6366F1));
-        btnHistorial.addActionListener(e -> abrirHistorial(h));
-        c.add(Box.createVerticalStrut(6));
-        c.add(btnHistorial);
+        JButton btnHistorial = crearBoton("Ver Historial", new Color(0x6366F1));
+        btnHistorial.addActionListener(e -> { dialog.dispose(); abrirHistorial(h); });
+        acciones.add(btnHistorial);
 
-        return c;
+        dialog.add(acciones, BorderLayout.CENTER);
+        dialog.setVisible(true);
     }
 
     private void abrirHistorial(Habitacion h) {
@@ -367,7 +452,7 @@ public class TableroPanel extends JPanel {
             SwingUtilities.getWindowAncestor(this) instanceof javax.swing.JFrame
                 ? (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this) : null,
             "Historial — Hab. " + h.getNumero(), true);
-        dialog.setSize(620, 380);
+        dialog.setSize(780, 380);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout(0, 0));
 
@@ -382,16 +467,18 @@ public class TableroPanel extends JPanel {
         dialog.add(header, BorderLayout.NORTH);
 
         // Tabla
-        String[] cols = {"#", "Cliente", "Documento", "Entrada", "Salida", "Estado"};
-        Object[][] datos = new Object[historial.size()][6];
+        String[] cols = {"Cliente", "Documento", "Entrada", "Hora", "Salida", "Hora", "Tipo", "Estado"};
+        Object[][] datos = new Object[historial.size()][8];
         for (int i = 0; i < historial.size(); i++) {
             com.santaana.model.Reserva r = historial.get(i);
-            datos[i][0] = r.getId();
-            datos[i][1] = r.getClienteNombre();
-            datos[i][2] = r.getClienteDoc();
-            datos[i][3] = r.getFechaEntrada();
-            datos[i][4] = r.getFechaSalida();
-            datos[i][5] = r.getEstado();
+            datos[i][0] = r.getClienteNombre();
+            datos[i][1] = r.getClienteDoc();
+            datos[i][2] = r.getFechaEntrada();
+            datos[i][3] = r.getHoraEntrada();
+            datos[i][4] = "Indefinido".equals(r.getTipoEstadia()) ? "—" : r.getFechaSalida();
+            datos[i][5] = "Indefinido".equals(r.getTipoEstadia()) ? "—" : r.getHoraSalida();
+            datos[i][6] = r.getTipoEstadia();
+            datos[i][7] = r.getEstado();
         }
 
         javax.swing.JTable tabla = new javax.swing.JTable(datos, cols) {
@@ -453,9 +540,28 @@ public class TableroPanel extends JPanel {
         com.santaana.model.Reserva reservaActiva = reservaDAO.buscarActivaPorHabitacion(h.getId());
 
         String cliente = reservaActiva != null ? reservaActiva.getClienteNombre() : "desconocido";
+
+        String infoBilling = "";
+        if (reservaActiva != null && "Indefinido".equals(reservaActiva.getTipoEstadia())) {
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
+                java.util.Date entrada = sdf.parse(
+                    reservaActiva.getFechaEntrada() + " " + reservaActiva.getHoraEntrada());
+                long minutos = (System.currentTimeMillis() - entrada.getTime()) / (1000 * 60);
+                long horas   = minutos / 60;
+                long mins    = minutos % 60;
+                String bloque = horas < 3 ? "3 horas (mínimo)"
+                              : horas < 6 ? "6 horas"
+                              : horas < 12 ? "12 horas"
+                              : "1 noche";
+                infoBilling = "<br><b>Estadía indefinida:</b> " + horas + "h " + mins + "min  →  cobro: " + bloque;
+            } catch (Exception ignored) {}
+        }
+
         int confirm = JOptionPane.showConfirmDialog(this,
             "<html>¿Confirmar checkout de <b>" + cliente + "</b>?<br>"
-            + "Habitación " + h.getNumero() + " pasará a <b>Limpieza</b>.</html>",
+            + "Habitación " + h.getNumero() + " pasará a <b>Limpieza</b>."
+            + infoBilling + "</html>",
             "Confirmar Checkout", JOptionPane.YES_NO_OPTION);
 
         if (confirm != JOptionPane.YES_OPTION) return;

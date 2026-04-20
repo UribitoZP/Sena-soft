@@ -237,7 +237,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         side.add(Box.createVerticalStrut(30));
 
 
-        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte" };
+        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Historial", "Reporte" };
         for (String item : items) {
             if(userRole.equalsIgnoreCase("Recepcionista")&& item.equals("Gestión de Habitaciones") ) {
                 continue;
@@ -350,7 +350,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         sidebarPanel.add(logoBrand);
         sidebarPanel.add(Box.createVerticalStrut(30));
 
-        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte" };
+        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Historial", "Reporte" };
         for (String item : items) {
             if(userRole.equalsIgnoreCase("Recepcionista")&& item.equals("Gestión de Habitaciones") ) {
                 continue;

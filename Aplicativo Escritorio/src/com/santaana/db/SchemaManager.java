@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 3;
+    private static final int SCHEMA_VERSION = 4;
 
     public static void inicializar() {
         Connection conn = null;
@@ -16,14 +16,13 @@ public class SchemaManager {
             conn = DatabaseConnection.getConnection();
             stmt = conn.createStatement();
 
-            // Leer version
             int version = 0;
             ResultSet rv = stmt.executeQuery("PRAGMA user_version");
             if (rv.next()) version = rv.getInt(1);
             rv.close();
 
             if (version < SCHEMA_VERSION) {
-                migrar(conn, stmt);
+                migrar(conn, stmt, version);
                 stmt.executeUpdate("PRAGMA user_version = " + SCHEMA_VERSION);
             }
 
@@ -36,7 +35,7 @@ public class SchemaManager {
         }
     }
 
-    private static void migrar(Connection conn, Statement stmt) throws SQLException {
+    private static void migrar(Connection conn, Statement stmt, int fromVersion) throws SQLException {
         stmt.executeUpdate(
             "CREATE TABLE IF NOT EXISTS usuarios (" +
             "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -94,6 +93,20 @@ public class SchemaManager {
             );
             stmt.executeUpdate("DROP TABLE habitaciones_old");
             System.out.println("Migración: tabla habitaciones actualizada con estado Limpieza.");
+        }
+
+        // v4: hora y tipo de estadía en reservas
+        boolean tieneHoraEnt = false;
+        ResultSet cols = stmt.executeQuery("PRAGMA table_info(reservas)");
+        while (cols.next()) {
+            if ("hora_entrada".equals(cols.getString("name"))) { tieneHoraEnt = true; }
+        }
+        cols.close();
+        if (!tieneHoraEnt) {
+            stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN hora_entrada  TEXT DEFAULT '12:00'");
+            stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN hora_salida   TEXT DEFAULT '12:00'");
+            stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN tipo_estadia  TEXT DEFAULT 'Noche'");
+            System.out.println("Migración v4: columnas hora y tipo_estadia añadidas a reservas.");
         }
     }
 }

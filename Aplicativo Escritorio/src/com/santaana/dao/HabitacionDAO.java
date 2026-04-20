@@ -41,22 +41,24 @@ public class HabitacionDAO {
         return lista;
     }
 
-    public List<Habitacion> listarDisponiblesEnFechas(String desde, String hasta) {
+    /**
+     * @param desdeDateTime  "yyyy-MM-dd HH:mm" — inicio de la nueva reserva
+     * @param hastaDateTime  "yyyy-MM-dd HH:mm" — fin de la nueva reserva
+     */
+    public List<Habitacion> listarDisponiblesEnFechas(String desdeDateTime, String hastaDateTime) {
         List<Habitacion> lista = new ArrayList<>();
         String sql =
             "SELECT * FROM habitaciones WHERE estado != 'Mantenimiento' AND id NOT IN (" +
-            "  SELECT id_habitacion FROM reservas " +
-            "  WHERE estado = 'Activa' AND fecha_entrada < ? AND fecha_salida > ?" +
+            "  SELECT id_habitacion FROM reservas WHERE estado = 'Activa'" +
+            "  AND (fecha_entrada || ' ' || COALESCE(hora_entrada,'12:00')) < ?" +
+            "  AND (fecha_salida  || ' ' || COALESCE(hora_salida, '12:00')) > ?" +
             ") ORDER BY numero";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, hasta);
-            ps.setString(2, desde);
+            ps.setString(1, hastaDateTime);
+            ps.setString(2, desdeDateTime);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                lista.add(mapear(rs));
-            }
+            while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException e) {
             System.err.println("Error listando disponibles por fechas: " + e.getMessage());
         }
