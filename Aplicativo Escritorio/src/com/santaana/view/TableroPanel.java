@@ -378,14 +378,7 @@ public class TableroPanel extends JPanel {
     }
 
     private void hacerCheckout(Habitacion h, JPanel card) {
-        // Buscar reserva activa de esta habitación
-        com.santaana.model.Reserva reservaActiva = null;
-        for (com.santaana.model.Reserva r : reservaDAO.listarTodas()) {
-            if (r.getIdHabitacion() == h.getId() && r.getEstado().equals("Activa")) {
-                reservaActiva = r;
-                break;
-            }
-        }
+        com.santaana.model.Reserva reservaActiva = reservaDAO.buscarActivaPorHabitacion(h.getId());
 
         String cliente = reservaActiva != null ? reservaActiva.getClienteNombre() : "desconocido";
         int confirm = JOptionPane.showConfirmDialog(this,

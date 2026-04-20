@@ -61,6 +61,19 @@ public class ReservaDAO {
         }
     }
 
+    public Reserva buscarActivaPorHabitacion(int idHabitacion) {
+        String sql = "SELECT * FROM reservas WHERE id_habitacion = ? AND estado = 'Activa' LIMIT 1";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idHabitacion);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapear(rs);
+        } catch (SQLException e) {
+            System.err.println("Error buscando reserva activa: " + e.getMessage());
+        }
+        return null;
+    }
+
     public List<Reserva> listarUltimasPorHabitacion(int idHabitacion, int limite) {
         List<Reserva> lista = new ArrayList<>();
         String sql = "SELECT * FROM reservas WHERE id_habitacion = ? ORDER BY id DESC LIMIT ?";
