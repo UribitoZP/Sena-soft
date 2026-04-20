@@ -76,33 +76,7 @@ public class TableroPanel extends JPanel {
         title.setForeground(getTextCol());
         navbar.add(title, BorderLayout.WEST);
 
-        JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 8));
-        mid.setOpaque(false);
-        mid.add(crearBotonAccion("$ Venta Rápida",
-            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155),
-            getPrimario()));
-        navbar.add(mid, BorderLayout.CENTER);
-
         return navbar;
-    }
-
-    private JButton crearBotonAccion(String text, Color bg, Color fg) {
-        JButton b = new JButton(text) {
-            public void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(bg);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        b.setForeground(fg);
-        b.setContentAreaFilled(false);
-        b.setBorderPainted(false);
-        b.setFocusPainted(false);
-        b.setPreferredSize(new Dimension(150, 32));
-        return b;
     }
 
     private JPanel crearContenido() {
