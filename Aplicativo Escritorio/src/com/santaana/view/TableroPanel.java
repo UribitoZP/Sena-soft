@@ -35,6 +35,7 @@ public class TableroPanel extends JPanel {
     private Runnable onNuevaReserva;
     private Runnable onEstadoCambiado;
     private boolean isPlaceholderActive = true;
+    private boolean suppressFilter = false;
     private final String PLACEHOLDER = " Buscar habitación...";
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
     private final ReservaDAO    reservaDAO    = new ReservaDAO();
@@ -185,15 +186,19 @@ public class TableroPanel extends JPanel {
             }
             @Override public void focusLost(FocusEvent e) {
                 if (searchField.getText().trim().isEmpty()) {
+                    suppressFilter = true;
+                    isPlaceholderActive = true;
                     searchField.setText(PLACEHOLDER);
                     searchField.setForeground(getLabel());
-                    isPlaceholderActive = true;
+                    suppressFilter = false;
+                    // No reconstruimos el grid aquí para no destruir botones que se están clickeando
                 }
             }
         });
 
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             private void filter() {
+                if (suppressFilter) return;
                 String txt = isPlaceholderActive ? "" : searchField.getText().trim().toLowerCase();
                 actualizarGrid(txt);
             }
