@@ -38,6 +38,7 @@ public class TableroPanel extends JPanel {
     private final String PLACEHOLDER = " Buscar habitación...";
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
     private final ReservaDAO    reservaDAO    = new ReservaDAO();
+    private JPanel roomsGrid;
 
     private Color getBorde() { return ThemeManager.getBorder(); }
     private Color getPrimario() { return ThemeManager.getPrimary(); }
@@ -166,27 +167,23 @@ public class TableroPanel extends JPanel {
         JLabel titleLabel = new JLabel("Estado actual de habitaciones");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
         titleLabel.setForeground(getTextCol());
-
         header.add(titleLabel, BorderLayout.WEST);
-        
+
         final JTextField searchField = new JTextField(PLACEHOLDER);
         searchField.setPreferredSize(new Dimension(250, 30));
         searchField.setBackground(getPanelCol());
         searchField.setForeground(getLabel());
         searchField.setBorder(BorderFactory.createLineBorder(getBorde(), 1, true));
-        
+
         searchField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
+            @Override public void focusGained(FocusEvent e) {
                 if (isPlaceholderActive) {
                     searchField.setText("");
                     searchField.setForeground(getTextCol());
                     isPlaceholderActive = false;
                 }
             }
-
-            @Override
-            public void focusLost(FocusEvent e) {
+            @Override public void focusLost(FocusEvent e) {
                 if (searchField.getText().trim().isEmpty()) {
                     searchField.setText(PLACEHOLDER);
                     searchField.setForeground(getLabel());
@@ -195,27 +192,49 @@ public class TableroPanel extends JPanel {
             }
         });
 
-        header.add(searchField, BorderLayout.EAST);
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void filter() {
+                String txt = isPlaceholderActive ? "" : searchField.getText().trim().toLowerCase();
+                actualizarGrid(txt);
+            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e)  { filter(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e)  { filter(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { filter(); }
+        });
 
+        header.add(searchField, BorderLayout.EAST);
         area.add(header, BorderLayout.NORTH);
 
-        JPanel grid = new JPanel(new GridLayout(0, 3, 12, 12));
-        grid.setOpaque(false);
-        java.util.List<Habitacion> habitaciones = habitacionDAO.listarTodas();
-        if (habitaciones.isEmpty()) {
-            grid.add(new JLabel("No hay habitaciones registradas."));
-        } else {
-            for (Habitacion h : habitaciones) {
-                grid.add(roomCard(h));
-            }
-        }
+        roomsGrid = new JPanel(new GridLayout(0, 3, 12, 12));
+        roomsGrid.setOpaque(false);
+        actualizarGrid("");
 
-        JScrollPane scroll = new JScrollPane(grid);
+        JScrollPane scroll = new JScrollPane(roomsGrid);
         scroll.setBorder(null);
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
         area.add(scroll, BorderLayout.CENTER);
         return area;
+    }
+
+    private void actualizarGrid(String filtro) {
+        roomsGrid.removeAll();
+        java.util.List<Habitacion> lista = habitacionDAO.listarTodas().stream()
+            .filter(h -> filtro.isEmpty()
+                || h.getNumero().toLowerCase().contains(filtro)
+                || h.getTipo().toLowerCase().contains(filtro)
+                || h.getEstado().toLowerCase().contains(filtro))
+            .collect(java.util.stream.Collectors.toList());
+
+        if (lista.isEmpty()) {
+            JLabel msg = new JLabel("No se encontraron habitaciones.");
+            msg.setForeground(getLabel());
+            roomsGrid.add(msg);
+        } else {
+            for (Habitacion h : lista) roomsGrid.add(roomCard(h));
+        }
+        roomsGrid.revalidate();
+        roomsGrid.repaint();
     }
 
     private JPanel roomCard(Habitacion h) {
@@ -281,7 +300,80 @@ public class TableroPanel extends JPanel {
             c.add(btnHabilitar);
         }
 
+        JButton btnHistorial = crearBoton("Historial", new Color(0x6366F1));
+        btnHistorial.addActionListener(e -> abrirHistorial(h));
+        c.add(Box.createVerticalStrut(6));
+        c.add(btnHistorial);
+
         return c;
+    }
+
+    private void abrirHistorial(Habitacion h) {
+        java.util.List<com.santaana.model.Reserva> historial =
+            reservaDAO.listarUltimasPorHabitacion(h.getId(), 10);
+
+        javax.swing.JDialog dialog = new javax.swing.JDialog(
+            SwingUtilities.getWindowAncestor(this) instanceof javax.swing.JFrame
+                ? (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this) : null,
+            "Historial — Hab. " + h.getNumero(), true);
+        dialog.setSize(620, 380);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout(0, 0));
+
+        // Header
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(0x6366F1));
+        header.setBorder(BorderFactory.createEmptyBorder(14, 18, 14, 18));
+        JLabel titulo = new JLabel("Últimas reservas — Habitación " + h.getNumero());
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        titulo.setForeground(Color.WHITE);
+        header.add(titulo, BorderLayout.WEST);
+        dialog.add(header, BorderLayout.NORTH);
+
+        // Tabla
+        String[] cols = {"#", "Cliente", "Documento", "Entrada", "Salida", "Estado"};
+        Object[][] datos = new Object[historial.size()][6];
+        for (int i = 0; i < historial.size(); i++) {
+            com.santaana.model.Reserva r = historial.get(i);
+            datos[i][0] = r.getId();
+            datos[i][1] = r.getClienteNombre();
+            datos[i][2] = r.getClienteDoc();
+            datos[i][3] = r.getFechaEntrada();
+            datos[i][4] = r.getFechaSalida();
+            datos[i][5] = r.getEstado();
+        }
+
+        javax.swing.JTable tabla = new javax.swing.JTable(datos, cols) {
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+        tabla.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tabla.setRowHeight(28);
+        tabla.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        tabla.setSelectionBackground(new Color(0xEEF2FF));
+        tabla.setGridColor(new Color(0xE5E7EB));
+
+        JScrollPane scroll = new JScrollPane(tabla);
+        scroll.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
+        dialog.add(scroll, BorderLayout.CENTER);
+
+        if (historial.isEmpty()) {
+            dialog.remove(scroll);
+            JLabel vacio = new JLabel("No hay reservas registradas para esta habitación.", JLabel.CENTER);
+            vacio.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+            vacio.setForeground(new Color(0x94A3B8));
+            dialog.add(vacio, BorderLayout.CENTER);
+        }
+
+        // Footer
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footer.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 10));
+        JButton btnCerrar = crearBoton("Cerrar", new Color(0x6366F1));
+        btnCerrar.setPreferredSize(new Dimension(90, 30));
+        btnCerrar.addActionListener(e -> dialog.dispose());
+        footer.add(btnCerrar);
+        dialog.add(footer, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
     }
 
     private JButton crearBoton(String texto, Color bg) {
