@@ -23,9 +23,11 @@ javac -cp ".;%LIB_DIR%\jcalendar-1.4.jar;%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;%LIB
     "%SRC_DIR%\com\santaana\model\Usuario.java" ^
     "%SRC_DIR%\com\santaana\model\Habitacion.java" ^
     "%SRC_DIR%\com\santaana\model\Reserva.java" ^
+    "%SRC_DIR%\com\santaana\model\Actividad.java" ^
     "%SRC_DIR%\com\santaana\dao\UsuarioDAO.java" ^
     "%SRC_DIR%\com\santaana\dao\HabitacionDAO.java" ^
     "%SRC_DIR%\com\santaana\dao\ReservaDAO.java" ^
+    "%SRC_DIR%\com\santaana\dao\HistorialDAO.java" ^
     "%SRC_DIR%\com\santaana\util\ThemeManager.java" ^
     "%SRC_DIR%\com\santaana\view\LoginFrame.java" ^
     "%SRC_DIR%\com\santaana\view\MainFrame.java" ^
@@ -39,6 +41,7 @@ javac -cp ".;%LIB_DIR%\jcalendar-1.4.jar;%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;%LIB
     "%SRC_DIR%\com\santaana\view\NotificacionFrame.java" ^
     "%SRC_DIR%\com\santaana\view\NuevaReservaDialog.java" ^
     "%SRC_DIR%\com\santaana\view\InfoHabitacionFrame.java" ^
+    "%SRC_DIR%\com\santaana\view\HistorialPanel.java" ^
     "%SRC_DIR%\com\santaana\server\JsonUtil.java" ^
     "%SRC_DIR%\com\santaana\server\AuthHandler.java" ^
     "%SRC_DIR%\com\santaana\server\HabitacionesHandler.java" ^

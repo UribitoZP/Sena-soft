@@ -7,6 +7,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.List;
 import com.santaana.dao.HabitacionDAO;
+import com.santaana.dao.HistorialDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.ThemeManager;
 
@@ -72,8 +73,13 @@ public class GestHabitacionPanel extends JPanel {
         if (res == JOptionPane.OK_OPTION) {
             try {
                 double p = Double.parseDouble(precio.getText().trim());
-                boolean ok = habitacionDAO.agregar(numero.getText().trim(), (String) tipo.getSelectedItem(), p);
+                String numStr  = numero.getText().trim();
+                String tipoStr = (String) tipo.getSelectedItem();
+                boolean ok = habitacionDAO.agregar(numStr, tipoStr, p);
                 if (ok) {
+                    HistorialDAO.registrar("Habitacion", "Habitación registrada",
+                        "Nueva habitación " + numStr + " tipo " + tipoStr
+                        + " a $" + (int) p + "/noche agregada");
                     JOptionPane.showMessageDialog(this, "Habitación agregada.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                     refreshUI();
                 } else {
@@ -239,6 +245,8 @@ public class GestHabitacionPanel extends JPanel {
             btnHabilitar.setAlignmentX(0.0f);
             btnHabilitar.addActionListener(e -> {
                 habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                HistorialDAO.registrar("Habitacion", "Habitación habilitada",
+                    "Hab. " + h.getNumero() + " pasó a estado Disponible tras limpieza");
                 refreshUI();
             });
             c.add(Box.createVerticalStrut(18));
@@ -289,6 +297,8 @@ public class GestHabitacionPanel extends JPanel {
             habitacionDAO.actualizarDatos(h.getId(), nuevoTipo, nuevoPrecio);
             if (!nuevoEstado.equals(h.getEstado())) {
                 habitacionDAO.actualizarEstado(h.getId(), nuevoEstado);
+                HistorialDAO.registrar("Habitacion", "Estado de habitación cambiado",
+                    "Hab. " + h.getNumero() + " cambió de " + h.getEstado() + " a " + nuevoEstado);
             }
             refreshUI();
         } catch (NumberFormatException ex) {

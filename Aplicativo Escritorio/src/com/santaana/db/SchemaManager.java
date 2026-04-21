@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 3;
+    private static final int SCHEMA_VERSION = 4;
 
     public static void inicializar() {
         Connection conn = null;
@@ -23,9 +23,20 @@ public class SchemaManager {
             rv.close();
 
             if (version < SCHEMA_VERSION) {
-                migrar(conn, stmt);
+                migrar(conn, stmt, version);
                 stmt.executeUpdate("PRAGMA user_version = " + SCHEMA_VERSION);
             }
+
+            // Garantizar tabla historial siempre presente (idempotente)
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS historial (" +
+                "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  tipo        TEXT    NOT NULL," +
+                "  titulo      TEXT    NOT NULL," +
+                "  descripcion TEXT    NOT NULL," +
+                "  fecha_hora  TEXT    NOT NULL DEFAULT (datetime('now','localtime'))" +
+                ")"
+            );
 
             System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
@@ -36,7 +47,20 @@ public class SchemaManager {
         }
     }
 
-    private static void migrar(Connection conn, Statement stmt) throws SQLException {
+    private static void migrar(Connection conn, Statement stmt, int fromVersion) throws SQLException {
+        if (fromVersion < 4) {
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS historial (" +
+                "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  tipo        TEXT    NOT NULL," +
+                "  titulo      TEXT    NOT NULL," +
+                "  descripcion TEXT    NOT NULL," +
+                "  fecha_hora  TEXT    NOT NULL DEFAULT (datetime('now','localtime'))" +
+                ")"
+            );
+        }
+        if (fromVersion >= 3) return;
+
         stmt.executeUpdate(
             "CREATE TABLE IF NOT EXISTS usuarios (" +
             "  id       INTEGER PRIMARY KEY AUTOINCREMENT," +
