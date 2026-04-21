@@ -1,9 +1,7 @@
 package com.santaana.view;
 
 import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.beans.PropertyChangeEvent;
+import java.awt.event.*;
 import java.beans.PropertyChangeListener;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -12,8 +10,7 @@ import java.util.*;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.*;
 
 import com.toedter.calendar.JDateChooser;
 import com.santaana.dao.HistorialDAO;
@@ -29,6 +26,11 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
     private JDateChooser dateHasta;
     private JPanel listaContainer;
     private javax.swing.Timer debounce;
+
+    // Recuerda qué secciones están abiertas entre recargas
+    private final Set<String> seccionesAbiertas = new HashSet<>(
+        Arrays.asList("Hoy", "Ayer")
+    );
 
     private Color getPrimario() { return ThemeManager.getPrimary(); }
     private Color getFondo()    { return ThemeManager.getBackground(); }
@@ -49,7 +51,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
     private void refreshUI() {
         removeAll();
         setBackground(getFondo());
-        add(crearNavbar(), BorderLayout.NORTH);
+        add(crearNavbar(),    BorderLayout.NORTH);
         add(crearContenido(), BorderLayout.CENTER);
         revalidate();
         repaint();
@@ -71,7 +73,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         return bar;
     }
 
-    // ── Layout principal ──────────────────────────────────────────────────────
+    // ── Layout ────────────────────────────────────────────────────────────────
     private JPanel crearContenido() {
         JPanel cont = new JPanel(new BorderLayout(0, 14));
         cont.setOpaque(false);
@@ -81,12 +83,11 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         return cont;
     }
 
-    // ── Barra de filtros ──────────────────────────────────────────────────────
+    // ── Filtros ───────────────────────────────────────────────────────────────
     private JPanel crearBarraFiltros() {
         JPanel barra = new JPanel(new BorderLayout(12, 0));
         barra.setOpaque(false);
 
-        // Campo de búsqueda reactiva con placeholder
         txtBuscar = campoBusqueda("Buscar por título o descripción...", 300);
         txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e)  { dispararDebounce(); }
@@ -94,7 +95,6 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
             public void changedUpdate(DocumentEvent e) { dispararDebounce(); }
         });
 
-        // Filtros de fecha
         JPanel fechas = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         fechas.setOpaque(false);
 
@@ -103,7 +103,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         estilizar(dateDesde);
         estilizar(dateHasta);
 
-        PropertyChangeListener cambioFecha = (PropertyChangeEvent e) -> {
+        PropertyChangeListener cambioFecha = e -> {
             if ("date".equals(e.getPropertyName())) dispararDebounce();
         };
         dateDesde.addPropertyChangeListener(cambioFecha);
@@ -134,7 +134,6 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         return barra;
     }
 
-    // ── Campo con placeholder pintado ─────────────────────────────────────────
     private JTextField campoBusqueda(String placeholder, int ancho) {
         JTextField f = new JTextField() {
             @Override protected void paintComponent(Graphics g) {
@@ -161,7 +160,6 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
             BorderFactory.createLineBorder(getBorde(), 1, true),
             BorderFactory.createEmptyBorder(0, 8, 0, 8)
         ));
-        f.addActionListener(e -> repaint()); // repintar al perder foco
         return f;
     }
 
@@ -196,7 +194,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         return sc;
     }
 
-    // ── Debounce 300 ms ───────────────────────────────────────────────────────
+    // ── Debounce ──────────────────────────────────────────────────────────────
     private void dispararDebounce() {
         if (debounce != null && debounce.isRunning()) debounce.stop();
         debounce = new javax.swing.Timer(300, e -> aplicarFiltros());
@@ -204,7 +202,6 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         debounce.start();
     }
 
-    // ── Leer filtros y mostrar ────────────────────────────────────────────────
     private void aplicarFiltros() {
         String texto = txtBuscar != null ? txtBuscar.getText().trim() : null;
         if (texto != null && texto.isEmpty()) texto = null;
@@ -214,7 +211,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         cargarYMostrar(texto, desde, hasta);
     }
 
-    // ── Renderizado con subsecciones ──────────────────────────────────────────
+    // ── Renderizado ───────────────────────────────────────────────────────────
     public void cargarYMostrar(String texto, String desde, String hasta) {
         if (listaContainer == null) return;
         listaContainer.removeAll();
@@ -235,16 +232,9 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
             LinkedHashMap<String, List<Actividad>> grupos = agruparPorFecha(actividades);
             boolean primero = true;
             for (Map.Entry<String, List<Actividad>> entry : grupos.entrySet()) {
-                if (!primero) listaContainer.add(Box.createVerticalStrut(8));
+                if (!primero) listaContainer.add(Box.createVerticalStrut(6));
                 primero = false;
-
-                listaContainer.add(encabezadoSeccion(entry.getKey(), entry.getValue().size()));
-                listaContainer.add(Box.createVerticalStrut(6));
-
-                for (Actividad a : entry.getValue()) {
-                    listaContainer.add(card(a));
-                    listaContainer.add(Box.createVerticalStrut(4));
-                }
+                listaContainer.add(seccionDesplegable(entry.getKey(), entry.getValue()));
             }
         }
 
@@ -252,52 +242,72 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         listaContainer.repaint();
     }
 
-    // ── Agrupación por fecha relativa ─────────────────────────────────────────
-    private LinkedHashMap<String, List<Actividad>> agruparPorFecha(List<Actividad> lista) {
-        LinkedHashMap<String, List<Actividad>> grupos = new LinkedHashMap<>();
-        LocalDate hoy = LocalDate.now();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        // Orden fijo de secciones
-        String[] orden = {"Hoy", "Ayer", "Esta semana", "Este mes", "Anterior"};
-        for (String s : orden) grupos.put(s, new ArrayList<>());
+    // ── Sección desplegable ───────────────────────────────────────────────────
+    private JPanel seccionDesplegable(String titulo, List<Actividad> items) {
+        boolean abierto = seccionesAbiertas.contains(titulo);
 
-        for (Actividad a : lista) {
-            String seccion = "Anterior";
-            try {
-                LocalDate fecha = LocalDate.parse(a.getFechaHora().substring(0, 10), fmt);
-                long dias = hoy.toEpochDay() - fecha.toEpochDay();
-                if      (dias == 0)  seccion = "Hoy";
-                else if (dias == 1)  seccion = "Ayer";
-                else if (dias <= 7)  seccion = "Esta semana";
-                else if (dias <= 30) seccion = "Este mes";
-            } catch (Exception ignored) {}
-            grupos.get(seccion).add(a);
-        }
+        // Panel de cards (el que se muestra/oculta)
+        JPanel cuerpo = new JPanel();
+        cuerpo.setLayout(new BoxLayout(cuerpo, BoxLayout.Y_AXIS));
+        cuerpo.setOpaque(false);
+        cuerpo.setBorder(BorderFactory.createEmptyBorder(4, 0, 4, 0));
 
-        // Eliminar secciones vacías manteniendo orden
-        LinkedHashMap<String, List<Actividad>> resultado = new LinkedHashMap<>();
-        for (String s : orden) {
-            if (!grupos.get(s).isEmpty()) resultado.put(s, grupos.get(s));
+        for (Actividad a : items) {
+            cuerpo.add(card(a));
+            cuerpo.add(Box.createVerticalStrut(4));
         }
-        return resultado;
+        cuerpo.setVisible(abierto);
+
+        // Encabezado clicable
+        JPanel header = crearEncabezadoClicable(titulo, items.size(), abierto, cuerpo);
+
+        // Contenedor del bloque completo
+        JPanel bloque = new JPanel();
+        bloque.setLayout(new BoxLayout(bloque, BoxLayout.Y_AXIS));
+        bloque.setOpaque(false);
+        bloque.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bloque.add(header);
+        bloque.add(cuerpo);
+        return bloque;
     }
 
-    // ── Encabezado de sección ─────────────────────────────────────────────────
-    private JPanel encabezadoSeccion(String titulo, int cantidad) {
-        JPanel row = new JPanel(new BorderLayout(10, 0));
-        row.setOpaque(false);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+    private JPanel crearEncabezadoClicable(String titulo, int cantidad,
+                                            boolean inicialAbierto, JPanel cuerpo) {
+        boolean isDark = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK;
+        Color bgHeader = isDark ? new Color(0x1E293B) : new Color(0xF1F5F9);
+
+        JPanel header = new JPanel(new BorderLayout(10, 0)) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+            }
+        };
+        header.setBackground(bgHeader);
+        header.setOpaque(false);
+        header.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        header.setAlignmentX(Component.LEFT_ALIGNMENT);
+        header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        header.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+
+        // Flecha + título
+        JLabel flecha = new JLabel(inicialAbierto ? "▾" : "▸");
+        flecha.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        flecha.setForeground(getLabelCol());
+
+        JLabel lblTitulo = new JLabel(titulo);
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitulo.setForeground(getTextCol());
 
         JPanel izq = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         izq.setOpaque(false);
+        izq.add(flecha);
+        izq.add(lblTitulo);
 
-        JLabel lblTitulo = new JLabel(titulo.toUpperCase());
-        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        lblTitulo.setForeground(getLabelCol());
-
-        // Contador de registros
-        JLabel badge = new JLabel(String.valueOf(cantidad)) {
+        // Badge de cantidad
+        JLabel badge = new JLabel(cantidad + " registro" + (cantidad != 1 ? "s" : "")) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -307,29 +317,69 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
                 super.paintComponent(g);
             }
         };
-        badge.setFont(new Font("Segoe UI", Font.BOLD, 9));
+        badge.setFont(new Font("Segoe UI", Font.PLAIN, 10));
         badge.setForeground(getLabelCol());
         badge.setOpaque(false);
-        badge.setBorder(BorderFactory.createEmptyBorder(1, 6, 1, 6));
+        badge.setBorder(BorderFactory.createEmptyBorder(2, 8, 2, 8));
 
-        izq.add(lblTitulo);
-        izq.add(badge);
+        header.add(izq,   BorderLayout.WEST);
+        header.add(badge, BorderLayout.EAST);
 
-        JPanel linea = new JPanel();
-        linea.setOpaque(true);
-        linea.setBackground(getBorde());
-        linea.setPreferredSize(new Dimension(0, 1));
-        // Alinear la línea verticalmente al centro
-        JPanel lineaWrap = new JPanel(new GridBagLayout());
-        lineaWrap.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1;
-        lineaWrap.add(linea, gbc);
+        // Toggle al hacer click
+        MouseAdapter toggle = new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) {
+                boolean ahora = !cuerpo.isVisible();
+                cuerpo.setVisible(ahora);
+                flecha.setText(ahora ? "▾" : "▸");
+                if (ahora) seccionesAbiertas.add(titulo);
+                else       seccionesAbiertas.remove(titulo);
+                listaContainer.revalidate();
+                listaContainer.repaint();
+            }
+            @Override public void mouseEntered(MouseEvent e) {
+                header.setBackground(isDark ? new Color(0x263042) : new Color(0xE2E8F0));
+                header.repaint();
+            }
+            @Override public void mouseExited(MouseEvent e) {
+                header.setBackground(bgHeader);
+                header.repaint();
+            }
+        };
+        header.addMouseListener(toggle);
+        izq.addMouseListener(toggle);
+        flecha.addMouseListener(toggle);
+        lblTitulo.addMouseListener(toggle);
 
-        row.add(izq,       BorderLayout.WEST);
-        row.add(lineaWrap, BorderLayout.CENTER);
-        return row;
+        return header;
+    }
+
+    // ── Agrupación ────────────────────────────────────────────────────────────
+    private LinkedHashMap<String, List<Actividad>> agruparPorFecha(List<Actividad> lista) {
+        String[] orden = {"Hoy", "Ayer", "Esta semana", "Este mes", "Anterior"};
+        LinkedHashMap<String, List<Actividad>> grupos = new LinkedHashMap<>();
+        for (String s : orden) grupos.put(s, new ArrayList<>());
+
+        LocalDate hoy = LocalDate.now();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        for (Actividad a : lista) {
+            String sec = "Anterior";
+            try {
+                LocalDate fecha = LocalDate.parse(a.getFechaHora().substring(0, 10), fmt);
+                long dias = hoy.toEpochDay() - fecha.toEpochDay();
+                if      (dias == 0)  sec = "Hoy";
+                else if (dias == 1)  sec = "Ayer";
+                else if (dias <= 7)  sec = "Esta semana";
+                else if (dias <= 30) sec = "Este mes";
+            } catch (Exception ignored) {}
+            grupos.get(sec).add(a);
+        }
+
+        LinkedHashMap<String, List<Actividad>> resultado = new LinkedHashMap<>();
+        for (String s : orden) {
+            if (!grupos.get(s).isEmpty()) resultado.put(s, grupos.get(s));
+        }
+        return resultado;
     }
 
     // ── Card ──────────────────────────────────────────────────────────────────
@@ -345,12 +395,10 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
             BorderFactory.createEmptyBorder(7, 0, 7, 12)
         ));
 
-        // Barra de acento
         JPanel barra = new JPanel();
         barra.setBackground(acento);
         barra.setPreferredSize(new Dimension(4, 0));
 
-        // Badge de tipo
         JLabel tipoBadge = new JLabel(a.getTipo()) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -366,7 +414,6 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         tipoBadge.setOpaque(false);
         tipoBadge.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
 
-        // Texto
         JPanel texto = new JPanel();
         texto.setLayout(new BoxLayout(texto, BoxLayout.Y_AXIS));
         texto.setOpaque(false);
@@ -386,7 +433,6 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         texto.add(fila1);
         texto.add(descLbl);
 
-        // Hora
         JLabel horaLbl = new JLabel(horaCorta(a.getFechaHora()));
         horaLbl.setFont(new Font("Segoe UI", Font.PLAIN, 10));
         horaLbl.setForeground(getLabelCol());
