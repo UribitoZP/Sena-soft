@@ -1,44 +1,16 @@
 package com.santaana.view;
 
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
+import java.awt.*;
+import javax.swing.*;
 import javax.swing.border.MatteBorder;
 
 import com.toedter.calendar.JDateChooser;
 import com.santaana.util.ThemeManager;
 
-public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
+public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener {
+
     private String role;
+
     private Color getPrimario() { return ThemeManager.getPrimary(); }
     private Color getFondo() { return ThemeManager.getBackground(); }
     private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
@@ -46,25 +18,21 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private Color getTextCol() { return ThemeManager.getTextPrimary(); }
     private Color getLabelCol() { return ThemeManager.getTextSecondary(); }
 
-    public ReservaFrame(String role, String welcomeMessage) {
-        this.role = role;
+    private JTextField txtBuscar;
+    private JDateChooser dateDesde;
+    private JDateChooser dateHasta;
 
-        setTitle("Hotel Santa Ana — Reservas");
-        setSize(1280, 800);
-        setMinimumSize(new Dimension(1100, 720));
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        
+    public HistorialPanel(String role, String welcomeMessage) {
+        this.role = role;
         ThemeManager.addListener(this);
+        setLayout(new BorderLayout());
         refreshUI();
-        setVisible(true);
     }
 
     private void refreshUI() {
-        getContentPane().removeAll();
-        setLayout(new BorderLayout());
+        removeAll();
+        setBackground(getFondo());
         add(crearNavbar(), BorderLayout.NORTH);
-        add(sidebar(), BorderLayout.WEST);
         add(crearContenido(), BorderLayout.CENTER);
         revalidate();
         repaint();
@@ -75,78 +43,174 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         refreshUI();
     }
 
+    // 🔝 NAVBAR
     private JPanel crearNavbar() {
         JPanel navbar = new JPanel(new BorderLayout());
         navbar.setBackground(getPanelCol());
-        navbar.setPreferredSize(new Dimension(0, 62));
+        navbar.setPreferredSize(new Dimension(0, 60));
         navbar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
 
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 12));
-        left.setOpaque(false);
+        JLabel title = new JLabel("  HISTORIAL DE ACTIVIDADES");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        title.setForeground(getTextCol());
 
-        JLabel logo = new JLabel();
-        try {
-            java.net.URL logoUrl = getClass().getResource("/resources/logo.png");
-            if (logoUrl != null) {
-                ImageIcon icon = new ImageIcon(logoUrl);
-                Image scaled = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-                logo.setIcon(new ImageIcon(scaled));
-            }
-        } catch (Exception e) {}
-
-        JLabel nombre = new JLabel("<html><b style='font-size:13px; color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#1F2937" : "#F3F4F6") + "'>HOTEL SANTA ANA</b><br>"
-                + "<span style='color:" + (ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "#6B84A0" : "#94A3B8") + ";font-size:9px'>Sistema de gestion hotelera</span></html>");
-
-        left.add(logo);
-        left.add(nombre);
-
-
-
-        JButton themeToggle = new JButton(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? "🌙" : "☀️");
-        themeToggle.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
-        themeToggle.setContentAreaFilled(false);
-        themeToggle.setBorderPainted(false);
-        themeToggle.setFocusPainted(false);
-        themeToggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        themeToggle.addActionListener(e -> ThemeManager.toggleTheme());
-
-        left.add(themeToggle);
-
-        JPanel mid = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 14));
-        mid.setOpaque(false);
-        mid.add(crearBotonNavbar("+ Nueva reserva", getPrimario(), Color.WHITE));
-        mid.add(crearBotonNavbar("$  Venta rapida", 
-            ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xE8F1FD) : new Color(0x334155), 
-            getPrimario()));
-
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 16));
-        right.setOpaque(false);
-        right.add(userPanel());
-
-        navbar.add(left, BorderLayout.WEST);
-        navbar.add(mid, BorderLayout.CENTER);
-        navbar.add(right, BorderLayout.EAST);
+        navbar.add(title, BorderLayout.WEST);
         return navbar;
     }
 
-    private JButton crearBotonNavbar(String text, Color bg, Color fg) {
-        JButton b = new JButton(text) {
-            public void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isRollover() ? bg.darker() : bg);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        b.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        b.setForeground(fg);
-        b.setContentAreaFilled(false);
-        b.setBorderPainted(false);
-        b.setFocusPainted(false);
-        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        b.setPreferredSize(new Dimension(150, 34));
-        return b;
+    // 🧱 CONTENIDO
+    private JPanel crearContenido() {
+        JPanel cont = new JPanel(new BorderLayout(0, 15));
+        cont.setOpaque(false);
+        cont.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        cont.add(headerFiltros(), BorderLayout.NORTH);
+        cont.add(listaHistorial(), BorderLayout.CENTER);
+
+        return cont;
+    }
+
+    // 🔎 FILTROS
+    private JPanel headerFiltros() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+
+        JPanel filtros = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        filtros.setOpaque(false);
+
+        txtBuscar = new JTextField(" Buscar...");
+        txtBuscar.setPreferredSize(new Dimension(180, 32));
+        txtBuscar.setForeground(getLabelCol());
+        txtBuscar.setBackground(getPanelCol());
+        txtBuscar.setBorder(BorderFactory.createLineBorder(getBorde(), 1, true));
+
+        dateDesde = new JDateChooser();
+        dateHasta = new JDateChooser();
+
+        estilizarDateChooser(dateDesde);
+        estilizarDateChooser(dateHasta);
+
+        JButton btnLimpiar = new JButton("Limpiar");
+        btnLimpiar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnLimpiar.setBackground(getPrimario());
+        btnLimpiar.setForeground(Color.WHITE);
+        btnLimpiar.setFocusPainted(false);
+        btnLimpiar.setBorderPainted(false);
+        btnLimpiar.setPreferredSize(new Dimension(90, 32));
+
+        btnLimpiar.addActionListener(e -> limpiarFiltros());
+
+        filtros.add(txtBuscar);
+        filtros.add(dateDesde);
+        filtros.add(dateHasta);
+        filtros.add(btnLimpiar);
+
+        header.add(filtros, BorderLayout.EAST);
+        return header;
+    }
+
+    // 🎨 estilo calendario
+    private void estilizarDateChooser(JDateChooser date) {
+        date.setPreferredSize(new Dimension(130, 32));
+        date.setBorder(BorderFactory.createLineBorder(getBorde(), 1, true));
+        date.setBackground(getPanelCol());
+
+        JTextField editor = (JTextField) date.getDateEditor().getUiComponent();
+        editor.setBorder(null);
+        editor.setBackground(getPanelCol());
+        editor.setForeground(getTextCol());
+    }
+
+    // 📜 LISTA
+    private JScrollPane listaHistorial() {
+        JPanel lista = new JPanel();
+        lista.setLayout(new BoxLayout(lista, BoxLayout.Y_AXIS));
+        lista.setOpaque(false);
+
+        // 🔥 CARDS DE EJEMPLO
+        lista.add(notificationCard(new Color(0xE74C3C),
+                "Error en habitación",
+                "La habitación 203 presenta fallas eléctricas"));
+
+        lista.add(Box.createVerticalStrut(10));
+
+        lista.add(notificationCard(new Color(0xF39C12),
+                "Mantenimiento programado",
+                "Habitación 305 será revisada"));
+
+        lista.add(Box.createVerticalStrut(10));
+
+        lista.add(notificationCard(new Color(0x27AE60),
+                "Check-out completado",
+                "Cliente Juan Pérez salió de la habitación 101"));
+
+        lista.add(Box.createVerticalStrut(10));
+
+        lista.add(notificationCard(new Color(0x3498DB),
+                "Reserva creada",
+                "Nueva reserva para habitación 202"));
+
+        lista.add(Box.createVerticalStrut(10));
+
+        lista.add(notificationCard(new Color(0x95A5A6),
+                "Sistema",
+                "Actualización realizada correctamente"));
+
+        JScrollPane scroll = new JScrollPane(lista);
+        scroll.setBorder(null);
+        scroll.getViewport().setOpaque(false);
+        scroll.setOpaque(false);
+
+        return scroll;
+    }
+
+    // 🧾 CARD
+    private JPanel notificationCard(Color lineColor, String tituloTxt, String descTxt) {
+
+        JPanel card = new JPanel(new BorderLayout(12, 0));
+        card.setBackground(getPanelCol());
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(getBorde(), 1, true),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+
+        JPanel line = new JPanel();
+        line.setBackground(lineColor);
+        line.setPreferredSize(new Dimension(5, 10));
+
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setOpaque(false);
+
+        JLabel titulo = new JLabel(tituloTxt);
+        titulo.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        titulo.setForeground(getTextCol());
+
+        JLabel desc = new JLabel(descTxt);
+        desc.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        desc.setForeground(getLabelCol());
+
+        content.add(titulo);
+        content.add(Box.createVerticalStrut(4));
+        content.add(desc);
+
+        JLabel fecha = new JLabel("Hoy");
+        fecha.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        fecha.setForeground(getLabelCol());
+
+        card.add(line, BorderLayout.WEST);
+        card.add(content, BorderLayout.CENTER);
+        card.add(fecha, BorderLayout.EAST);
+
+        return card;
+    }
+
+    // 🔄 limpiar filtros
+    private void limpiarFiltros() {
+        txtBuscar.setText("");
+        dateDesde.setDate(null);
+        dateHasta.setDate(null);
     }
 }
