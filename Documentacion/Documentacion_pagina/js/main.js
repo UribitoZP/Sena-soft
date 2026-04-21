@@ -100,11 +100,18 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(bar);
         document.body.prepend(container);
 
+        container.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
         window.addEventListener('scroll', () => {
             const winScroll = window.scrollY || document.documentElement.scrollTop;
             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
+            const scrolled = Math.round((winScroll / height) * 100);
             bar.style.width = scrolled + "%";
+            container.setAttribute('data-pct', scrolled);
+            if (scrolled > 2) container.classList.add('visible');
+            else container.classList.remove('visible');
         });
     };
 
@@ -233,6 +240,54 @@ document.addEventListener('DOMContentLoaded', () => {
         headers.forEach(h => observer.observe(h));
     };
 
+    // --- Contadores animados ---
+    const setupCounters = () => {
+        const counters = document.querySelectorAll('.stat-num[data-target]');
+        if (counters.length === 0) return;
+
+        const animate = (el) => {
+            const target = parseInt(el.getAttribute('data-target'), 10);
+            const duration = 1200;
+            const step = Math.ceil(duration / target);
+            let current = 0;
+            const timer = setInterval(() => {
+                current++;
+                el.textContent = current;
+                if (current >= target) {
+                    el.textContent = target;
+                    clearInterval(timer);
+                }
+            }, step);
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && entry.target.textContent === '0') {
+                    animate(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        counters.forEach(c => observer.observe(c));
+    };
+
+    // --- Scroll reveal ---
+    const setupScrollReveal = () => {
+        const elements = document.querySelectorAll('.reveal');
+        if (elements.length === 0) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => entry.target.classList.add('visible'), i * 80);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        elements.forEach(el => observer.observe(el));
+    };
+
     // --- INICIALIZACIÓN SEGURA ---
     setupVersion();
     setupDarkMode();
@@ -240,4 +295,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupImageZoom();
     setupProgressBar();
     setupDynamicLayout();
+    setupCounters();
+    setupScrollReveal();
 });
