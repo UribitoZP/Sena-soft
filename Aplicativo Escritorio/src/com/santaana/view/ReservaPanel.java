@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import com.santaana.dao.HabitacionDAO;
+import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.util.ThemeManager;
 
@@ -481,6 +482,8 @@ public class ReservaPanel extends JPanel {
                     "Cancelar Reserva", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
                     reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Cancelada");
+                    HistorialDAO.registrar("Cancelacion", "Reserva cancelada",
+                        "Reserva #" + r.id + " de " + r.huesped + " en " + r.habitacion + " fue cancelada");
                     refreshUI();
                     if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
                 }
@@ -499,6 +502,9 @@ public class ReservaPanel extends JPanel {
                 break;
             }
         }
+
+        HistorialDAO.registrar("Checkout", "Check-out completado",
+            r.huesped + " realizó check-out de " + r.habitacion);
 
         JOptionPane.showMessageDialog(this,
             "<html>Checkout realizado.<br><b>" + r.huesped + "</b> ha salido.<br>"

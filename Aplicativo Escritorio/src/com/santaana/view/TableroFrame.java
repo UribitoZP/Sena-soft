@@ -174,7 +174,6 @@ public class TableroFrame extends JFrame implements ThemeManager.ThemeListener {
                 "Tablero",
                 "Gestión de Habitaciones",
                 "Reserva",
-                "Punto de venta",
                 "Historial",
                 "Reporte"
         };

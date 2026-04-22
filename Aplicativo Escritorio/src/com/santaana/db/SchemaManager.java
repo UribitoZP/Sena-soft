@@ -26,6 +26,17 @@ public class SchemaManager {
                 stmt.executeUpdate("PRAGMA user_version = " + SCHEMA_VERSION);
             }
 
+            // Garantizar tabla historial siempre presente (idempotente)
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS historial (" +
+                "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  tipo        TEXT    NOT NULL," +
+                "  titulo      TEXT    NOT NULL," +
+                "  descripcion TEXT    NOT NULL," +
+                "  fecha_hora  TEXT    NOT NULL DEFAULT (datetime('now','localtime'))" +
+                ")"
+            );
+
             System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
         } catch (SQLException e) {

@@ -208,7 +208,6 @@ public class NotificacionFrame extends JFrame implements ThemeManager.ThemeListe
                 "Tablero",
                 "Gestión de Habitaciones",
                 "Reserva",
-                "Punto de venta",
                 "Historial",
                 "Reporte"
         };

@@ -11,6 +11,7 @@ import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import com.toedter.calendar.JDateChooser;
 import com.santaana.dao.HabitacionDAO;
+import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.ThemeManager;

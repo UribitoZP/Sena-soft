@@ -80,6 +80,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.add(reservaPanel, "Reserva");
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         contentPanel.add(new NotificacionPanel(), "Notificaciones");
+        contentPanel.add(new HistorialPanel(userRole, ""), "Historial");
 
         add(contentPanel, BorderLayout.CENTER);
         
@@ -306,7 +307,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                 }
                 
                 // Solo cambiar si la vista existe
-                if (text.equals("Tablero") || text.equals("Reserva") || text.equals("Gestión de Habitaciones") || text.equals("Notificaciones")) {
+                if (text.equals("Tablero") || text.equals("Reserva") || text.equals("Gestión de Habitaciones") || text.equals("Notificaciones") || text.equals("Historial")) {
                     currentView = text;
                     cardLayout.show(contentPanel, text);
                     refreshSidebar();
