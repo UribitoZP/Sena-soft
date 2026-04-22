@@ -19,7 +19,7 @@ import com.santaana.util.ThemeManager;
 public class NuevaReservaDialog extends JDialog {
 
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
-    private final ReservaDAO    reservaDAO    = new ReservaDAO();
+    private final ReservaDAO reservaDAO = new ReservaDAO();
 
     // Campos de huésped
     private JTextField campoDoc;
@@ -29,26 +29,32 @@ public class NuevaReservaDialog extends JDialog {
 
     // Campos de reserva
     private JDateChooser fechaEntrada;
-    private JSpinner     horaEntrada;
+    private JSpinner horaEntrada;
     private JDateChooser fechaSalida;
-    private JSpinner     horaSalida;
-    private JComboBox<String> tipoEstadia;
+    private JSpinner horaSalida;
+
+    // Tipo de estadía (interno)
+    private String tipoEstadiaSeleccionado = "Noche";
+    private JButton[] botonesPreset;
+    private JLabel infoEstadia;
+    private JPanel filaSalida; // para habilitar/deshabilitar
 
     // Pago
     private JTextField campoAnticipo;
-    private JLabel     lblTotal;
+    private JLabel lblTotal;
+    private String metodoSeleccionado = "Efectivo";
 
     // Habitación seleccionada
     private Habitacion habitacionSeleccionada;
-    private JPanel     panelHabitaciones;
+    private JPanel panelHabitaciones;
 
     private int idUsuario;
 
     public NuevaReservaDialog(Window owner, int idUsuario) {
         super(owner, "Nueva Reserva", ModalityType.APPLICATION_MODAL);
         this.idUsuario = idUsuario;
-        setSize(980, 700);
-        setMinimumSize(new Dimension(880, 620));
+        setSize(980, 720);
+        setMinimumSize(new Dimension(880, 640));
         setLocationRelativeTo(owner);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         initUI();
@@ -70,6 +76,9 @@ public class NuevaReservaDialog extends JDialog {
         root.add(header, BorderLayout.NORTH);
         root.add(crearContenido(), BorderLayout.CENTER);
         setContentPane(root);
+
+        // Aplicar preset por defecto después de construir la UI
+        SwingUtilities.invokeLater(() -> setPreset("Noche"));
     }
 
     private JScrollPane crearContenido() {
@@ -81,19 +90,29 @@ public class NuevaReservaDialog extends JDialog {
         JPanel fila1 = new JPanel(new GridBagLayout());
         fila1.setOpaque(false);
         GridBagConstraints g1 = new GridBagConstraints();
-        g1.fill = GridBagConstraints.HORIZONTAL; g1.gridy = 0;
-        g1.gridx = 0; g1.weightx = 0.35; g1.insets = new Insets(0, 0, 0, 20);
+        g1.fill = GridBagConstraints.HORIZONTAL;
+        g1.gridy = 0;
+        g1.gridx = 0;
+        g1.weightx = 0.35;
+        g1.insets = new Insets(0, 0, 0, 20);
         fila1.add(crearPanelHuesped(), g1);
-        g1.gridx = 1; g1.weightx = 0.65; g1.insets = new Insets(0, 0, 0, 0);
+        g1.gridx = 1;
+        g1.weightx = 0.65;
+        g1.insets = new Insets(0, 0, 0, 0);
         fila1.add(crearPanelReserva(), g1);
 
         JPanel fila2 = new JPanel(new GridBagLayout());
         fila2.setOpaque(false);
         GridBagConstraints g2 = new GridBagConstraints();
-        g2.fill = GridBagConstraints.BOTH; g2.gridy = 0;
-        g2.gridx = 0; g2.weightx = 0.35; g2.insets = new Insets(0, 0, 0, 20);
+        g2.fill = GridBagConstraints.BOTH;
+        g2.gridy = 0;
+        g2.gridx = 0;
+        g2.weightx = 0.35;
+        g2.insets = new Insets(0, 0, 0, 20);
         fila2.add(crearPanelPago(), g2);
-        g2.gridx = 1; g2.weightx = 0.65; g2.insets = new Insets(0, 0, 0, 0);
+        g2.gridx = 1;
+        g2.weightx = 0.65;
+        g2.insets = new Insets(0, 0, 0, 0);
         panelHabitaciones = crearPanelHabitaciones(null, null);
         fila2.add(panelHabitaciones, g2);
 
@@ -113,9 +132,9 @@ public class NuevaReservaDialog extends JDialog {
     private JPanel crearPanelHuesped() {
         JPanel p = tarjeta();
         p.add(titulo("Datos del huésped"));
-        campoDoc      = textField("Cédula o Pasaporte");
-        campoNombre   = textField("Ej: Juan Pérez");
-        campoCorreo   = textField("correo@ejemplo.com");
+        campoDoc = textField("Cédula o Pasaporte");
+        campoNombre = textField("Ej: Juan Pérez");
+        campoCorreo = textField("correo@ejemplo.com");
         campoTelefono = textField("Ej: +57 300 000 0000");
         p.add(caja("Identificación *", campoDoc));
         p.add(Box.createVerticalStrut(12));
@@ -123,7 +142,7 @@ public class NuevaReservaDialog extends JDialog {
         p.add(Box.createVerticalStrut(12));
         p.add(caja("Correo (opcional)", campoCorreo));
         p.add(Box.createVerticalStrut(12));
-        p.add(caja("Teléfono (opcional)", campoTelefono));
+        p.add(caja("Teléfono *", campoTelefono));
         return p;
     }
 
@@ -132,26 +151,129 @@ public class NuevaReservaDialog extends JDialog {
         JPanel p = tarjeta();
         p.add(titulo("Datos de la reserva"));
 
+        // Botones preset de tipo de estadía
+        p.add(crearBotonesPreset());
+        p.add(Box.createVerticalStrut(14));
+
+        // Fila entrada
         fechaEntrada = dateChooser();
-        horaEntrada  = timeSpinner(14, 0);
-        fechaSalida  = dateChooser();
-        horaSalida   = timeSpinner(12, 0);
-        tipoEstadia  = new JComboBox<>(new String[]{"Noche completa","Día completo","Media noche","Por horas"});
-        estilizarCombo(tipoEstadia);
+        fechaEntrada.setMinSelectableDate(new Date());
+        horaEntrada = timeSpinner(12, 0);
+        fechaEntrada.addPropertyChangeListener("date", e -> {
+            if ("Pasadia".equals(tipoEstadiaSeleccionado)) {
+                fechaSalida.setDate(fechaEntrada.getDate());
+            }
+            actualizarHabitaciones();
+            actualizarTotal();
+            actualizarInfoEstadia();
+        });
+        ((JSpinner.DateEditor) horaEntrada.getEditor()).getTextField()
+                .getDocument().addDocumentListener(new SimpleDocListener(() -> {
+                    actualizarHabitaciones();
+                    actualizarTotal();
+                    actualizarInfoEstadia();
+                }));
 
-        fechaEntrada.addPropertyChangeListener("date", e -> actualizarHabitaciones());
-        fechaSalida.addPropertyChangeListener("date",  e -> actualizarHabitaciones());
+        JPanel filaEntrada = new JPanel(new GridLayout(1, 2, 15, 0));
+        filaEntrada.setOpaque(false);
+        filaEntrada.add(caja("Fecha de entrada *", fechaEntrada));
+        filaEntrada.add(caja("Hora de entrada", horaEntrada));
+        p.add(filaEntrada);
+        p.add(Box.createVerticalStrut(12));
 
-        JPanel grid = new JPanel(new GridLayout(0, 2, 15, 12));
-        grid.setOpaque(false);
-        grid.add(caja("Fecha de entrada *", fechaEntrada));
-        grid.add(caja("Hora de entrada",    horaEntrada));
-        grid.add(caja("Fecha de salida *",  fechaSalida));
-        grid.add(caja("Hora de salida",     horaSalida));
-        grid.add(caja("Tipo de estadía",    tipoEstadia));
+        // Fila salida (se deshabilita para Indefinido)
+        fechaSalida = dateChooser();
+        horaSalida = timeSpinner(12, 0);
+        fechaSalida.addPropertyChangeListener("date", e -> {
+            actualizarHabitaciones();
+            actualizarTotal();
+            actualizarInfoEstadia();
+        });
+        ((JSpinner.DateEditor) horaSalida.getEditor()).getTextField()
+                .getDocument().addDocumentListener(new SimpleDocListener(() -> {
+                    actualizarHabitaciones();
+                    actualizarTotal();
+                    actualizarInfoEstadia();
+                }));
 
-        p.add(grid);
+        filaSalida = new JPanel(new GridLayout(1, 2, 15, 0));
+        filaSalida.setOpaque(false);
+        filaSalida.add(caja("Fecha de salida *", fechaSalida));
+        filaSalida.add(caja("Hora de salida", horaSalida));
+        p.add(filaSalida);
+        p.add(Box.createVerticalStrut(10));
+
+        // Etiqueta informativa
+        infoEstadia = new JLabel(" ");
+        infoEstadia.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        infoEstadia.setForeground(ThemeManager.getTextSecondary());
+        p.add(infoEstadia);
+
         return p;
+    }
+
+    private JPanel crearBotonesPreset() {
+        JPanel wrapper = new JPanel(new BorderLayout(0, 6));
+        wrapper.setOpaque(false);
+
+        JLabel lbl = new JLabel("Tipo de estadía");
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lbl.setForeground(ThemeManager.getTextSecondary());
+        wrapper.add(lbl, BorderLayout.NORTH);
+
+        JPanel btns = new JPanel(new GridLayout(1, 3, 6, 0));
+        btns.setOpaque(false);
+
+        String[] tipos = { "Noche", "Pasadia", "Indefinido" };
+        String[] labels = { "Una Noche", "Pasadía", "Indefinido" };
+        String[] subtitles = { "Entrada 12h → Salida 12h", "Solo día (sin noche)", "Salida sin determinar" };
+
+        botonesPreset = new JButton[3];
+        for (int i = 0; i < 3; i++) {
+            final String tipo = tipos[i];
+            final String label = labels[i];
+            final String sub = subtitles[i];
+            JButton btn = new JButton() {
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    boolean sel = tipo.equals(tipoEstadiaSeleccionado);
+                    if (sel) {
+                        g2.setColor(ThemeManager.getPrimary());
+                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    } else {
+                        g2.setColor(ThemeManager.getPanelBackground());
+                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                        g2.setColor(ThemeManager.getBorder());
+                        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                    }
+                    // label
+                    boolean isDark = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK;
+                    g2.setColor(sel ? Color.WHITE : ThemeManager.getTextPrimary());
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 12));
+                    FontMetrics fm = g2.getFontMetrics();
+                    int lx = (getWidth() - fm.stringWidth(label)) / 2;
+                    g2.drawString(label, lx, getHeight() / 2 - 2);
+                    // subtitle
+                    g2.setColor(sel ? new Color(255, 255, 255, 190) : ThemeManager.getTextSecondary());
+                    g2.setFont(new Font("Segoe UI", Font.PLAIN, 9));
+                    FontMetrics fm2 = g2.getFontMetrics();
+                    int sx = (getWidth() - fm2.stringWidth(sub)) / 2;
+                    g2.drawString(sub, sx, getHeight() / 2 + 11);
+                    g2.dispose();
+                }
+            };
+            btn.setContentAreaFilled(false);
+            btn.setBorderPainted(false);
+            btn.setFocusPainted(false);
+            btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            btn.setPreferredSize(new Dimension(0, 52));
+            btn.addActionListener(e -> setPreset(tipo));
+            botonesPreset[i] = btn;
+            btns.add(btn);
+        }
+        wrapper.add(btns, BorderLayout.CENTER);
+        return wrapper;
     }
 
     // ── Panel pago ───────────────────────────────────────────────────────────
@@ -159,73 +281,206 @@ public class NuevaReservaDialog extends JDialog {
         JPanel p = tarjeta();
         p.add(titulo("Pago"));
 
-        campoAnticipo = textField("$0");
-        p.add(caja("Anticipo", campoAnticipo));
-        p.add(Box.createVerticalStrut(15));
-
-        JPanel totalRow = new JPanel(new BorderLayout());
-        totalRow.setOpaque(false);
-        JLabel lTotal = new JLabel("Total estimado");
-        lTotal.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        lTotal.setForeground(ThemeManager.getTextPrimary());
-        lblTotal = new JLabel("—");
-        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblTotal.setForeground(ThemeManager.getPrimary());
-        totalRow.add(lTotal,   BorderLayout.WEST);
-        totalRow.add(lblTotal, BorderLayout.EAST);
-        totalRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        p.add(totalRow);
-        p.add(Box.createVerticalStrut(15));
-
-        JPanel mtd = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        mtd.setOpaque(false);
-        ButtonGroup bg = new ButtonGroup();
-        for (String opt : new String[]{"Efectivo","Transferencia","Tarjeta"}) {
-            JRadioButton rb = new JRadioButton(opt);
-            rb.setOpaque(false);
-            rb.setForeground(ThemeManager.getTextPrimary());
-            rb.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            if (opt.equals("Efectivo")) rb.setSelected(true);
-            bg.add(rb);
-            mtd.add(rb);
+        // Método de pago — botones toggle con tamaño fijo, sin estirarse
+        String[] metodos = { "Efectivo", "Transferencia", "Tarjeta" };
+        JButton[] btnsMetodo = new JButton[3];
+        JPanel metodosPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        metodosPanel.setOpaque(false);
+        metodosPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        for (int i = 0; i < metodos.length; i++) {
+            final String met = metodos[i];
+            JButton btn = new JButton() {
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    boolean sel = met.equals(metodoSeleccionado);
+                    g2.setColor(sel ? ThemeManager.getPrimary() : ThemeManager.getPanelBackground());
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                    if (!sel) {
+                        g2.setColor(ThemeManager.getBorder());
+                        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+                    }
+                    g2.setColor(sel ? Color.WHITE : ThemeManager.getTextPrimary());
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+                    FontMetrics fm = g2.getFontMetrics();
+                    g2.drawString(met, (getWidth() - fm.stringWidth(met)) / 2,
+                            (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                    g2.dispose();
+                }
+            };
+            btn.setPreferredSize(new Dimension(100, 32));
+            btn.setContentAreaFilled(false);
+            btn.setBorderPainted(false);
+            btn.setFocusPainted(false);
+            btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            btn.addActionListener(e -> {
+                metodoSeleccionado = met;
+                for (JButton b : btnsMetodo) b.repaint();
+            });
+            btnsMetodo[i] = btn;
+            metodosPanel.add(btn);
         }
-        mtd.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        p.add(mtd);
+        p.add(caja("Método de pago", metodosPanel));
+        p.add(Box.createVerticalStrut(14));
+
+        // Campo anticipo — ancho fijo, no se estira
+        JPanel anticipoRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        anticipoRow.setOpaque(false);
+        anticipoRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
+        JLabel prefijo = new JLabel(" $ ");
+        prefijo.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        prefijo.setForeground(ThemeManager.getTextPrimary());
+        prefijo.setOpaque(true);
+        prefijo.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT
+                ? new Color(0xF1F5F9) : new Color(0x2D3748));
+        prefijo.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 1, 1, 0, ThemeManager.getBorder()),
+                BorderFactory.createEmptyBorder(0, 8, 0, 8)));
+        prefijo.setPreferredSize(new Dimension(34, 36));
+        campoAnticipo = new JTextField("0");
+        campoAnticipo.setPreferredSize(new Dimension(150, 36));
+        campoAnticipo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        campoAnticipo.setBackground(ThemeManager.getPanelBackground());
+        campoAnticipo.setForeground(ThemeManager.getTextPrimary());
+        campoAnticipo.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 1, 1, ThemeManager.getBorder()),
+                BorderFactory.createEmptyBorder(0, 6, 0, 10)));
+        anticipoRow.add(prefijo);
+        anticipoRow.add(campoAnticipo);
+        p.add(caja("Anticipo recibido", anticipoRow));
+        p.add(Box.createVerticalStrut(16));
+
+        // Separador
+        JSeparator sep = new JSeparator();
+        sep.setForeground(ThemeManager.getBorder());
+        sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        p.add(sep);
+        p.add(Box.createVerticalStrut(14));
+
+        // Total en caja destacada
+        JPanel totalBox = new JPanel(new BorderLayout(0, 4)) {
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT
+                        ? new Color(0xEBF3FF) : new Color(0x1E3A5F));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.dispose();
+            }
+        };
+        totalBox.setOpaque(false);
+        totalBox.setBorder(BorderFactory.createEmptyBorder(12, 14, 12, 14));
+        totalBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 72));
+        JLabel lTotal = new JLabel("Total estimado");
+        lTotal.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lTotal.setForeground(ThemeManager.getTextSecondary());
+        lblTotal = new JLabel("—");
+        lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        lblTotal.setForeground(ThemeManager.getPrimary());
+        totalBox.add(lTotal, BorderLayout.NORTH);
+        totalBox.add(lblTotal, BorderLayout.CENTER);
+        p.add(totalBox);
+
         return p;
     }
 
     // ── Panel habitaciones ───────────────────────────────────────────────────
-    private JPanel crearPanelHabitaciones(String desde, String hasta) {
+    private JPanel crearPanelHabitaciones(String desdeDateTime, String hastaDateTime) {
         JPanel p = tarjeta();
         p.add(titulo("Seleccionar habitación"));
 
-        List<Habitacion> lista = (desde != null && hasta != null)
-            ? habitacionDAO.listarDisponiblesEnFechas(desde, hasta)
-            : habitacionDAO.listarDisponibles();
+        List<Habitacion> lista = (desdeDateTime != null && hastaDateTime != null)
+                ? habitacionDAO.listarDisponiblesEnFechas(desdeDateTime, hastaDateTime)
+                : habitacionDAO.listarDisponibles();
 
         if (lista.isEmpty()) {
-            JLabel aviso = new JLabel(desde != null
-                ? "No hay habitaciones disponibles para esas fechas."
-                : "No hay habitaciones disponibles.");
+            JLabel aviso = new JLabel(desdeDateTime != null
+                    ? "No hay habitaciones disponibles para ese horario."
+                    : "No hay habitaciones disponibles.", SwingConstants.CENTER);
             aviso.setForeground(ThemeManager.getTextSecondary());
-            aviso.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            aviso.setFont(new Font("Segoe UI", Font.PLAIN, 13));
             p.add(aviso);
             return p;
         }
 
-        JPanel grid = new JPanel(new GridLayout(0, 3, 12, 12));
-        grid.setOpaque(false);
-        for (Habitacion h : lista) {
-            grid.add(cardHabitacion(h, p));
+        // Tipos únicos para chips de filtro
+        java.util.List<String> tipos = new java.util.ArrayList<>();
+        tipos.add("Todas");
+        for (Habitacion h : lista)
+            if (!tipos.contains(h.getTipo())) tipos.add(h.getTipo());
+
+        // Contenedor del grid (se reconstruye al filtrar)
+        JPanel gridContainer = new JPanel(new BorderLayout());
+        gridContainer.setOpaque(false);
+
+        String[] filtroActivo = { "Todas" };
+
+        // Chips de filtro
+        JPanel filtroRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        filtroRow.setOpaque(false);
+        filtroRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        JButton[] filtrosBtns = new JButton[tipos.size()];
+
+        for (int i = 0; i < tipos.size(); i++) {
+            final String tipo = tipos.get(i);
+            JButton btn = new JButton() {
+                protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    boolean sel = tipo.equals(filtroActivo[0]);
+                    g2.setColor(sel ? ThemeManager.getPrimary() : ThemeManager.getPanelBackground());
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), getHeight(), getHeight());
+                    if (!sel) {
+                        g2.setColor(ThemeManager.getBorder());
+                        g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, getHeight(), getHeight());
+                    }
+                    g2.setColor(sel ? Color.WHITE : ThemeManager.getTextSecondary());
+                    g2.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+                    FontMetrics fm = g2.getFontMetrics();
+                    g2.drawString(tipo, (getWidth() - fm.stringWidth(tipo)) / 2,
+                            (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                    g2.dispose();
+                }
+            };
+            btn.setContentAreaFilled(false);
+            btn.setBorderPainted(false);
+            btn.setFocusPainted(false);
+            btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            btn.setPreferredSize(new Dimension(btn.getFontMetrics(new Font("Segoe UI", Font.PLAIN, 11)).stringWidth(tipo) + 22, 26));
+            btn.addActionListener(e -> {
+                filtroActivo[0] = tipo;
+                reconstruirGridHabitaciones(gridContainer, lista, filtroActivo[0], p);
+                for (JButton b : filtrosBtns) b.repaint();
+            });
+            filtrosBtns[i] = btn;
+            filtroRow.add(btn);
         }
 
+        p.add(filtroRow);
+        p.add(Box.createVerticalStrut(10));
+        reconstruirGridHabitaciones(gridContainer, lista, filtroActivo[0], p);
+        p.add(gridContainer);
+        return p;
+    }
+
+    private void reconstruirGridHabitaciones(JPanel container, List<Habitacion> lista, String filtro, JPanel contenedorPadre) {
+        JPanel grid = new JPanel(new GridLayout(0, 2, 10, 10));
+        grid.setOpaque(false);
+        for (Habitacion h : lista) {
+            if (filtro.equals("Todas") || filtro.equals(h.getTipo()))
+                grid.add(cardHabitacion(h, contenedorPadre));
+        }
         JScrollPane scroll = new JScrollPane(grid);
         scroll.setBorder(null);
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
         scroll.getVerticalScrollBar().setUnitIncrement(12);
-        p.add(scroll);
-        return p;
+        scroll.setPreferredSize(new Dimension(0, 260));
+        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 260));
+        container.removeAll();
+        container.add(scroll, BorderLayout.CENTER);
+        container.revalidate();
+        container.repaint();
     }
 
     private JPanel cardHabitacion(Habitacion h, JPanel contenedor) {
@@ -234,12 +489,11 @@ public class NuevaReservaDialog extends JDialog {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                boolean sel = habitacionSeleccionada != null
-                    && habitacionSeleccionada.getId() == h.getId();
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                boolean sel = habitacionSeleccionada != null && habitacionSeleccionada.getId() == h.getId();
                 g2.setColor(sel ? ThemeManager.getPrimary() : ThemeManager.getBorder());
                 g2.setStroke(new BasicStroke(sel ? 2f : 1f));
-                g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 16, 16);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
                 g2.dispose();
             }
         };
@@ -248,26 +502,37 @@ public class NuevaReservaDialog extends JDialog {
         c.setBackground(ThemeManager.getPanelBackground());
         c.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
         c.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        c.setPreferredSize(new Dimension(0, 110));
+        c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
 
-        JLabel nLbl = new JLabel("Hab. " + h.getNumero());
-        nLbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        String tipo = h.getTipo().toLowerCase();
+        String emoji = tipo.contains("suite") ? "👑" : tipo.contains("doble") || tipo.contains("matrimonial") || tipo.contains("familiar") ? "🛏" : "🛏";
+
+        JLabel emojiLbl = new JLabel(emoji, SwingConstants.CENTER);
+        emojiLbl.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 24));
+        emojiLbl.setAlignmentX(0.5f);
+
+        JLabel nLbl = new JLabel("Hab. " + h.getNumero(), SwingConstants.CENTER);
+        nLbl.setFont(new Font("Segoe UI", Font.BOLD, 15));
         nLbl.setForeground(ThemeManager.getPrimary());
         nLbl.setAlignmentX(0.5f);
 
-        JLabel tipoLbl = new JLabel(h.getTipo());
+        JLabel tipoLbl = new JLabel(h.getTipo(), SwingConstants.CENTER);
         tipoLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         tipoLbl.setForeground(ThemeManager.getTextSecondary());
         tipoLbl.setAlignmentX(0.5f);
 
-        JLabel precioLbl = new JLabel(String.format("$%,.0f / noche", h.getPrecio()));
+        JLabel precioLbl = new JLabel(String.format("$%,.0f / noche", h.getPrecio()), SwingConstants.CENTER);
         precioLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         precioLbl.setForeground(ThemeManager.getTextPrimary());
         precioLbl.setAlignmentX(0.5f);
 
-        c.add(nLbl);
-        c.add(Box.createVerticalStrut(4));
-        c.add(tipoLbl);
+        c.add(emojiLbl);
         c.add(Box.createVerticalStrut(6));
+        c.add(nLbl);
+        c.add(Box.createVerticalStrut(2));
+        c.add(tipoLbl);
+        c.add(Box.createVerticalStrut(8));
         c.add(precioLbl);
 
         c.addMouseListener(new MouseAdapter() {
@@ -278,7 +543,7 @@ public class NuevaReservaDialog extends JDialog {
             }
             public void mouseEntered(MouseEvent e) {
                 c.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT
-                    ? new Color(0xF1F5F9) : new Color(0x334155));
+                        ? new Color(0xF1F5F9) : new Color(0x334155));
                 c.repaint();
             }
             public void mouseExited(MouseEvent e) {
@@ -326,19 +591,116 @@ public class NuevaReservaDialog extends JDialog {
         return p;
     }
 
-    // ── Lógica ────────────────────────────────────────────────────────────────
+    // ── Lógica de presets ─────────────────────────────────────────────────────
+    private void setPreset(String tipo) {
+        tipoEstadiaSeleccionado = tipo;
+        Calendar cal = Calendar.getInstance();
+        Date hoy = new Date();
+
+        switch (tipo) {
+            case "Noche": {
+                fechaEntrada.setDate(hoy);
+                setHoraSpinner(horaEntrada, 12, 0);
+                Calendar manana = Calendar.getInstance();
+                manana.add(Calendar.DAY_OF_MONTH, 1);
+                fechaSalida.setDate(manana.getTime());
+                setHoraSpinner(horaSalida, 12, 0);
+                setSalidaEnabled(true);
+                break;
+            }
+            case "Pasadia": {
+                fechaEntrada.setDate(hoy);
+                setHoraSpinner(horaEntrada, 12, 0);
+                fechaSalida.setDate(hoy);
+                setHoraSpinner(horaSalida, 22, 0);
+                setSalidaEnabled(true);
+                break;
+            }
+            case "Indefinido": {
+                fechaEntrada.setDate(hoy);
+                setHoraSpinner(horaEntrada, cal.get(Calendar.HOUR_OF_DAY), 0);
+                fechaSalida.setDate(hoy);
+                setHoraSpinner(horaSalida, 23, 59);
+                setSalidaEnabled(false);
+                break;
+            }
+        }
+
+        if (botonesPreset != null) {
+            for (JButton b : botonesPreset)
+                b.repaint();
+        }
+        actualizarHabitaciones();
+        actualizarTotal();
+        actualizarInfoEstadia();
+    }
+
+    private void setSalidaEnabled(boolean enabled) {
+        if (filaSalida == null)
+            return;
+        for (Component comp : filaSalida.getComponents()) {
+            comp.setEnabled(enabled);
+            if (comp instanceof JPanel) {
+                for (Component inner : ((JPanel) comp).getComponents())
+                    inner.setEnabled(enabled);
+            }
+        }
+        fechaSalida.setEnabled(enabled);
+        horaSalida.setEnabled(enabled);
+    }
+
+    private void actualizarInfoEstadia() {
+        if (infoEstadia == null || fechaEntrada.getDate() == null)
+            return;
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        String ent = sdf.format(fechaEntrada.getDate()) + " " + formatearHora(horaEntrada);
+        switch (tipoEstadiaSeleccionado) {
+            case "Noche":
+                String sal = fechaSalida.getDate() != null
+                        ? sdf.format(fechaSalida.getDate()) + " " + formatearHora(horaSalida)
+                        : "?";
+                long noches = calcularNoches();
+                infoEstadia.setText("Entrada: " + ent + "  →  Salida: " + sal +
+                        (noches > 0 ? "  (" + noches + " noche" + (noches > 1 ? "s" : "") + ")" : ""));
+                break;
+            case "Pasadia":
+                infoEstadia.setText("Entrada: " + ent + "  |  Solo día — sin noche");
+                break;
+            case "Indefinido":
+                infoEstadia.setText("Entrada: " + ent + "  |  Salida sin determinar — cobro por horas al checkout");
+                break;
+        }
+    }
+
+    // ── Lógica general ────────────────────────────────────────────────────────
     private void actualizarHabitaciones() {
         String desde = formatearFecha(fechaEntrada.getDate());
-        String hasta = formatearFecha(fechaSalida.getDate());
-        if (desde == null || hasta == null) return;
+        if (desde == null)
+            return;
+        String horaEnt = formatearHora(horaEntrada);
+        String hasta, horaSal;
+        if ("Indefinido".equals(tipoEstadiaSeleccionado)) {
+            hasta = desde;
+            horaSal = "23:59";
+        } else {
+            hasta = formatearFecha(fechaSalida.getDate());
+            horaSal = formatearHora(horaSalida);
+            if (hasta == null)
+                return;
+        }
+
+        String desdeDateTime = desde + " " + horaEnt;
+        String hastaDateTime = hasta + " " + horaSal;
+        if (desdeDateTime.compareTo(hastaDateTime) >= 0 && !"Indefinido".equals(tipoEstadiaSeleccionado))
+            return;
 
         Container parent = panelHabitaciones.getParent();
-        if (parent == null) return;
-        GridBagConstraints gbc = ((GridBagLayout) parent.getLayout())
-            .getConstraints(panelHabitaciones);
+        if (parent == null)
+            return;
+        GridBagConstraints gbc = ((GridBagLayout) parent.getLayout()).getConstraints(panelHabitaciones);
         parent.remove(panelHabitaciones);
         habitacionSeleccionada = null;
-        panelHabitaciones = crearPanelHabitaciones(desde, hasta);
+        panelHabitaciones = crearPanelHabitaciones(desdeDateTime, hastaDateTime);
         parent.add(panelHabitaciones, gbc);
         parent.revalidate();
         parent.repaint();
@@ -346,54 +708,108 @@ public class NuevaReservaDialog extends JDialog {
     }
 
     private void actualizarTotal() {
-        if (habitacionSeleccionada == null) { lblTotal.setText("—"); return; }
-        Date dE = fechaEntrada.getDate();
-        Date dS = fechaSalida.getDate();
-        if (dE != null && dS != null && dS.after(dE)) {
-            long dias = (dS.getTime() - dE.getTime()) / (1000 * 60 * 60 * 24);
-            lblTotal.setText(String.format("$%,.0f", dias * habitacionSeleccionada.getPrecio()));
-        } else {
-            lblTotal.setText(String.format("$%,.0f", habitacionSeleccionada.getPrecio()));
+        if (habitacionSeleccionada == null) {
+            lblTotal.setText("—");
+            return;
+        }
+        switch (tipoEstadiaSeleccionado) {
+            case "Noche": {
+                long noches = calcularNoches();
+                if (noches > 0) {
+                    lblTotal.setText(String.format("$%,.0f", noches * habitacionSeleccionada.getPrecio()));
+                } else {
+                    lblTotal.setText(String.format("$%,.0f", habitacionSeleccionada.getPrecio()));
+                }
+                break;
+            }
+            case "Pasadia":
+                lblTotal.setText("Tarifa pasadía");
+                break;
+            case "Indefinido":
+                lblTotal.setText("Cobro por horas");
+                break;
         }
     }
 
-    private void confirmarReserva() {
-        String doc    = campoDoc.getText().trim();
-        String nombre = campoNombre.getText().trim();
-        String desde  = formatearFecha(fechaEntrada.getDate());
-        String hasta  = formatearFecha(fechaSalida.getDate());
+    private long calcularNoches() {
+        Date dE = fechaEntrada.getDate();
+        Date dS = fechaSalida != null ? fechaSalida.getDate() : null;
+        if (dE == null || dS == null || !dS.after(dE))
+            return 0;
+        return (dS.getTime() - dE.getTime()) / (1000L * 60 * 60 * 24);
+    }
 
-        if (doc.isEmpty() || nombre.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Identificación y nombre son obligatorios.",
-                "Campos requeridos", JOptionPane.WARNING_MESSAGE); return;
+    private void confirmarReserva() {
+        String doc = campoDoc.getText().trim();
+        String nombre = campoNombre.getText().trim();
+        String desde = formatearFecha(fechaEntrada.getDate());
+        String horaEnt = formatearHora(horaEntrada);
+
+        String telefono = campoTelefono.getText().trim();
+        if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Identificación, nombre y teléfono son obligatorios.",
+                    "Campos requeridos", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-        if (desde == null || hasta == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione fecha de entrada y salida.",
-                "Fechas requeridas", JOptionPane.WARNING_MESSAGE); return;
+        if (desde == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione fecha de entrada.",
+                    "Fecha requerida", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-        if (!fechaSalida.getDate().after(fechaEntrada.getDate())) {
-            JOptionPane.showMessageDialog(this, "La fecha de salida debe ser posterior a la de entrada.",
-                "Fecha inválida", JOptionPane.WARNING_MESSAGE); return;
+        String hoyStr = formatearFecha(new Date());
+        if (desde.compareTo(hoyStr) < 0) {
+            JOptionPane.showMessageDialog(this, "La fecha de entrada no puede ser anterior a hoy.",
+                    "Fecha inválida", JOptionPane.WARNING_MESSAGE);
+            return;
         }
+
+        String hasta, horaSal;
+        if ("Indefinido".equals(tipoEstadiaSeleccionado)) {
+            hasta = desde;
+            horaSal = "23:59";
+        } else {
+            hasta = formatearFecha(fechaSalida.getDate());
+            horaSal = formatearHora(horaSalida);
+            if (hasta == null) {
+                JOptionPane.showMessageDialog(this, "Seleccione fecha de salida.",
+                        "Fecha requerida", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            String dtEnt = desde + " " + horaEnt;
+            String dtSal = hasta + " " + horaSal;
+            if (dtSal.compareTo(dtEnt) <= 0) {
+                JOptionPane.showMessageDialog(this,
+                        "La salida debe ser posterior a la entrada.",
+                        "Fecha inválida", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
+
         if (habitacionSeleccionada == null) {
             JOptionPane.showMessageDialog(this, "Seleccione una habitación.",
-                "Habitación requerida", JOptionPane.WARNING_MESSAGE); return;
+                    "Habitación requerida", JOptionPane.WARNING_MESSAGE);
+            return;
         }
 
         boolean ok = reservaDAO.crear(
-            habitacionSeleccionada.getId(), idUsuario, nombre, doc, desde, hasta);
+                habitacionSeleccionada.getId(), idUsuario, nombre, doc,
+                desde, horaEnt, hasta, horaSal, tipoEstadiaSeleccionado);
 
         if (ok) {
-            habitacionDAO.actualizarEstado(habitacionSeleccionada.getId(), "Ocupada");
-            HistorialDAO.registrar("Reserva", "Reserva creada",
-                "Nueva reserva de " + nombre + " en hab. " + habitacionSeleccionada.getNumero()
-                + " (" + desde + " al " + hasta + ")");
-            JOptionPane.showMessageDialog(this, "Reserva creada correctamente.",
-                "Reserva confirmada", JOptionPane.INFORMATION_MESSAGE);
+            // Solo marcar Ocupada si el check-in es hoy
+            String hoy = formatearFecha(new Date());
+            if (desde.equals(hoy)) {
+                habitacionDAO.actualizarEstado(habitacionSeleccionada.getId(), "Ocupada");
+            }
+            String msg = "Reserva creada correctamente.";
+            if (!desde.equals(hoy)) {
+                msg += "\nLa habitación se marcará Ocupada al hacer Check-in el " + desde + ".";
+            }
+            JOptionPane.showMessageDialog(this, msg, "Reserva confirmada", JOptionPane.INFORMATION_MESSAGE);
             dispose();
         } else {
             JOptionPane.showMessageDialog(this, "No se pudo guardar la reserva. Intente de nuevo.",
-                "Error", JOptionPane.ERROR_MESSAGE);
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -406,7 +822,7 @@ public class NuevaReservaDialog extends JDialog {
                 g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
                 g2.setColor(ThemeManager.getBorder());
-                g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 16, 16);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
                 g2.dispose();
             }
         };
@@ -432,8 +848,8 @@ public class NuevaReservaDialog extends JDialog {
         tf.setBackground(ThemeManager.getPanelBackground());
         tf.setForeground(ThemeManager.getTextPrimary());
         tf.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
-            BorderFactory.createEmptyBorder(0, 10, 0, 10)));
+                BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
+                BorderFactory.createEmptyBorder(0, 10, 0, 10)));
         return tf;
     }
 
@@ -445,18 +861,11 @@ public class NuevaReservaDialog extends JDialog {
         dc.setForeground(ThemeManager.getTextPrimary());
         JTextField tf = (JTextField) dc.getDateEditor().getUiComponent();
         tf.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
-            BorderFactory.createEmptyBorder(0, 10, 0, 10)));
+                BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
+                BorderFactory.createEmptyBorder(0, 10, 0, 10)));
         tf.setBackground(ThemeManager.getPanelBackground());
         tf.setForeground(ThemeManager.getTextPrimary());
         return dc;
-    }
-
-    private void estilizarCombo(JComboBox<?> combo) {
-        combo.setPreferredSize(new Dimension(0, 36));
-        combo.setBackground(ThemeManager.getPanelBackground());
-        combo.setForeground(ThemeManager.getTextPrimary());
-        combo.setBorder(BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true));
     }
 
     private JPanel caja(String label, JComponent campo) {
@@ -465,7 +874,7 @@ public class NuevaReservaDialog extends JDialog {
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lbl.setForeground(ThemeManager.getTextSecondary());
-        w.add(lbl,   BorderLayout.NORTH);
+        w.add(lbl, BorderLayout.NORTH);
         w.add(campo, BorderLayout.CENTER);
         return w;
     }
@@ -475,8 +884,7 @@ public class NuevaReservaDialog extends JDialog {
         cal.set(Calendar.HOUR_OF_DAY, hora);
         cal.set(Calendar.MINUTE, minuto);
         cal.set(Calendar.SECOND, 0);
-        SpinnerDateModel model = new SpinnerDateModel(
-            cal.getTime(), null, null, Calendar.MINUTE);
+        SpinnerDateModel model = new SpinnerDateModel(cal.getTime(), null, null, Calendar.MINUTE);
         JSpinner spinner = new JSpinner(model);
         JSpinner.DateEditor editor = new JSpinner.DateEditor(spinner, "HH:mm");
         spinner.setEditor(editor);
@@ -491,8 +899,42 @@ public class NuevaReservaDialog extends JDialog {
         return spinner;
     }
 
+    private void setHoraSpinner(JSpinner spinner, int hora, int minuto) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, hora);
+        cal.set(Calendar.MINUTE, minuto);
+        cal.set(Calendar.SECOND, 0);
+        spinner.setValue(cal.getTime());
+    }
+
     private String formatearFecha(Date d) {
-        if (d == null) return null;
+        if (d == null)
+            return null;
         return new SimpleDateFormat("yyyy-MM-dd").format(d);
+    }
+
+    private String formatearHora(JSpinner spinner) {
+        return new SimpleDateFormat("HH:mm").format((Date) spinner.getValue());
+    }
+
+    // Listener auxiliar para JSpinner
+    private static class SimpleDocListener implements javax.swing.event.DocumentListener {
+        private final Runnable r;
+
+        SimpleDocListener(Runnable r) {
+            this.r = r;
+        }
+
+        public void insertUpdate(javax.swing.event.DocumentEvent e) {
+            r.run();
+        }
+
+        public void removeUpdate(javax.swing.event.DocumentEvent e) {
+            r.run();
+        }
+
+        public void changedUpdate(javax.swing.event.DocumentEvent e) {
+            r.run();
+        }
     }
 }
