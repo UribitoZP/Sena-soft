@@ -11,6 +11,7 @@ import javax.swing.*;
 import javax.swing.border.MatteBorder;
 import com.toedter.calendar.JDateChooser;
 import com.santaana.dao.HabitacionDAO;
+import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.ThemeManager;
@@ -384,6 +385,9 @@ public class NuevaReservaDialog extends JDialog {
 
         if (ok) {
             habitacionDAO.actualizarEstado(habitacionSeleccionada.getId(), "Ocupada");
+            HistorialDAO.registrar("Reserva", "Reserva creada",
+                "Nueva reserva de " + nombre + " en hab. " + habitacionSeleccionada.getNumero()
+                + " (" + desde + " al " + hasta + ")");
             JOptionPane.showMessageDialog(this, "Reserva creada correctamente.",
                 "Reserva confirmada", JOptionPane.INFORMATION_MESSAGE);
             dispose();

@@ -172,7 +172,7 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         side.setPreferredSize(new Dimension(190, 0));
         side.setBorder(new MatteBorder(0, 0, 0, 1, getBorde()));
         side.add(Box.createVerticalStrut(20));
-        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Punto de venta", "Historial", "Reporte" };
+        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Historial", "Reporte" };
         for (int i = 0; i < items.length; i++) {
             side.add(sideBtn(items[i], i == 2));
             side.add(Box.createVerticalStrut(8));
