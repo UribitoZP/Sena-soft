@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
+import 'package:santa_ana_dashboard/views_second/reservas_del_dia.dart';
 
 
 //  DASHBOARD VIEW
@@ -639,7 +640,10 @@ class _ReservationsList extends StatelessWidget {
               Text('Reservas del día',
                   style: Theme.of(context).textTheme.titleMedium),
               TextButton(
-                onPressed: () {},
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ReservasDelDiaView()),
+                ),
                 child: const Text('Ver todas →'),
               ),
             ],

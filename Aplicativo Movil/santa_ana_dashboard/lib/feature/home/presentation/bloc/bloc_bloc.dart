@@ -5,10 +5,12 @@ import 'bloc_state.dart';
 class AppBloc extends Bloc<AppEvent, AppState> {
   AppBloc() : super(AppInitial()) {
 
+    // ── Auth ────────────────────────────────────────────────────
+
     on<LoginRequested>((event, emit) async {
       emit(AppLoading());
       try {
-        await Future.delayed(Duration(seconds: 3));
+        await Future.delayed(const Duration(seconds: 3));
         final userData = {'username': event.username};
         emit(AppLoginSuccess(data: userData));
       } catch (e) {
@@ -16,19 +18,21 @@ class AppBloc extends Bloc<AppEvent, AppState> {
       }
     });
 
+    on<LogoutRequested>((event, emit) async {
+      emit(AppInitial());
+    });
+
+    // ── Dashboard ───────────────────────────────────────────────
+
     on<LoadDashboardData>((event, emit) async {
       emit(AppLoading());
       try {
-        await Future.delayed(Duration(seconds: 3));
+        await Future.delayed(const Duration(seconds: 3));
         final dashboardData = {'stats': 123};
         emit(AppDashboardLoaded(data: dashboardData));
       } catch (e) {
         emit(AppFailure(message: 'Failed to load dashboard'));
       }
-    });
-
-    on<LogoutRequested>((event, emit) async {
-      emit(AppInitial());
     });
   }
 }
