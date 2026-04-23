@@ -30,6 +30,7 @@ import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
 
 import com.santaana.dao.HabitacionDAO;
+import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.ThemeManager;
@@ -395,6 +396,8 @@ public class TableroPanel extends JPanel {
             JButton btn = crearBoton("✓ Marcar Disponible", new Color(0x27AE60));
             btn.addActionListener(e -> {
                 habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                HistorialDAO.registrar("Habitacion", "Habitación disponible",
+                    "Hab. " + h.getNumero() + " pasó de Limpieza a Disponible");
                 dialog.dispose();
                 if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
             });
@@ -408,6 +411,8 @@ public class TableroPanel extends JPanel {
                     new Color(0xE74C3C));
                 btnCI.addActionListener(e -> {
                     habitacionDAO.actualizarEstado(h.getId(), "Ocupada");
+                    HistorialDAO.registrar("Checkin", "Check-in realizado",
+                        proximaReserva.getClienteNombre() + " realizó check-in en Hab. " + h.getNumero());
                     dialog.dispose();
                     if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
                 });
@@ -421,6 +426,8 @@ public class TableroPanel extends JPanel {
                     "Confirmar", JOptionPane.YES_NO_OPTION);
                 if (ok == JOptionPane.YES_OPTION) {
                     habitacionDAO.actualizarEstado(h.getId(), "Mantenimiento");
+                    HistorialDAO.registrar("Habitacion", "Habitación en mantenimiento",
+                        "Hab. " + h.getNumero() + " pasó a estado Mantenimiento");
                     dialog.dispose();
                     if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
                 }
@@ -433,6 +440,8 @@ public class TableroPanel extends JPanel {
             JButton btn = crearBoton("✓ Marcar Disponible", new Color(0x27AE60));
             btn.addActionListener(e -> {
                 habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                HistorialDAO.registrar("Habitacion", "Habitación disponible",
+                    "Hab. " + h.getNumero() + " pasó de Mantenimiento a Disponible");
                 dialog.dispose();
                 if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
             });
@@ -574,6 +583,8 @@ public class TableroPanel extends JPanel {
             reservaDAO.actualizarEstado(reservaActiva.getId(), "Completada");
         }
         habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
+        HistorialDAO.registrar("Checkout", "Check-out completado",
+            cliente + " realizó check-out de Hab. " + h.getNumero());
 
         JOptionPane.showMessageDialog(this,
             "<html>Checkout realizado.<br>Habitación " + h.getNumero() + " en <b>Limpieza</b>.</html>",
