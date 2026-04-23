@@ -9,6 +9,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -26,17 +27,20 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.MatteBorder;
 
+import com.santaana.dao.HistorialDAO;
 import com.santaana.util.ThemeManager;
 
 public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private CardLayout cardLayout;
     private JPanel contentPanel;
     private JPanel sidebarPanel;
+    private JPanel navbarPanel;
     private String userRole;
     private String currentView = "Tablero";
     private int idUsuario;
-    private ReservaPanel  reservaPanel;
-    private TableroPanel  tableroPanel;
+    private ReservaPanel      reservaPanel;
+    private TableroPanel      tableroPanel;
+    private NotificacionPanel notifPanel;
 
     public MainFrame(String role, String welcomeMessage, int idUsuario) {
         this.userRole  = role;
@@ -49,8 +53,12 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
 
         ThemeManager.addListener(this);
         initUI();
-        
-        // Mostrar mensaje de bienvenida si es necesario
+
+        // Refresca el badge de notificaciones cada 15 segundos
+        new javax.swing.Timer(15000, e -> {
+            if (navbarPanel != null) navbarPanel.repaint();
+        }).start();
+
         if (welcomeMessage != null && !welcomeMessage.isEmpty()) {
             JOptionPane.showMessageDialog(this, welcomeMessage, "Bienvenido", JOptionPane.INFORMATION_MESSAGE);
         }
@@ -61,7 +69,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         setLayout(new BorderLayout());
 
         // 0. Navbar Global
-        add(crearNavbarGlobal(), BorderLayout.NORTH);
+        navbarPanel = crearNavbarGlobal();
+        add(navbarPanel, BorderLayout.NORTH);
 
         // 1. Sidebar
         sidebarPanel = crearSidebar();
@@ -79,7 +88,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         reservaPanel.setOnEstadoCambiado(() -> refrescarTodo());
         contentPanel.add(reservaPanel, "Reserva");
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
-        contentPanel.add(new NotificacionPanel(), "Notificaciones");
+        notifPanel = new NotificacionPanel();
+        contentPanel.add(notifPanel, "Notificaciones");
         contentPanel.add(new HistorialPanel(userRole, ""), "Historial");
 
         add(contentPanel, BorderLayout.CENTER);
@@ -170,6 +180,19 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                 g2.drawLine(cx - 7, cy + 5, cx + 7, cy + 5);
                 g2.drawArc(cx - 2, cy + 5, 4, 4, 180, 180);
 
+                // Badge con contador de notificaciones pendientes
+                int count = HistorialDAO.getPendingCount();
+                if (count > 0) {
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(0xFF3B30));
+                    g2.fillOval(getWidth() - 13, 3, 10, 10);
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 8));
+                    String cnt = count > 9 ? "9+" : String.valueOf(count);
+                    FontMetrics fm = g2.getFontMetrics();
+                    g2.drawString(cnt, getWidth() - 13 + (10 - fm.stringWidth(cnt)) / 2, 11);
+                }
+
                 g2.dispose();
             }
         };
@@ -183,6 +206,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
             currentView = "Notificaciones";
             cardLayout.show(contentPanel, "Notificaciones");
             refreshSidebar();
+            HistorialDAO.resetPendingCount();
+            if (notifPanel != null) notifPanel.refreshUI();
             notifBtn.repaint();
         });
 
