@@ -12,12 +12,13 @@ public class Reserva {
     private String horaSalida;
     private String tipoEstadia;
     private String estado;
+    private double anticipo;
 
     public Reserva(int id, int idHabitacion, int idUsuario,
                    String clienteNombre, String clienteDoc,
                    String fechaEntrada, String horaEntrada,
                    String fechaSalida, String horaSalida,
-                   String tipoEstadia, String estado) {
+                   String tipoEstadia, String estado, double anticipo) {
         this.id            = id;
         this.idHabitacion  = idHabitacion;
         this.idUsuario     = idUsuario;
@@ -29,6 +30,7 @@ public class Reserva {
         this.horaSalida    = horaSalida  != null ? horaSalida  : "12:00";
         this.tipoEstadia   = tipoEstadia != null ? tipoEstadia : "Noche";
         this.estado        = estado;
+        this.anticipo      = anticipo;
     }
 
     public int    getId()               { return id; }
@@ -42,5 +44,6 @@ public class Reserva {
     public String getHoraSalida()       { return horaSalida; }
     public String getTipoEstadia()      { return tipoEstadia; }
     public String getEstado()           { return estado; }
+    public double getAnticipo()         { return anticipo; }
     public void   setEstado(String e)   { this.estado = e; }
 }

@@ -88,11 +88,15 @@ public class TableroPanel extends JPanel {
         JPanel cont = new JPanel(new BorderLayout(0, 16));
         cont.setOpaque(false);
         cont.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        cont.add(statsRow(), BorderLayout.NORTH);
+
+        JPanel top = new JPanel(new BorderLayout(14, 0));
+        top.setOpaque(false);
+        top.add(statsRow(), BorderLayout.CENTER);
 
         JPanel alertas = crearAlertasVencidas();
-        if (alertas != null) cont.add(alertas, BorderLayout.SOUTH);
+        if (alertas != null) top.add(alertas, BorderLayout.EAST);
 
+        cont.add(top, BorderLayout.NORTH);
         cont.add(roomsArea(), BorderLayout.CENTER);
         return cont;
     }
@@ -102,36 +106,86 @@ public class TableroPanel extends JPanel {
         java.util.List<com.santaana.model.Reserva> vencidas = new java.util.ArrayList<>();
         for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
             if ("Indefinido".equals(r.getTipoEstadia())) continue;
-            String salida = r.getFechaSalida() + " " + r.getHoraSalida();
-            if (salida.compareTo(ahora) < 0) {
-                vencidas.add(r);
-            }
+            if ((r.getFechaSalida() + " " + r.getHoraSalida()).compareTo(ahora) < 0) vencidas.add(r);
         }
         if (vencidas.isEmpty()) return null;
 
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        JPanel panel = new JPanel(new BorderLayout(0, 6)) {
+            @Override public Dimension getPreferredSize() {
+                return new Dimension(340, super.getPreferredSize().height);
+            }
+            @Override public Dimension getMinimumSize() { return getPreferredSize(); }
+            @Override public Dimension getMaximumSize() { return new Dimension(340, Integer.MAX_VALUE); }
+        };
         panel.setBackground(new Color(0xFFF3CD));
         panel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(0xFFC107), 1),
-            BorderFactory.createEmptyBorder(10, 14, 10, 14)));
+            BorderFactory.createEmptyBorder(10, 12, 10, 12)));
 
         JLabel titulo = new JLabel("⚠  Checkouts vencidos (" + vencidas.size() + ")");
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 12));
         titulo.setForeground(new Color(0x856404));
-        titulo.setAlignmentX(0f);
-        panel.add(titulo);
-        panel.add(Box.createVerticalStrut(6));
+        panel.add(titulo, BorderLayout.NORTH);
+
+        JPanel lista = new JPanel();
+        lista.setLayout(new BoxLayout(lista, BoxLayout.Y_AXIS));
+        lista.setBackground(new Color(0xFFF3CD));
+
+        java.util.Map<Integer, Habitacion> habMap = new java.util.HashMap<>();
+        for (Habitacion h : habitacionDAO.listarTodas()) habMap.put(h.getId(), h);
+
+        java.time.LocalDate hoy = java.time.LocalDate.now();
 
         for (com.santaana.model.Reserva r : vencidas) {
-            JLabel fila = new JLabel("  · Hab. " + obtenerNumeroHabitacion(r.getIdHabitacion())
-                + "  —  " + r.getClienteNombre()
-                + "  —  Salida: " + r.getFechaSalida() + " " + r.getHoraSalida());
-            fila.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-            fila.setForeground(new Color(0x856404));
-            fila.setAlignmentX(0f);
-            panel.add(fila);
+            long diasVencida = 0;
+            try {
+                diasVencida = hoy.toEpochDay() - java.time.LocalDate.parse(r.getFechaSalida()).toEpochDay();
+            } catch (Exception ignored) {}
+            String demora = diasVencida <= 0 ? "hoy" : "hace " + diasVencida + (diasVencida == 1 ? " día" : " días");
+
+            JPanel fila = new JPanel(new BorderLayout(8, 0));
+            fila.setOpaque(false);
+            fila.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+            fila.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+
+            JPanel info = new JPanel();
+            info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+            info.setOpaque(false);
+
+            JLabel linea1 = new JLabel("Hab. " + obtenerNumeroHabitacion(r.getIdHabitacion())
+                + "  —  " + r.getClienteNombre());
+            linea1.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            linea1.setForeground(new Color(0x856404));
+
+            JLabel linea2 = new JLabel("Salida: " + r.getFechaSalida() + " " + r.getHoraSalida()
+                + "  ·  " + demora);
+            linea2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
+            linea2.setForeground(new Color(0xA07820));
+
+            info.add(linea1);
+            info.add(Box.createVerticalStrut(2));
+            info.add(linea2);
+
+            Habitacion hab = habMap.get(r.getIdHabitacion());
+
+            JButton btnCO = miniBotonAlerta("Checkout", new Color(0xE74C3C));
+            if (hab != null) btnCO.addActionListener(e -> hacerCheckout(hab, null));
+            else btnCO.setEnabled(false);
+
+            fila.add(info, BorderLayout.CENTER);
+            fila.add(btnCO, BorderLayout.EAST);
+            lista.add(fila);
         }
+
+        JScrollPane scroll = new JScrollPane(lista);
+        scroll.setBorder(null);
+        scroll.setBackground(new Color(0xFFF3CD));
+        scroll.getViewport().setBackground(new Color(0xFFF3CD));
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scroll.setPreferredSize(new Dimension(0, Math.min(vencidas.size(), 3) * 46));
+        panel.add(scroll, BorderLayout.CENTER);
+
         return panel;
     }
 
@@ -358,7 +412,6 @@ public class TableroPanel extends JPanel {
             SwingUtilities.getWindowAncestor(this) instanceof javax.swing.JFrame
                 ? (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this) : null,
             "Habitación " + h.getNumero(), true);
-        dialog.setSize(320, 260);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
@@ -382,10 +435,73 @@ public class TableroPanel extends JPanel {
         // Botones de acción
         JPanel acciones = new JPanel();
         acciones.setLayout(new BoxLayout(acciones, BoxLayout.Y_AXIS));
-        acciones.setBorder(BorderFactory.createEmptyBorder(16, 20, 16, 20));
+        acciones.setBorder(BorderFactory.createEmptyBorder(12, 20, 16, 20));
         acciones.setBackground(getPanelCol());
 
         if (h.getEstado().equals("Ocupada")) {
+            com.santaana.model.Reserva rActiva = reservaDAO.buscarActivaPorHabitacion(h.getId());
+            if (rActiva != null) {
+                // Calcular total y saldo para estadía por noches
+                String totalStr = "—", saldoStr = "—";
+                if ("Noche".equals(rActiva.getTipoEstadia())) {
+                    try {
+                        long dias = java.time.LocalDate.parse(rActiva.getFechaSalida()).toEpochDay()
+                                  - java.time.LocalDate.parse(rActiva.getFechaEntrada()).toEpochDay();
+                        if (dias < 1) dias = 1;
+                        double total = dias * h.getPrecio();
+                        double saldo = total - rActiva.getAnticipo();
+                        totalStr = String.format("$%,.0f", total);
+                        saldoStr = String.format("$%,.0f", saldo);
+                    } catch (Exception ignored) {}
+                } else if ("Pasadia".equals(rActiva.getTipoEstadia())) {
+                    totalStr = "Tarifa pasadía";
+                    saldoStr = rActiva.getAnticipo() > 0
+                        ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "—";
+                } else {
+                    totalStr = "Cobro por horas";
+                    saldoStr = rActiva.getAnticipo() > 0
+                        ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "Pendiente checkout";
+                }
+
+                String salida = "Indefinido".equals(rActiva.getTipoEstadia()) ? "Sin determinar"
+                    : rActiva.getFechaSalida() + " " + rActiva.getHoraSalida();
+
+                JPanel info = new JPanel();
+                info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+                info.setOpaque(false);
+                info.setAlignmentX(0f);
+
+                info.add(filaInfo("Huésped:", rActiva.getClienteNombre()));
+                info.add(Box.createVerticalStrut(5));
+                info.add(filaInfo("Documento:", rActiva.getClienteDoc()));
+                info.add(Box.createVerticalStrut(5));
+                info.add(filaInfo("Entrada:", rActiva.getFechaEntrada() + " " + rActiva.getHoraEntrada()));
+                info.add(Box.createVerticalStrut(5));
+                info.add(filaInfo("Salida:", salida));
+                info.add(Box.createVerticalStrut(5));
+                info.add(filaInfo("Total:", totalStr));
+                info.add(Box.createVerticalStrut(5));
+                info.add(filaInfo("Anticipo:", String.format("$%,.0f", rActiva.getAnticipo())));
+                info.add(Box.createVerticalStrut(5));
+                info.add(filaInfo("Saldo:", saldoStr));
+
+                javax.swing.JSeparator sep = new javax.swing.JSeparator();
+                sep.setForeground(getBorde());
+                sep.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 1));
+
+                acciones.add(info);
+                acciones.add(Box.createVerticalStrut(10));
+                acciones.add(sep);
+                acciones.add(Box.createVerticalStrut(10));
+            }
+
+            if (rActiva != null) {
+                JButton btnPago = crearBoton("Registrar Pago / Abono", new Color(0x27AE60));
+                btnPago.addActionListener(e -> { dialog.dispose(); mostrarDialogoPago(h, rActiva); });
+                acciones.add(btnPago);
+                acciones.add(Box.createVerticalStrut(8));
+            }
+
             JButton btn = crearBoton("Hacer Checkout", new Color(0xE74C3C));
             btn.addActionListener(e -> { dialog.dispose(); hacerCheckout(h, null); });
             acciones.add(btn);
@@ -454,7 +570,27 @@ public class TableroPanel extends JPanel {
         acciones.add(btnHistorial);
 
         dialog.add(acciones, BorderLayout.CENTER);
+        // Ajustar tamaño según contenido
+        dialog.setSize(h.getEstado().equals("Ocupada") ? 360 : 320,
+                       h.getEstado().equals("Ocupada") ? 470 : 260);
         dialog.setVisible(true);
+    }
+
+    private JPanel filaInfo(String etiqueta, String valor) {
+        JPanel fila = new JPanel(new BorderLayout(8, 0));
+        fila.setOpaque(false);
+        fila.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 18));
+        fila.setAlignmentX(0f);
+        JLabel lbl = new JLabel(etiqueta);
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lbl.setForeground(getLabel());
+        lbl.setPreferredSize(new java.awt.Dimension(72, 16));
+        JLabel val = new JLabel(valor);
+        val.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        val.setForeground(getTextCol());
+        fila.add(lbl, BorderLayout.WEST);
+        fila.add(val, BorderLayout.CENTER);
+        return fila;
     }
 
     private void abrirHistorial(Habitacion h) {
@@ -527,6 +663,29 @@ public class TableroPanel extends JPanel {
         dialog.setVisible(true);
     }
 
+    private JButton miniBotonAlerta(String texto, Color bg) {
+        JButton b = new JButton(texto) {
+            public void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        b.setFont(new Font("Segoe UI", Font.BOLD, 10));
+        b.setForeground(Color.WHITE);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setFocusPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(85, 22));
+        b.setMaximumSize(new Dimension(85, 22));
+        b.setMinimumSize(new Dimension(85, 22));
+        return b;
+    }
+
     private JButton crearBoton(String texto, Color bg) {
         JButton b = new JButton(texto) {
             public void paintComponent(Graphics g) {
@@ -547,6 +706,118 @@ public class TableroPanel extends JPanel {
         b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
         b.setAlignmentX(0.0f);
         return b;
+    }
+
+    private void mostrarDialogoPago(Habitacion h, com.santaana.model.Reserva r) {
+        boolean esNoche = "Noche".equals(r.getTipoEstadia());
+        double total = 0;
+        if (esNoche) {
+            try {
+                long dias = java.time.LocalDate.parse(r.getFechaSalida()).toEpochDay()
+                          - java.time.LocalDate.parse(r.getFechaEntrada()).toEpochDay();
+                if (dias < 1) dias = 1;
+                total = dias * h.getPrecio();
+            } catch (Exception ignored) { esNoche = false; }
+        }
+        double saldo = esNoche ? Math.max(0, total - r.getAnticipo()) : 0;
+        double totalFinal = total;
+        boolean esNocheFinal = esNoche;
+
+        javax.swing.JDialog dlg = new javax.swing.JDialog(
+            SwingUtilities.getWindowAncestor(this) instanceof javax.swing.JFrame
+                ? (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this) : null,
+            "Registrar Pago — Hab. " + h.getNumero(), true);
+        dlg.setSize(360, esNoche ? 310 : 260);
+        dlg.setLocationRelativeTo(this);
+        dlg.setLayout(new BorderLayout());
+
+        JPanel hdr = new JPanel(new BorderLayout());
+        hdr.setBackground(new Color(0x27AE60));
+        hdr.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
+        JLabel tit = new JLabel("Registrar Pago — Hab. " + h.getNumero());
+        tit.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        tit.setForeground(Color.WHITE);
+        hdr.add(tit);
+        dlg.add(hdr, BorderLayout.NORTH);
+
+        JPanel body = new JPanel();
+        body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
+        body.setBorder(BorderFactory.createEmptyBorder(14, 18, 10, 18));
+        body.setBackground(getPanelCol());
+
+        body.add(filaInfo("Huésped:", r.getClienteNombre()));
+        body.add(Box.createVerticalStrut(5));
+        if (esNocheFinal) {
+            body.add(filaInfo("Total:", String.format("$%,.0f", totalFinal)));
+            body.add(Box.createVerticalStrut(4));
+            body.add(filaInfo("Pagado:", String.format("$%,.0f", r.getAnticipo())));
+            body.add(Box.createVerticalStrut(4));
+            body.add(filaInfo("Saldo:", String.format("$%,.0f", saldo)));
+        } else {
+            body.add(filaInfo("Pagado:", String.format("$%,.0f", r.getAnticipo())));
+        }
+        body.add(Box.createVerticalStrut(12));
+
+        JPanel inputRow = new JPanel(new BorderLayout(8, 0));
+        inputRow.setOpaque(false);
+        inputRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        JLabel lblM = new JLabel("Monto:");
+        lblM.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblM.setForeground(getLabel());
+        lblM.setPreferredSize(new Dimension(70, 16));
+        JTextField txtMonto = new JTextField();
+        txtMonto.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        inputRow.add(lblM, BorderLayout.WEST);
+        inputRow.add(txtMonto, BorderLayout.CENTER);
+        body.add(inputRow);
+        dlg.add(body, BorderLayout.CENTER);
+
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+        footer.setBackground(getPanelCol());
+
+        if (esNocheFinal && saldo > 0) {
+            double saldoFinal = saldo;
+            JButton btnFull = crearBoton("Pago completo", new Color(0x27AE60));
+            btnFull.setPreferredSize(new Dimension(120, 28));
+            btnFull.addActionListener(ev -> txtMonto.setText(String.format("%.0f", saldoFinal)));
+            footer.add(btnFull);
+        }
+
+        JButton btnOk = crearBoton("Confirmar", new Color(0x3A7BD5));
+        btnOk.setPreferredSize(new Dimension(90, 28));
+        btnOk.addActionListener(ev -> {
+            try {
+                double monto = Double.parseDouble(txtMonto.getText().replace(",", ".").trim());
+                if (monto <= 0) {
+                    JOptionPane.showMessageDialog(dlg, "El monto debe ser mayor a cero.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                double nuevo = r.getAnticipo() + monto;
+                if (esNocheFinal && nuevo > totalFinal) {
+                    JOptionPane.showMessageDialog(dlg, "El monto supera el saldo pendiente.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                reservaDAO.actualizarAnticipo(r.getId(), nuevo);
+                HistorialDAO.registrar("Pago", "Abono registrado",
+                    r.getClienteNombre() + " abonó $" + String.format("%,.0f", monto) + " en Hab. " + h.getNumero());
+                JOptionPane.showMessageDialog(dlg,
+                    "<html>Pago registrado.<br>Total pagado: <b>$" + String.format("%,.0f", nuevo) + "</b></html>",
+                    "Pago exitoso", JOptionPane.INFORMATION_MESSAGE);
+                dlg.dispose();
+                if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dlg, "Ingrese un monto válido.", "Error", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+        footer.add(btnOk);
+
+        JButton btnNo = crearBoton("Cancelar", new Color(0x95A5A6));
+        btnNo.setPreferredSize(new Dimension(80, 28));
+        btnNo.addActionListener(ev -> dlg.dispose());
+        footer.add(btnNo);
+
+        dlg.add(footer, BorderLayout.SOUTH);
+        dlg.setVisible(true);
     }
 
     private void hacerCheckout(Habitacion h, JPanel card) {
@@ -571,10 +842,34 @@ public class TableroPanel extends JPanel {
             } catch (Exception ignored) {}
         }
 
+        String infoSaldo = "";
+        if (reservaActiva != null && "Noche".equals(reservaActiva.getTipoEstadia())) {
+            try {
+                long dias = java.time.LocalDate.parse(reservaActiva.getFechaSalida()).toEpochDay()
+                          - java.time.LocalDate.parse(reservaActiva.getFechaEntrada()).toEpochDay();
+                if (dias < 1) dias = 1;
+                double total  = dias * h.getPrecio();
+                double saldo  = total - reservaActiva.getAnticipo();
+                infoSaldo = String.format(
+                    "<br><b>Total:</b> $%,.0f  |  <b>Anticipo:</b> $%,.0f  |  <b>Saldo:</b> $%,.0f",
+                    total, reservaActiva.getAnticipo(), saldo);
+                if (saldo > 0) {
+                    int opt = JOptionPane.showConfirmDialog(this,
+                        "<html>El cliente <b>" + cliente + "</b> tiene un saldo pendiente de "
+                        + "<b>$" + String.format("%,.0f", saldo) + "</b>.<br>"
+                        + "Debe registrar el pago antes de hacer checkout.<br><br>"
+                        + "¿Desea registrar el pago ahora?</html>",
+                        "Saldo pendiente", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (opt == JOptionPane.YES_OPTION) mostrarDialogoPago(h, reservaActiva);
+                    return;
+                }
+            } catch (Exception ignored) {}
+        }
+
         int confirm = JOptionPane.showConfirmDialog(this,
             "<html>¿Confirmar checkout de <b>" + cliente + "</b>?<br>"
             + "Habitación " + h.getNumero() + " pasará a <b>Limpieza</b>."
-            + infoBilling + "</html>",
+            + infoBilling + infoSaldo + "</html>",
             "Confirmar Checkout", JOptionPane.YES_NO_OPTION);
 
         if (confirm != JOptionPane.YES_OPTION) return;
