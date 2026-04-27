@@ -4,6 +4,7 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
 
+import com.santaana.util.BackupManager;
 import com.santaana.util.ThemeManager;
 
 public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeListener {
@@ -56,12 +57,43 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         btnNuevo.setBorderPainted(false);
         btnNuevo.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
+
+        JButton btnBackup = new JButton(" Backup");
+        estilizarBotonSecundario(btnBackup);
+
+        btnBackup.addActionListener(e -> {
+            try {
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setDialogTitle("Guardar Backup");
+
+                int opcion = fileChooser.showSaveDialog(this);
+
+                if (opcion == JFileChooser.APPROVE_OPTION) {
+                    String ruta = fileChooser.getSelectedFile().getAbsolutePath() + ".csv";
+
+                    BackupManager.exportarReservasCSV(ruta);
+
+                    JOptionPane.showMessageDialog(this,
+                            "✅ Backup generado correctamente",
+                            "Éxito",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "❌ Error al generar backup",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         right.setOpaque(false);
         right.add(btnNuevo);
+        right.add(btnBackup);
 
         navbar.add(title, BorderLayout.WEST);
-        navbar.add(right, BorderLayout.EAST);
+        navbar.add(right, BorderLayout.EAST);   
 
         return navbar;
     }
@@ -167,5 +199,16 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         b.setBorderPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setPreferredSize(new Dimension(90, 28));
+    }
+
+    private void estilizarBotonSecundario(JButton b) {
+        b.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT 
+                ? new Color(0xE8F1FD) 
+                : new Color(0x334155));
+        b.setForeground(getPrimario());
+        b.setFocusPainted(false);
+        b.setBorderPainted(false);
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(110, 32));
     }
 }
