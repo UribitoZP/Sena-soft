@@ -35,8 +35,10 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private String userRole;
     private String currentView = "Tablero";
     private int idUsuario;
-    private ReservaPanel  reservaPanel;
-    private TableroPanel  tableroPanel;
+    private ReservaPanel      reservaPanel;
+    private TableroPanel      tableroPanel;
+    private NotificacionPanel notifPanel;
+    private ReportePanel      reportePanel;
 
     public MainFrame(String role, String welcomeMessage, int idUsuario) {
         this.userRole  = role;
@@ -81,6 +83,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         contentPanel.add(new NotificacionPanel(), "Notificaciones");
         contentPanel.add(new HistorialPanel(userRole, ""), "Historial");
+        reportePanel = new ReportePanel();
+        contentPanel.add(reportePanel, "Reporte");
 
         add(contentPanel, BorderLayout.CENTER);
         
@@ -307,8 +311,10 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                 }
                 
                 // Solo cambiar si la vista existe
-                if (text.equals("Tablero") || text.equals("Reserva") || text.equals("Gestión de Habitaciones") || text.equals("Notificaciones") || text.equals("Historial")) {
+                if (text.equals("Tablero") || text.equals("Reserva") || text.equals("Gestión de Habitaciones")
+                        || text.equals("Notificaciones") || text.equals("Historial") || text.equals("Reporte")) {
                     currentView = text;
+                    if (text.equals("Reporte") && reportePanel != null) reportePanel.refreshUI();
                     cardLayout.show(contentPanel, text);
                     refreshSidebar();
                     repaint();
