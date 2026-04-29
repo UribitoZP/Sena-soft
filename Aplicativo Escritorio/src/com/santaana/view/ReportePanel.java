@@ -114,6 +114,13 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         int canceladas  = porEstado.getOrDefault("Cancelada",  0);
         int activas     = porEstado.getOrDefault("Activa",     0);
 
+        // ── Banner de cierre del mes ──────────────────────────────────────────
+        JPanel banner = crearBannerCierre();
+        if (banner != null) {
+            cont.add(banner);
+            cont.add(Box.createVerticalStrut(16));
+        }
+
         // ── KPIs ──────────────────────────────────────────────────────────────
         JPanel kpiRow = new JPanel(new GridLayout(1, 4, 14, 0));
         kpiRow.setOpaque(false);
@@ -146,14 +153,7 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         grid.add(barChartHorizontal("Top habitaciones más reservadas", topHabs));
 
         cont.add(grid);
-        cont.add(Box.createVerticalStrut(20));
-
-        // ── Banner de cierre del mes actual ───────────────────────────────────
-        JPanel banner = crearBannerCierre();
-        if (banner != null) {
-            cont.add(banner);
-            cont.add(Box.createVerticalStrut(24));
-        }
+        cont.add(Box.createVerticalStrut(24));
 
         return cont;
     }
@@ -161,8 +161,15 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
     // ── Banner compacto de cierre del mes actual ───────────────────────────────
 
     private JPanel crearBannerCierre() {
-        String mesActual  = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-        String mesLabel   = LocalDate.now().format(FMT_MES);
+        // El cierre aplica al mes anterior si el actual aún no ha terminado
+        LocalDate hoy        = LocalDate.now();
+        LocalDate primeroDiaMes = hoy.withDayOfMonth(1);
+        // El mes a reportar es el anterior si estamos en curso, o el actual si ya terminó
+        // Como el mes actual siempre está "en curso", siempre mostramos el mes anterior
+        LocalDate mesCierre  = primeroDiaMes.minusMonths(1);
+
+        String mesActual  = mesCierre.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        String mesLabel   = mesCierre.format(FMT_MES);
         mesLabel = mesLabel.substring(0, 1).toUpperCase() + mesLabel.substring(1);
         CierreMes cierre  = cierreDAO.getCierre(mesActual);
         boolean   cerrado = cierre != null;
