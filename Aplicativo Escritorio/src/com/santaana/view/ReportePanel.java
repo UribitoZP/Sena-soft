@@ -148,181 +148,89 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         cont.add(grid);
         cont.add(Box.createVerticalStrut(20));
 
-        // ── Sección de cierres de mes ──────────────────────────────────────────
-        cont.add(crearSeccionCierres());
-        cont.add(Box.createVerticalStrut(24));
+        // ── Banner de cierre del mes actual ───────────────────────────────────
+        JPanel banner = crearBannerCierre();
+        if (banner != null) {
+            cont.add(banner);
+            cont.add(Box.createVerticalStrut(24));
+        }
 
         return cont;
     }
 
-    // ── Sección de cierres de mes ─────────────────────────────────────────────
+    // ── Banner compacto de cierre del mes actual ───────────────────────────────
 
-    private JPanel crearSeccionCierres() {
-        JPanel wrap = new JPanel(new BorderLayout(0, 12));
-        wrap.setOpaque(false);
-        wrap.setAlignmentX(LEFT_ALIGNMENT);
+    private JPanel crearBannerCierre() {
+        String mesActual  = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        String mesLabel   = LocalDate.now().format(FMT_MES);
+        mesLabel = mesLabel.substring(0, 1).toUpperCase() + mesLabel.substring(1);
+        CierreMes cierre  = cierreDAO.getCierre(mesActual);
+        boolean   cerrado = cierre != null;
 
-        // Encabezado
-        JPanel header = new JPanel(new BorderLayout());
-        header.setOpaque(false);
+        Color bg      = cerrado ? new Color(0xF0FDF4) : new Color(0xFFFBEB);
+        Color bgDark  = cerrado ? new Color(0x14532D)  : new Color(0x451A03);
+        Color accent  = cerrado ? new Color(0x22C55E)  : new Color(0xF59E0B);
+        boolean dark  = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK;
 
-        JLabel titulo = new JLabel("Cierres contables por mes");
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        titulo.setForeground(ThemeManager.getTextPrimary());
-        header.add(titulo, BorderLayout.WEST);
-
-        // Botón cerrar mes actual (solo Admin)
-        if ("Administrador".equalsIgnoreCase(userRole)) {
-            String mesActual = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-            boolean yaCerrado = cierreDAO.esCerrado(mesActual);
-
-            if (!yaCerrado) {
-                JButton btnCerrar = new JButton("Cerrar mes actual") {
-                    @Override protected void paintComponent(Graphics g) {
-                        Graphics2D g2 = (Graphics2D) g.create();
-                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                        g2.setColor(new Color(0xEF4444));
-                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
-                        g2.dispose();
-                        super.paintComponent(g);
-                    }
-                };
-                btnCerrar.setForeground(Color.WHITE);
-                btnCerrar.setFont(new Font("Segoe UI", Font.BOLD, 12));
-                btnCerrar.setContentAreaFilled(false);
-                btnCerrar.setBorderPainted(false);
-                btnCerrar.setFocusPainted(false);
-                btnCerrar.setPreferredSize(new Dimension(170, 32));
-                btnCerrar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                btnCerrar.addActionListener(e -> confirmarCierre(mesActual));
-                header.add(btnCerrar, BorderLayout.EAST);
-            }
-        }
-
-        wrap.add(header, BorderLayout.NORTH);
-
-        // Lista de cierres
-        List<CierreMes> cierres = cierreDAO.listarCierres();
-
-        // Generar los últimos 6 meses para mostrar su estado
-        JPanel mesesGrid = new JPanel(new GridLayout(0, 3, 12, 12));
-        mesesGrid.setOpaque(false);
-
-        for (int i = 5; i >= 0; i--) {
-            String mes = LocalDate.now().minusMonths(i).format(DateTimeFormatter.ofPattern("yyyy-MM"));
-            String mesLabel = LocalDate.now().minusMonths(i).format(FMT_MES);
-            mesLabel = mesLabel.substring(0, 1).toUpperCase() + mesLabel.substring(1);
-
-            CierreMes cierre = cierres.stream()
-                    .filter(c -> c.getMes().equals(mes))
-                    .findFirst().orElse(null);
-
-            mesesGrid.add(tarjetaMes(mes, mesLabel, cierre));
-        }
-
-        wrap.add(mesesGrid, BorderLayout.CENTER);
-        return wrap;
-    }
-
-    private JPanel tarjetaMes(String mes, String mesLabel, CierreMes cierre) {
-        boolean cerrado = cierre != null;
-        Color accentColor = cerrado ? new Color(0x22C55E) : new Color(0xF59E0B);
-
-        JPanel card = new JPanel(new BorderLayout(0, 6)) {
+        JPanel banner = new JPanel(new BorderLayout(12, 0)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(ThemeManager.getPanelBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
-                g2.setColor(accentColor);
-                g2.fillRect(0, 0, 4, getHeight());
+                g2.setColor(dark ? bgDark : bg);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.setColor(accent);
+                g2.fillRoundRect(0, 0, 4, getHeight(), 4, 4);
                 g2.dispose();
             }
         };
-        card.setOpaque(false);
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
-                BorderFactory.createEmptyBorder(12, 16, 12, 12)));
+        banner.setOpaque(false);
+        banner.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        banner.setAlignmentX(LEFT_ALIGNMENT);
+        banner.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(alphaColor(accent, 80), 1, true),
+                BorderFactory.createEmptyBorder(10, 16, 10, 16)));
 
-        // Encabezado tarjeta
-        JPanel top = new JPanel(new BorderLayout());
-        top.setOpaque(false);
-
-        JLabel lblMes = new JLabel(mesLabel);
-        lblMes.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        lblMes.setForeground(ThemeManager.getTextPrimary());
-
-        JLabel badge = new JLabel(cerrado ? "Cerrado" : "Abierto");
-        badge.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        badge.setForeground(accentColor);
-        top.add(lblMes, BorderLayout.WEST);
-        top.add(badge,  BorderLayout.EAST);
-        card.add(top, BorderLayout.NORTH);
-
-        // Detalle
-        JPanel det = new JPanel();
-        det.setOpaque(false);
-        det.setLayout(new BoxLayout(det, BoxLayout.Y_AXIS));
-
+        // Texto del banner
+        String texto;
         if (cerrado) {
-            det.add(detLine("Ingresos", "$ " + FMT_MONEDA.format(cierre.getTotalIngresos())));
-            det.add(Box.createVerticalStrut(2));
-            det.add(detLine("Reservas", cierre.getTotalReservas() + " total"));
-            det.add(Box.createVerticalStrut(2));
-            det.add(detLine("Cerrado por", cierre.getNombreUsuario() != null ? cierre.getNombreUsuario() : "—"));
-            det.add(Box.createVerticalStrut(2));
-            String fecha = cierre.getFechaCierre();
-            if (fecha != null && fecha.length() >= 10) fecha = fecha.substring(0, 10);
-            det.add(detLine("Fecha cierre", fecha));
+            String fecha = cierre.getFechaCierre() != null && cierre.getFechaCierre().length() >= 10
+                    ? cierre.getFechaCierre().substring(0, 10) : cierre.getFechaCierre();
+            texto = "Mes de " + mesLabel + " cerrado contablemente"
+                    + " — por " + (cierre.getNombreUsuario() != null ? cierre.getNombreUsuario() : "Admin")
+                    + " el " + fecha;
         } else {
-            JLabel pendiente = new JLabel("Mes sin cerrar");
-            pendiente.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-            pendiente.setForeground(ThemeManager.getTextSecondary());
-            det.add(pendiente);
-
-            // Botón cerrar este mes puntual (solo Admin, meses pasados)
-            boolean esPasado = mes.compareTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"))) < 0;
-            if ("Administrador".equalsIgnoreCase(userRole) && esPasado) {
-                det.add(Box.createVerticalStrut(6));
-                JButton btnCerrarMes = new JButton("Cerrar este mes") {
-                    @Override protected void paintComponent(Graphics g) {
-                        Graphics2D g2 = (Graphics2D) g.create();
-                        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                        g2.setColor(new Color(0xF59E0B));
-                        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
-                        g2.dispose();
-                        super.paintComponent(g);
-                    }
-                };
-                btnCerrarMes.setForeground(Color.WHITE);
-                btnCerrarMes.setFont(new Font("Segoe UI", Font.BOLD, 10));
-                btnCerrarMes.setContentAreaFilled(false);
-                btnCerrarMes.setBorderPainted(false);
-                btnCerrarMes.setFocusPainted(false);
-                btnCerrarMes.setAlignmentX(LEFT_ALIGNMENT);
-                btnCerrarMes.setMaximumSize(new Dimension(130, 26));
-                btnCerrarMes.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                btnCerrarMes.addActionListener(e -> confirmarCierre(mes));
-                det.add(btnCerrarMes);
-            }
+            texto = "El mes de " + mesLabel + " aún no ha sido cerrado contablemente.";
         }
 
-        card.add(det, BorderLayout.CENTER);
-        return card;
-    }
+        JLabel lblTexto = new JLabel(texto);
+        lblTexto.setFont(new Font("Segoe UI", cerrado ? Font.PLAIN : Font.BOLD, 12));
+        lblTexto.setForeground(accent);
+        banner.add(lblTexto, BorderLayout.CENTER);
 
-    private JPanel detLine(String label, String valor) {
-        JPanel row = new JPanel(new BorderLayout());
-        row.setOpaque(false);
-        JLabel lbl = new JLabel(label);
-        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 10));
-        lbl.setForeground(ThemeManager.getTextSecondary());
-        JLabel val = new JLabel(valor);
-        val.setFont(new Font("Segoe UI", Font.BOLD, 10));
-        val.setForeground(ThemeManager.getTextPrimary());
-        row.add(lbl, BorderLayout.WEST);
-        row.add(val, BorderLayout.EAST);
-        return row;
+        // Botón solo para Admin cuando no está cerrado
+        if (!cerrado && "Administrador".equalsIgnoreCase(userRole)) {
+            JButton btnCerrar = new JButton("Cerrar mes") {
+                @Override protected void paintComponent(Graphics g) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(accent);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                    g2.dispose();
+                    super.paintComponent(g);
+                }
+            };
+            btnCerrar.setForeground(Color.WHITE);
+            btnCerrar.setFont(new Font("Segoe UI", Font.BOLD, 11));
+            btnCerrar.setContentAreaFilled(false);
+            btnCerrar.setBorderPainted(false);
+            btnCerrar.setFocusPainted(false);
+            btnCerrar.setPreferredSize(new Dimension(110, 28));
+            btnCerrar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            btnCerrar.addActionListener(e -> confirmarCierre(mesActual));
+            banner.add(btnCerrar, BorderLayout.EAST);
+        }
+
+        return banner;
     }
 
     private void confirmarCierre(String mes) {

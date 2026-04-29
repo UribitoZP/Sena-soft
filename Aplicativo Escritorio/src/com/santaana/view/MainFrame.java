@@ -83,6 +83,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         contentPanel.add(new NotificacionPanel(), "Notificaciones");
         contentPanel.add(new HistorialPanel(userRole, ""), "Historial");
+        contentPanel.add(new GestionUsuarioPanel(userRole), "Gestión de Usuarios");
         reportePanel = new ReportePanel(userRole, idUsuario);
         contentPanel.add(reportePanel, "Reporte");
 
@@ -242,9 +243,9 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         side.add(Box.createVerticalStrut(30));
 
 
-        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Historial", "Reporte" };
+        String[] items = { "Tablero", "Gestión de Habitaciones","Gestión de Usuarios", "Reserva", "Historial", "Reporte" };
         for (String item : items) {
-            if(userRole.equalsIgnoreCase("Recepcionista")&& item.equals("Gestión de Habitaciones") ) {
+            if(userRole.equalsIgnoreCase("Recepcionista") && (item.equals("Gestión de Habitaciones") || item.equals("Gestión de Usuarios"))) {
                 continue;
             }
             side.add(crearBotonSidebar(item));
@@ -312,7 +313,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                 
                 // Solo cambiar si la vista existe
                 if (text.equals("Tablero") || text.equals("Reserva") || text.equals("Gestión de Habitaciones")
-                        || text.equals("Notificaciones") || text.equals("Historial") || text.equals("Reporte")) {
+                        || text.equals("Gestión de Usuarios") || text.equals("Notificaciones")
+                        || text.equals("Historial") || text.equals("Reporte")) {
                     currentView = text;
                     if (text.equals("Reporte") && reportePanel != null) reportePanel.refreshUI();
                     cardLayout.show(contentPanel, text);
@@ -357,9 +359,9 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         sidebarPanel.add(logoBrand);
         sidebarPanel.add(Box.createVerticalStrut(30));
 
-        String[] items = { "Tablero", "Gestión de Habitaciones", "Reserva", "Historial", "Reporte" };
+        String[] items = { "Tablero", "Gestión de Habitaciones", "Gestión de Usuarios", "Reserva", "Historial", "Reporte" };
         for (String item : items) {
-            if(userRole.equalsIgnoreCase("Recepcionista")&& item.equals("Gestión de Habitaciones") ) {
+            if(userRole.equalsIgnoreCase("Recepcionista") && (item.equals("Gestión de Habitaciones") || item.equals("Gestión de Usuarios"))) {
                 continue;
             }
             sidebarPanel.add(crearBotonSidebar(item));
