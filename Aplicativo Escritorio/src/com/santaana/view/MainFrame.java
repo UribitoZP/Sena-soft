@@ -83,7 +83,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         contentPanel.add(new NotificacionPanel(), "Notificaciones");
         contentPanel.add(new HistorialPanel(userRole, ""), "Historial");
-        reportePanel = new ReportePanel();
+        reportePanel = new ReportePanel(userRole, idUsuario);
         contentPanel.add(reportePanel, "Reporte");
 
         add(contentPanel, BorderLayout.CENTER);

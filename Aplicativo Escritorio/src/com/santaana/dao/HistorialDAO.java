@@ -10,12 +10,17 @@ import java.util.List;
 public class HistorialDAO {
 
     public static void registrar(String tipo, String titulo, String descripcion) {
-        String sql = "INSERT INTO historial (tipo, titulo, descripcion) VALUES (?, ?, ?)";
+        registrar(tipo, titulo, descripcion, 0);
+    }
+
+    public static void registrar(String tipo, String titulo, String descripcion, int idUsuario) {
+        String sql = "INSERT INTO historial (tipo, titulo, descripcion, id_usuario) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipo);
             ps.setString(2, titulo);
             ps.setString(3, descripcion);
+            ps.setInt   (4, idUsuario);
             ps.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Error registrando historial: " + e.getMessage());
