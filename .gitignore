@@ -30,3 +30,10 @@ pubspec.lock
 # --- Archivos del Sistema ---
 Thumbs.db
 .DS_Store
+
+# --- Flutter - archivos generados por plataforma ---
+**/generated_plugin_registrant.cc
+**/generated_plugin_registrant.h
+**/generated_plugins.cmake
+**/GeneratedPluginRegistrant.swift
+**/GeneratedPluginRegistrant.m

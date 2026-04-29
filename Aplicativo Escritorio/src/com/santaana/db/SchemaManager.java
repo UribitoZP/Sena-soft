@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 4;
+    private static final int SCHEMA_VERSION = 5;
 
     public static void inicializar() {
         Connection conn = null;
@@ -118,6 +118,18 @@ public class SchemaManager {
             stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN hora_salida   TEXT DEFAULT '12:00'");
             stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN tipo_estadia  TEXT DEFAULT 'Noche'");
             System.out.println("Migración v4: columnas hora y tipo_estadia añadidas a reservas.");
+        }
+
+        // v5: campo anticipo en reservas
+        boolean tieneAnticipo = false;
+        ResultSet cols5 = stmt.executeQuery("PRAGMA table_info(reservas)");
+        while (cols5.next()) {
+            if ("anticipo".equals(cols5.getString("name"))) { tieneAnticipo = true; }
+        }
+        cols5.close();
+        if (!tieneAnticipo) {
+            stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN anticipo REAL DEFAULT 0");
+            System.out.println("Migración v5: columna anticipo añadida a reservas.");
         }
     }
 }
