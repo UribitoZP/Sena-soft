@@ -91,9 +91,11 @@ class _HomeViewState extends State<HomeView> {
 
                       // ── Stats row (Ingresos + Check-ins) ──
                       _StatsRow(
-                        activas:     (res?['activas']     ?? 0) as int,
-                        completadas: (res?['completadas'] ?? 0) as int,
-                        canceladas:  (res?['canceladas']  ?? 0) as int,
+                        activas:        (res?['activas']     ?? 0) as int,
+                        completadas:    (res?['completadas'] ?? 0) as int,
+                        canceladas:     (res?['canceladas']  ?? 0) as int,
+                        ingresosHoy:    ((stats?['ingresos'] as Map<String, dynamic>?)?['hoyFormato']  ?? '\$0') as String,
+                        ingresosMes:    ((stats?['ingresos'] as Map<String, dynamic>?)?['mesFormato']  ?? '\$0') as String,
                       ),
                       const SizedBox(height: 20),
 
@@ -393,10 +395,13 @@ class _LegendItem extends StatelessWidget {
 
 class _StatsRow extends StatelessWidget {
   final int activas, completadas, canceladas;
+  final String ingresosHoy, ingresosMes;
   const _StatsRow({
     required this.activas,
     required this.completadas,
     required this.canceladas,
+    required this.ingresosHoy,
+    required this.ingresosMes,
   });
 
   @override
@@ -405,10 +410,9 @@ class _StatsRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Expanded(child: _ReservasCard(
-            activas: activas,
-            completadas: completadas,
-            canceladas: canceladas,
+          Expanded(child: _IngresosCard(
+            ingresosHoy: ingresosHoy,
+            ingresosMes: ingresosMes,
           )),
           const SizedBox(width: 10),
           Expanded(child: _CheckinCard(
@@ -421,29 +425,21 @@ class _StatsRow extends StatelessWidget {
   }
 }
 
-// ── Reservas Card ─────────────────────────────────────────────
+// ── Ingresos Card ─────────────────────────────────────────────
 
-class _ReservasCard extends StatelessWidget {
-  final int activas, completadas, canceladas;
-  const _ReservasCard({
-    required this.activas,
-    required this.completadas,
-    required this.canceladas,
+class _IngresosCard extends StatelessWidget {
+  final String ingresosHoy, ingresosMes;
+  const _IngresosCard({
+    required this.ingresosHoy,
+    required this.ingresosMes,
   });
 
-  // Simula datos de barras semanales usando el total de reservas
-  List<double> get _weekBars {
-    final total = (activas + completadas + canceladas).toDouble();
-    if (total == 0) return List.filled(6, 0.1);
-    // Distribuye las reservas en 6 días de forma visual
-    return [0.4, 0.55, 0.65, 0.5, 0.75, 1.0];
-  }
+  static const List<double> _weekBars = [0.4, 0.55, 0.65, 0.5, 0.75, 1.0];
 
   @override
   Widget build(BuildContext context) {
-    final total = activas + completadas + canceladas;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -456,18 +452,18 @@ class _ReservasCard extends StatelessWidget {
           Row(
             children: [
               const Icon(Icons.attach_money_rounded,
-                  color: AppTheme.goldColor, size: 14),
+                  color: AppTheme.goldColor, size: 17),
               const SizedBox(width: 4),
               Text('INGRESOS HOY',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         color: AppTheme.textMuted, fontSize: 10)),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          // Total reservas como indicador
+          // Valor real desde la API
           Text(
-            '$total res.',
+            ingresosHoy,
             style: Theme.of(context)
                 .textTheme
                 .headlineMedium
@@ -475,7 +471,7 @@ class _ReservasCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '↑ $activas activas',
+            'Mes: $ingresosMes',
             style: const TextStyle(fontSize: 11, color: AppTheme.successColor),
           ),
 

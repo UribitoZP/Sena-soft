@@ -12,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class StatsHandler implements HttpHandler {
@@ -98,6 +99,7 @@ public class StatsHandler implements HttpHandler {
 
         // ── JSON response ─────────────────────────────────────────
         String json = String.format(
+            Locale.US,
             "{" +
             "\"habitaciones\":{" +
                 "\"total\":%d," +
@@ -133,11 +135,11 @@ public class StatsHandler implements HttpHandler {
     // Formatea el precio como $120k, $1.2M, etc.
     private String formatPrecio(double valor) {
         if (valor >= 1_000_000) {
-            return String.format("$%.1fM", valor / 1_000_000);
+            return String.format(Locale.US, "$%.1fM", valor / 1_000_000);
         } else if (valor >= 1_000) {
-            return String.format("$%.1fk", valor / 1_000);
+            return String.format(Locale.US, "$%.1fk", valor / 1_000);
         } else {
-            return String.format("$%.0f", valor);
+            return String.format(Locale.US, "$%.0f", valor);
         }
     }
 }
