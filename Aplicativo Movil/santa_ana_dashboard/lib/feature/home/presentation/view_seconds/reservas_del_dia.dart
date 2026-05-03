@@ -65,17 +65,13 @@ class ReservasDelDiaView extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        reserva['nombre'],
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyLarge,
+                                        reserva['cliente']?.toString() ?? 'Sin nombre',
+                                        style: Theme.of(context).textTheme.bodyLarge,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Habitación: ${reserva['habitacion']}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall,
+                                        'Habitación: ${reserva['habitacion']?.toString() ?? '---'}',
+                                        style: Theme.of(context).textTheme.bodySmall,
                                       ),
                                     ],
                                   ),
