@@ -17,13 +17,14 @@ class BlocSecond extends Bloc<BlocSecondEvent, BlocSecondState> {
         final today = DateTime.now();
 
         final reservasHoy = reservas.where((reserva) {
-          final fechaString = reserva['fecha'];
+          final fechaString = reserva['entrada'];
 
           final fecha = DateTime.parse(fechaString);
+          final today = DateTime.now();
 
           return fecha.year == today.year &&
-                 fecha.month == today.month &&
-                 fecha.day == today.day;
+         fecha.month == today.month &&
+         fecha.day == today.day;
         }).toList();
 
         emit(ReservasLoaded(reservas: reservasHoy));
