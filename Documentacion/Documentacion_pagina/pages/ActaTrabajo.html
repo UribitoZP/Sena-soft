@@ -4,12 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenida | Documentación del Sistema</title>
+    <title>Actas de trabajo | Documentación del Sistema</title>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
         rel="stylesheet">
+
     <script>
         (function () {
             const theme = localStorage.getItem("theme");
@@ -25,12 +27,14 @@
 </head>
 
 <body>
+
     <header class="main-header">
         <div class="logo">
             <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
             <span class="logo-icon">◈</span>
             <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
         </div>
+
         <div class="header-actions">
             <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
                 <span class="icon-sun">☀️</span>
@@ -39,13 +43,18 @@
             <span class="version-tag">v2.0.0</span>
         </div>
     </header>
+
     <div class="container">
+
         <aside class="sidebar">
+
             <div class="barra-busqueda">
                 <span class="icono">🔍</span>
                 <input type="text" id="buscador" placeholder="Buscar en el menú...">
             </div>
+
             <nav class="side-nav">
+
                 <div class="nav-group">
                     <h3>Introducción</h3>
                     <ul>
@@ -54,6 +63,7 @@
                         <li><a href="../pages/EquipoTrabajo.html">Equipo de trabajo</a></li>
                     </ul>
                 </div>
+
                 <div class="nav-group">
                     <h3>Documentación</h3>
                     <ul>
@@ -63,6 +73,7 @@
                         <li><a href="../pages/ActaTrabajo.html" class="active">Actas de trabajo</a></li>
                     </ul>
                 </div>
+
                 <div class="nav-group">
                     <h3>Galería</h3>
                     <ul>
@@ -70,6 +81,7 @@
                         <li><a href="../pages/AplicativoMovil.html">Aplicativo móvil</a></li>
                     </ul>
                 </div>
+
                 <div class="nav-group">
                     <h3>Soporte</h3>
                     <ul>
@@ -77,25 +89,58 @@
                         <li><a href="../pages/Versiones.html">Versiones</a></li>
                     </ul>
                 </div>
+
             </nav>
+
         </aside>
+
         <main class="content">
+
             <section id="prueba10">
+
                 <h1>Actas De Trabajo</h1>
 
-                <p class="lead">Bienvenido a las actas de trabajo</p>
+                <p class="lead">
+                    Un acta de trabajo es un documento formal que registra los acuerdos, actividades, decisiones y
+                    compromisos establecidos durante una reunión o jornada laboral. Su objetivo es dejar evidencia
+                    escrita de lo tratado, indicando la fecha, los participantes y los puntos importantes desarrollados.
+                </p>
+
                 <hr>
 
+                <!-- BOTÓN DE DESCARGA -->
+                <div class="info er">
+                    <p>
+                        <strong>Documento completo:</strong>
 
-                <div class="callout info">
-                    <p><strong>Nota:</strong> Esta seccion es un registro breve y directo de los puntos clave acordados, tareas asignadas y responsables, diseñado para resumir rápidamente una reunión sin extensas descripciones. 
+                        <a class="archivo_mer_er"
+                           href="../archivos_pdfs/Acta_Trabajo.pdf"
+                           download>
+
+                            Descargar acta de trabajo en PDF
+
+                        </a>
                     </p>
                 </div>
+
+                <div class="callout info">
+                    <p>
+                        <strong>Nota:</strong> Esta sección es un registro breve y directo de los puntos clave acordados,
+                        tareas asignadas y responsables, diseñado para resumir rápidamente una reunión sin extensas
+                        descripciones.
+                    </p>
+                </div>
+
             </section>
+
         </main>
+
     </div>
+
     <div class="sidebar-overlay"></div>
+
     <script src="../js/main.js"></script>
+
 </body>
 
 </html>
