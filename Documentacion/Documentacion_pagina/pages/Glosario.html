@@ -79,21 +79,333 @@
                 </div>
             </nav>
         </aside>
-        <main class="content">
-            <section id="prueba6">
-                <h1>prueba6</h1>
+    <main class="content">
+        <section id="glosario">
+            <div class="page-header">
+                <span class="badge-glosario">DOCUMENTACIÓN</span>
+                <h1>Glosario del Sistema</h1>
+                <p class="lead">
+                    Conceptos técnicos y términos utilizados en el sistema de gestión hotelera.
+                </p>
+            </div>
 
-                <p class="lead">Bienvenido a la seccion de prueba6</p>
-                <hr>
+            <div>
+                <p>
+                    <strong>Nota:</strong> Este glosario reúne definiciones técnicas,
+                    conceptos de seguridad, funcionalidades y componentes usados dentro
+                    del sistema hotelero.
+                </p>
+            </div>
 
+            <div class="glosario-container">
 
-                <div class="callout info">
-                    <p><strong>Nota:</strong> Esta seccion es solo un ejemplo de como se veria una seccion de
-                        documentacion.
+                <!-- AES -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>AES-256</h2>
+                        <span class="tag">Seguridad</span>
+                    </div>
+
+                    <p class="definicion">
+                        Algoritmo de cifrado avanzado utilizado para proteger backups y
+                        datos sensibles. Garantiza que la información sea ilegible sin la
+                        clave correcta.
                     </p>
-                </div>
-            </section>
-        </main>
+
+                    <div class="sinonimos">
+                        <span>Cifrado avanzado</span>
+                        <span>Encriptación AES</span>
+                        <span>Seguridad de datos</span>
+                    </div>
+                </article>
+
+                <!-- BACKUP -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Backup</h2>
+                        <span class="tag">Sistema</span>
+                    </div>
+
+                    <p class="definicion">
+                        Copia de seguridad de los datos del sistema, almacenada en
+                        ubicaciones seguras (ej: C:\Backups\Hotel).
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Copia de seguridad</span>
+                        <span>Respaldo</span>
+                        <span>Backup automático</span>
+                    </div>
+                </article>
+
+                <!-- BACKUP EMERGENCIA -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Backup de emergencia</h2>
+                        <span class="tag">Seguridad</span>
+                    </div>
+
+                    <p class="definicion">
+                        Copia automática activada tras 24 horas de sesión continua o ante
+                        fallos críticos, cifrada con AES-256.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Respaldo crítico</span>
+                        <span>Backup automático</span>
+                        <span>Recuperación de datos</span>
+                    </div>
+                </article>
+
+                <!-- CHECK IN -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Check-in</h2>
+                        <span class="tag">Huéspedes</span>
+                    </div>
+
+                    <p class="definicion">
+                        Proceso de registro de entrada de un huésped, asignando una
+                        habitación y capturando datos personales.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Registro de entrada</span>
+                        <span>Ingreso</span>
+                        <span>Recepción</span>
+                    </div>
+                </article>
+
+                <!-- CHECK OUT -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Check-out</h2>
+                        <span class="tag">Facturación</span>
+                    </div>
+
+                    <p class="definicion">
+                        Proceso de salida del huésped, incluyendo cálculo de costos,
+                        generación de factura PDF y liberación de la habitación.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Salida</span>
+                        <span>Finalización de estadía</span>
+                        <span>Pago</span>
+                    </div>
+                </article>
+
+                <!-- CRUD -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>CRUD</h2>
+                        <span class="tag">Desarrollo</span>
+                    </div>
+
+                    <p class="definicion">
+                        Operaciones básicas de gestión de datos: Crear, Leer, Actualizar
+                        y Eliminar.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Gestión de datos</span>
+                        <span>Operaciones básicas</span>
+                        <span>Mantenimiento</span>
+                    </div>
+                </article>
+
+                <!-- DB -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>DB</h2>
+                        <span class="tag">Base de datos</span>
+                    </div>
+
+                    <p class="definicion">
+                        Base de datos SQLite donde se almacena toda la información del
+                        sistema.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Base de datos</span>
+                        <span>SQLite</span>
+                        <span>Repositorio</span>
+                    </div>
+                </article>
+
+                <!-- HASH -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Hash (bcrypt)</h2>
+                        <span class="tag">Seguridad</span>
+                    </div>
+
+                    <p class="definicion">
+                        Algoritmo de encriptación unidireccional para contraseñas, con
+                        salt y cost factor de 12 iteraciones.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Hashing</span>
+                        <span>bcrypt</span>
+                        <span>Cifrado de contraseñas</span>
+                    </div>
+                </article>
+
+                <!-- ID -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>ID</h2>
+                        <span class="tag">Sistema</span>
+                    </div>
+
+                    <p class="definicion">
+                        Identificador único asignado a huéspedes, habitaciones y
+                        facturas para su trazabilidad.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Identificador</span>
+                        <span>Código único</span>
+                        <span>Clave</span>
+                    </div>
+                </article>
+
+                <!-- INTERFAZ -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Interfaz adaptativa</h2>
+                        <span class="tag">UI</span>
+                    </div>
+
+                    <p class="definicion">
+                        Diseño de interfaz que muestra u oculta funciones según el rol
+                        del usuario.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>UI adaptable</span>
+                        <span>Interfaz dinámica</span>
+                        <span>Diseño responsivo</span>
+                    </div>
+                </article>
+
+                <!-- LOGIN -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Login</h2>
+                        <span class="tag">Acceso</span>
+                    </div>
+
+                    <p class="definicion">
+                        Acceso seguro al sistema mediante autenticación de dos factores.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Inicio de sesión</span>
+                        <span>Autenticación</span>
+                        <span>Ingreso seguro</span>
+                    </div>
+                </article>
+
+                <!-- MODO -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Modo claro/oscuro</h2>
+                        <span class="tag">UI</span>
+                    </div>
+
+                    <p class="definicion">
+                        Tema visual intercambiable para mejorar la experiencia según las
+                        preferencias del usuario.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Tema visual</span>
+                        <span>Dark mode</span>
+                        <span>Light mode</span>
+                    </div>
+                </article>
+
+                <!-- PDF -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>PDF</h2>
+                        <span class="tag">Documentos</span>
+                    </div>
+
+                    <p class="definicion">
+                        Formato de documento utilizado para facturas con estructura
+                        profesional y código QR.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Documento digital</span>
+                        <span>Factura PDF</span>
+                        <span>Portable Document Format</span>
+                    </div>
+                </article>
+
+                <!-- ROLES -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Roles</h2>
+                        <span class="tag">Usuarios</span>
+                    </div>
+
+                    <p class="definicion">
+                        Perfiles de usuario: Administrador y Recepcionista, cada uno con
+                        permisos específicos.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Permisos</span>
+                        <span>Perfiles</span>
+                        <span>Niveles de acceso</span>
+                    </div>
+                </article>
+
+                <!-- SRS -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>SRS</h2>
+                        <span class="tag">Documentación</span>
+                    </div>
+
+                    <p class="definicion">
+                        Software Requirements Specification: documento base que define
+                        los requisitos funcionales y no funcionales.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Especificación</span>
+                        <span>Requisitos</span>
+                        <span>Documento técnico</span>
+                    </div>
+                </article>
+
+                <!-- VALIDACION -->
+                <article class="glosario-card">
+                    <div class="card-top">
+                        <h2>Validación</h2>
+                        <span class="tag">Control</span>
+                    </div>
+
+                    <p class="definicion">
+                        Verificación en tiempo real de los datos ingresados por el
+                        usuario.
+                    </p>
+
+                    <div class="sinonimos">
+                        <span>Comprobación</span>
+                        <span>Verificación</span>
+                        <span>Control de datos</span>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+    </main>
     </div>
     <div class="sidebar-overlay"></div>
     <script src="../js/main.js"></script>
