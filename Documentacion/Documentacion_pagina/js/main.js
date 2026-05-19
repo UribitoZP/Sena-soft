@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const SYSTEM_VERSION = 'v2.0.0';
+    const SYSTEM_VERSION = 'v2.1.0';
 
     // --- Control de Versión Centralizado ---
     const setupVersion = () => {
@@ -213,7 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const targetEl = document.getElementById(header.id);
                 if (targetEl) {
-                    window.scrollTo({ top: targetEl.offsetTop - 100, behavior: "smooth" });
+                    const targetPosition = targetEl.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({ top: targetPosition - 100, behavior: "smooth" });
                     history.pushState(null, null, `#${header.id}`);
                 }
             });
