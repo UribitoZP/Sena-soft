@@ -3,9 +3,12 @@ package com.santaana.view;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.util.List;
+import java.util.ArrayList;
 import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.model.Habitacion;
@@ -16,6 +19,9 @@ public class GestHabitacionPanel extends JPanel {
     private boolean isPlaceholderActive = true;
     private final String PLACEHOLDER = " Buscar habitación...";
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
+    private JTextField searchField;
+    private JPanel gridPanel;
+    private List<Habitacion> habitacionesCache = new ArrayList<>();
 
     private Color getBorde()       { return ThemeManager.getBorder(); }
     private Color getPrimario()    { return ThemeManager.getPrimary(); }
@@ -133,22 +139,22 @@ public class GestHabitacionPanel extends JPanel {
         header.add(searchBar(), BorderLayout.CENTER);
         area.add(header, BorderLayout.NORTH);
 
-        List<Habitacion> habitaciones = habitacionDAO.listarTodas();
+        habitacionesCache = habitacionDAO.listarTodas();
 
-        JPanel grid = new JPanel(new GridLayout(0, 3, 14, 14));
-        grid.setOpaque(false);
+        gridPanel = new JPanel(new GridLayout(0, 3, 14, 14));
+        gridPanel.setOpaque(false);
 
-        if (habitaciones.isEmpty()) {
+        if (habitacionesCache.isEmpty()) {
             JLabel vacio = new JLabel("No hay habitaciones registradas.");
             vacio.setForeground(getLabel());
-            grid.add(vacio);
+            gridPanel.add(vacio);
         } else {
-            for (Habitacion h : habitaciones) {
-                grid.add(roomCard(h));
+            for (Habitacion h : habitacionesCache) {
+                gridPanel.add(roomCard(h));
             }
         }
 
-        JScrollPane scroll = new JScrollPane(grid);
+        JScrollPane scroll = new JScrollPane(gridPanel);
         scroll.setBorder(null);
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
@@ -159,36 +165,85 @@ public class GestHabitacionPanel extends JPanel {
     }
 
     private JPanel searchBar() {
-        final JTextField field = new JTextField(PLACEHOLDER);
-        field.setPreferredSize(new Dimension(300, 32));
-        field.setBackground(getPanelCol());
-        field.setForeground(getLabel());
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        field.setBorder(BorderFactory.createCompoundBorder(
+        searchField = new JTextField(PLACEHOLDER);
+        searchField.setPreferredSize(new Dimension(300, 32));
+        searchField.setBackground(getPanelCol());
+        searchField.setForeground(getLabel());
+        searchField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        searchField.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(getBorde(), 1, true),
             BorderFactory.createEmptyBorder(0, 10, 0, 10)
         ));
-        field.addFocusListener(new FocusAdapter() {
+        searchField.addFocusListener(new FocusAdapter() {
             @Override public void focusGained(FocusEvent e) {
                 if (isPlaceholderActive) {
-                    field.setText("");
-                    field.setForeground(getTextCol());
+                    searchField.setText("");
+                    searchField.setForeground(getTextCol());
                     isPlaceholderActive = false;
                 }
             }
             @Override public void focusLost(FocusEvent e) {
-                if (field.getText().trim().isEmpty()) {
-                    field.setText(PLACEHOLDER);
-                    field.setForeground(getLabel());
+                if (searchField.getText().trim().isEmpty()) {
+                    searchField.setText(PLACEHOLDER);
+                    searchField.setForeground(getLabel());
                     isPlaceholderActive = true;
+                    filterRooms(null);
                 }
             }
         });
 
+        searchField.getDocument().addDocumentListener(new DocumentListener() {
+            private void handle() {
+                String txt = searchField.getText().trim();
+                if (isPlaceholderActive || txt.isEmpty() || txt.equals(PLACEHOLDER.trim())) {
+                    filterRooms(null);
+                } else {
+                    filterRooms(txt);
+                }
+            }
+            @Override public void insertUpdate(DocumentEvent e) { handle(); }
+            @Override public void removeUpdate(DocumentEvent e) { handle(); }
+            @Override public void changedUpdate(DocumentEvent e) { handle(); }
+        });
+
         JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         wrapper.setOpaque(false);
-        wrapper.add(field);
+        wrapper.add(searchField);
         return wrapper;
+    }
+
+    private void filterRooms(String q) {
+        SwingUtilities.invokeLater(() -> {
+            if (gridPanel == null) return;
+            gridPanel.removeAll();
+
+            List<Habitacion> lista = new ArrayList<>();
+            if (q == null || q.trim().isEmpty()) {
+                lista = habitacionesCache;
+            } else {
+                String qq = q.toLowerCase();
+                for (Habitacion h : habitacionesCache) {
+                    boolean match = false;
+                    if (h.getNumero() != null && h.getNumero().toLowerCase().contains(qq)) match = true;
+                    if (h.getTipo() != null && h.getTipo().toLowerCase().contains(qq)) match = true;
+                    if (h.getEstado() != null && h.getEstado().toLowerCase().contains(qq)) match = true;
+                    if (match) lista.add(h);
+                }
+            }
+
+            if (lista.isEmpty()) {
+                JLabel vacio = new JLabel("No hay habitaciones que coincidan.");
+                vacio.setForeground(getLabel());
+                gridPanel.add(vacio);
+            } else {
+                for (Habitacion h : lista) {
+                    gridPanel.add(roomCard(h));
+                }
+            }
+
+            gridPanel.revalidate();
+            gridPanel.repaint();
+        });
     }
 
     private JPanel roomCard(Habitacion h) {
