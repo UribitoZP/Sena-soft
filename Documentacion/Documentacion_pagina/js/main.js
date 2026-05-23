@@ -52,6 +52,45 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.innerWidth > 768 && sidebar.classList.contains('active')) toggleMenu();
         });
     };
+    // FUNCIONALIDAD DE BARRA DE BUSQUEDA 
+    const buscador = document.getElementById('buscador');
+
+    buscador.addEventListener('input', function () {
+    const query = this.value.toLowerCase().trim();
+
+    const links = document.querySelectorAll('.side-nav li');
+
+    let found = false;
+
+    links.forEach(li => {
+        const text = li.textContent.toLowerCase();
+
+        if (query === '') {
+        li.style.display = '';
+        } else if (text.includes(query)) {
+        li.style.display = '';
+        found = true;
+        } else {
+        li.style.display = 'none';
+        }
+    });
+
+    const grupos = document.querySelectorAll('.nav-group');
+    grupos.forEach(grupo => {
+        const visibles = grupo.querySelectorAll('li:not([style*="none"])');
+        grupo.style.display = (query !== '' && visibles.length === 0) ? 'none' : '';
+    });
+
+    let noResults = document.getElementById('noResults');
+    if (!noResults) {
+        noResults = document.createElement('p');
+        noResults.id = 'noResults';
+        noResults.textContent = 'No se encontraron resultados.';
+        noResults.style.cssText = 'color: red; font-size: 0.85rem; padding: 8px 12px;';
+        document.querySelector('.barra-busqueda').insertAdjacentElement('afterend', noResults);
+    }
+    noResults.style.display = (!found && query !== '') ? 'block' : 'none';
+    });
 
     // --- ZOOM IMÁGENES (Resiliente a elementos faltantes) ---
     const setupImageZoom = () => {
