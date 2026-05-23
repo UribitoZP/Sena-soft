@@ -791,9 +791,17 @@ public class NuevaReservaDialog extends JDialog {
             return;
         }
 
+        double anticipoVal = 0;
+        try {
+            String antText = campoAnticipo.getText().trim().replace(",", ".");
+            if (!antText.isEmpty()) {
+                anticipoVal = Double.parseDouble(antText);
+            }
+        } catch (NumberFormatException ignored) {}
+
         boolean ok = reservaDAO.crear(
                 habitacionSeleccionada.getId(), idUsuario, nombre, doc,
-                desde, horaEnt, hasta, horaSal, tipoEstadiaSeleccionado);
+                desde, horaEnt, hasta, horaSal, tipoEstadiaSeleccionado, anticipoVal);
 
         if (ok) {
             // Solo marcar Ocupada si el check-in es hoy

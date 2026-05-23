@@ -37,10 +37,11 @@ public class ReservaDAO {
 
     public boolean crear(int idHabitacion, int idUsuario, String clienteNombre,
                          String clienteDoc, String fechaEntrada, String horaEntrada,
-                         String fechaSalida, String horaSalida, String tipoEstadia) {
+                         String fechaSalida, String horaSalida, String tipoEstadia,
+                         double anticipo) {
         String sql = "INSERT INTO reservas (id_habitacion, id_usuario, cliente_nombre, " +
-                     "cliente_doc, fecha_entrada, hora_entrada, fecha_salida, hora_salida, tipo_estadia) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                     "cliente_doc, fecha_entrada, hora_entrada, fecha_salida, hora_salida, tipo_estadia, anticipo) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idHabitacion);
@@ -52,9 +53,23 @@ public class ReservaDAO {
             ps.setString(7, fechaSalida);
             ps.setString(8, horaSalida);
             ps.setString(9, tipoEstadia);
+            ps.setDouble(10, anticipo);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error creando reserva: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean actualizarAnticipo(int id, double nuevoAnticipo) {
+        String sql = "UPDATE reservas SET anticipo = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, nuevoAnticipo);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error actualizando anticipo: " + e.getMessage());
             return false;
         }
     }
@@ -119,9 +134,11 @@ public class ReservaDAO {
 
     private Reserva mapear(ResultSet rs) throws SQLException {
         String horaEnt = "12:00", horaSal = "12:00", tipo = "Noche";
+        double anticipo = 0;
         try { String v = rs.getString("hora_entrada"); if (v != null) horaEnt = v; } catch (SQLException ignored) {}
         try { String v = rs.getString("hora_salida");  if (v != null) horaSal = v; } catch (SQLException ignored) {}
         try { String v = rs.getString("tipo_estadia"); if (v != null) tipo    = v; } catch (SQLException ignored) {}
+        try { anticipo = rs.getDouble("anticipo"); } catch (SQLException ignored) {}
         return new Reserva(
             rs.getInt("id"),
             rs.getInt("id_habitacion"),
@@ -133,7 +150,8 @@ public class ReservaDAO {
             rs.getString("fecha_salida"),
             horaSal,
             tipo,
-            rs.getString("estado")
+            rs.getString("estado"),
+            anticipo
         );
     }
 }

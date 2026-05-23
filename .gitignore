@@ -30,3 +30,6 @@ pubspec.lock
 # --- Archivos del Sistema ---
 Thumbs.db
 .DS_Store
+
+# --- Antigravity CLI ---
+.antigravitycli/
