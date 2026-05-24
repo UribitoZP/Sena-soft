@@ -31,7 +31,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v2.0.0</span>
+            <span class="version-tag">v2.1.0</span>
         </div>
     </header>
 
@@ -269,11 +269,14 @@ java -cp ".;..\lib\jcalendar-1.4.jar;..\lib\sqlite-jdbc-3.45.1.0.jar;..\lib\slf4
 ├── model/        // Modelos de datos (POJO)
 │   ├── Usuario.java
 │   ├── Habitacion.java
-│   └── Reserva.java
+│   ├── Reserva.java
+│   └── CierreMes.java            // Modelo para cierres mensuales
 ├── dao/          // Acceso a datos (consultas SQL)
 │   ├── UsuarioDAO.java
 │   ├── HabitacionDAO.java
-│   └── ReservaDAO.java
+│   ├── ReservaDAO.java
+│   ├── CierreMesDAO.java         // Control de cierres mensuales
+│   └── ReporteDAO.java           // Consultas estadísticas para reportes
 ├── controller/   // Lógica de negocio
 │   └── LoginController.java
 ├── view/         // Interfaces gráficas (Java Swing)
@@ -282,6 +285,7 @@ java -cp ".;..\lib\jcalendar-1.4.jar;..\lib\sqlite-jdbc-3.45.1.0.jar;..\lib\slf4
 │   ├── TableroPanel.java         // Dashboard con estadísticas
 │   ├── ReservaPanel.java         // Calendario de reservas
 │   ├── GestHabitacionPanel.java  // Gestión de habitaciones
+│   ├── ReportePanel.java         // Panel de estadísticas y cierres de mes
 │   └── NuevaReservaDialog.java   // Formulario de nueva reserva
 ├── server/       // Servidor REST para el móvil
 │   ├── RestServer.java
@@ -326,13 +330,40 @@ CREATE TABLE habitaciones (
 -- Tabla reservas
 CREATE TABLE reservas (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_habitacion   INTEGER NOT NULL,
-    id_usuario      INTEGER NOT NULL,
+    id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id),
+    id_usuario      INTEGER NOT NULL REFERENCES usuarios(id),
     cliente_nombre  TEXT NOT NULL,
     cliente_doc     TEXT NOT NULL,
     fecha_entrada   TEXT NOT NULL,
     fecha_salida    TEXT NOT NULL,
-    estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada'))
+    estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada')),
+    hora_entrada    TEXT DEFAULT '12:00',
+    hora_salida     TEXT DEFAULT '12:00',
+    tipo_estadia    TEXT DEFAULT 'Noche',
+    anticipo        REAL DEFAULT 0
+);
+
+-- Tabla historial
+CREATE TABLE historial (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo        TEXT NOT NULL,
+    titulo      TEXT NOT NULL,
+    descripcion TEXT NOT NULL,
+    fecha_hora  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    id_usuario  INTEGER DEFAULT 0
+);
+
+-- Tabla cierres_mes
+CREATE TABLE cierres_mes (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    mes              TEXT NOT NULL UNIQUE,
+    id_usuario       INTEGER NOT NULL REFERENCES usuarios(id),
+    fecha_cierre     TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    total_ingresos   REAL NOT NULL DEFAULT 0,
+    total_reservas   INTEGER NOT NULL DEFAULT 0,
+    total_completadas INTEGER NOT NULL DEFAULT 0,
+    total_canceladas INTEGER NOT NULL DEFAULT 0,
+    notas            TEXT DEFAULT ''
 );</code></pre>
                 </div>
 
@@ -359,6 +390,14 @@ CREATE TABLE reservas (
                             <tr>
                                 <td><code>UsuarioDAO</code></td>
                                 <td><code>autenticar(usuario, clave, rol)</code>, <code>autenticarSinRol(usuario, clave)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>CierreMesDAO</code></td>
+                                <td><code>esCerrado(mes)</code>, <code>cerrarMes(mes, idUsuario, notas)</code>, <code>listarCierres()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ReporteDAO</code></td>
+                                <td><code>getTotalIngresos()</code>, <code>getTotalAnticipos()</code>, <code>getTotalReservas()</code>, <code>getReservasPorEstado()</code>, <code>getIngresosPorMes()</code></td>
                             </tr>
                         </tbody>
                     </table>
