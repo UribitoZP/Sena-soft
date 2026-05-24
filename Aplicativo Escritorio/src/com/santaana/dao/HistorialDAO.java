@@ -9,6 +9,11 @@ import java.util.List;
 
 public class HistorialDAO {
 
+    private static volatile int pendingCount = 0;
+
+    public static int getPendingCount()  { return pendingCount; }
+    public static void resetPendingCount() { pendingCount = 0; }
+
     public static void registrar(String tipo, String titulo, String descripcion) {
         registrar(tipo, titulo, descripcion, 0);
     }
@@ -22,6 +27,7 @@ public class HistorialDAO {
             ps.setString(3, descripcion);
             ps.setInt   (4, idUsuario);
             ps.executeUpdate();
+            pendingCount++;
         } catch (SQLException e) {
             System.err.println("Error registrando historial: " + e.getMessage());
         }

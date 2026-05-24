@@ -42,10 +42,25 @@ public class InfoHabitacionFrame extends JDialog {
     }
 
     private void configurarVentana() {
-        setSize(460, reservaActiva != null ? 580 : 420);
+        setSize(460, reservaActiva != null ? 640 : 420);
         setResizable(false);
         setLayout(new BorderLayout());
         getContentPane().setBackground(COLOR_FONDO);
+    }
+
+    private String calcularSaldo() {
+        if (reservaActiva == null) return "—";
+        if ("Noche".equals(reservaActiva.getTipoEstadia())) {
+            try {
+                long dias = java.time.LocalDate.parse(reservaActiva.getFechaSalida()).toEpochDay()
+                          - java.time.LocalDate.parse(reservaActiva.getFechaEntrada()).toEpochDay();
+                if (dias < 1) dias = 1;
+                double total = dias * habitacion.getPrecio();
+                double saldo = total - reservaActiva.getAnticipo();
+                return String.format("$ %,.0f", saldo);
+            } catch (Exception ignored) {}
+        }
+        return "Indefinido";
     }
 
     private void construirUI() {
@@ -182,7 +197,7 @@ public class InfoHabitacionFrame extends JDialog {
         card.add(fila2);
         card.add(Box.createVerticalStrut(16));
 
-        // Fila 3: Total estimado
+        // Fila 3: ID y Estado
         JPanel fila3 = new JPanel(new GridLayout(1, 2, 16, 0));
         fila3.setOpaque(false);
         fila3.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -190,6 +205,19 @@ public class InfoHabitacionFrame extends JDialog {
         fila3.add(crearCampo("ID Reserva", "#" + reservaActiva.getId()));
         fila3.add(crearCampoDestacado("Estado", reservaActiva.getEstado(), COLOR_AZUL));
         card.add(fila3);
+        card.add(Box.createVerticalStrut(16));
+
+        // Fila 4: Anticipo y Saldo pendiente
+        JPanel fila4 = new JPanel(new GridLayout(1, 2, 16, 0));
+        fila4.setOpaque(false);
+        fila4.setAlignmentX(Component.LEFT_ALIGNMENT);
+        fila4.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        fila4.add(crearCampo("Anticipo recibido",
+                String.format("$ %,.0f", reservaActiva.getAnticipo())));
+        String saldoStr = calcularSaldo();
+        fila4.add(crearCampoDestacado("Saldo pendiente", saldoStr,
+                saldoStr.startsWith("$") ? COLOR_NARANJA : COLOR_AZUL));
+        card.add(fila4);
 
         return card;
     }

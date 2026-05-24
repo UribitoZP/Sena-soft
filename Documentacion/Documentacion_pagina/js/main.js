@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const SYSTEM_VERSION = 'v2.0.0';
+    const SYSTEM_VERSION = 'v2.1.0';
 
     // --- Control de Versión Centralizado ---
     const setupVersion = () => {
@@ -52,6 +52,45 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.innerWidth > 768 && sidebar.classList.contains('active')) toggleMenu();
         });
     };
+    // FUNCIONALIDAD DE BARRA DE BUSQUEDA 
+    const buscador = document.getElementById('buscador');
+
+    buscador.addEventListener('input', function () {
+    const query = this.value.toLowerCase().trim();
+
+    const links = document.querySelectorAll('.side-nav li');
+
+    let found = false;
+
+    links.forEach(li => {
+        const text = li.textContent.toLowerCase();
+
+        if (query === '') {
+        li.style.display = '';
+        } else if (text.includes(query)) {
+        li.style.display = '';
+        found = true;
+        } else {
+        li.style.display = 'none';
+        }
+    });
+
+    const grupos = document.querySelectorAll('.nav-group');
+    grupos.forEach(grupo => {
+        const visibles = grupo.querySelectorAll('li:not([style*="none"])');
+        grupo.style.display = (query !== '' && visibles.length === 0) ? 'none' : '';
+    });
+
+    let noResults = document.getElementById('noResults');
+    if (!noResults) {
+        noResults = document.createElement('p');
+        noResults.id = 'noResults';
+        noResults.textContent = 'No se encontraron resultados.';
+        noResults.style.cssText = 'color: red; font-size: 0.85rem; padding: 8px 12px;';
+        document.querySelector('.barra-busqueda').insertAdjacentElement('afterend', noResults);
+    }
+    noResults.style.display = (!found && query !== '') ? 'block' : 'none';
+    });
 
     // --- ZOOM IMÁGENES (Resiliente a elementos faltantes) ---
     const setupImageZoom = () => {
@@ -213,8 +252,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const targetEl = document.getElementById(header.id);
                 if (targetEl) {
-                    window.scrollTo({ top: targetEl.offsetTop - 100, behavior: "smooth" });
+                    const targetPosition = targetEl.getBoundingClientRect().top + window.scrollY;
+                    window.scrollTo({ top: targetPosition - 100, behavior: "smooth" });
                     history.pushState(null, null, `#${header.id}`);
+                    
+                    // Lógica para resaltar el elemento destino
+                    const highlightTarget = targetEl.closest('.team-card, .glosario-card, .diagrama_er_container, .diagrama_mer_container, table') || targetEl;
+                    
+                    // Remover la clase si ya existe para reiniciar la animación
+                    highlightTarget.classList.remove('flash-highlight');
+                    
+                    // Forzar reflow para reiniciar la animación CSS
+                    void highlightTarget.offsetWidth;
+                    
+                    highlightTarget.classList.add('flash-highlight');
                 }
             });
             li.appendChild(a);

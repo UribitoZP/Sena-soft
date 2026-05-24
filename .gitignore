@@ -33,3 +33,10 @@ Thumbs.db
 
 # --- Antigravity CLI ---
 .antigravitycli/
+
+# --- Flutter - archivos generados por plataforma ---
+**/generated_plugin_registrant.cc
+**/generated_plugin_registrant.h
+**/generated_plugins.cmake
+**/GeneratedPluginRegistrant.swift
+**/GeneratedPluginRegistrant.m

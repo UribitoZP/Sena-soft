@@ -793,9 +793,9 @@ public class NuevaReservaDialog extends JDialog {
 
         double anticipoVal = 0;
         try {
-            String antText = campoAnticipo.getText().trim().replace(",", ".");
-            if (!antText.isEmpty()) {
-                anticipoVal = Double.parseDouble(antText);
+            String raw = campoAnticipo.getText().trim().replace(".", "").replace(",", ".");
+            if (!raw.isEmpty()) {
+                anticipoVal = Double.parseDouble(raw);
             }
         } catch (NumberFormatException ignored) {}
 
