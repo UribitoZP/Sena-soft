@@ -11,7 +11,9 @@ public class BackupManager {
 
     public static void exportarReservasCSV(String ruta) {
 
-        String sql = "SELECT * FROM reservas";
+        String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
+                     "FROM reservas r " +
+                     "LEFT JOIN clientes c ON r.id_cliente = c.id";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();

@@ -2,6 +2,7 @@ package com.santaana.dao;
 
 import com.santaana.db.DatabaseConnection;
 import com.santaana.model.Reserva;
+import com.santaana.model.Cliente;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,7 +12,10 @@ public class ReservaDAO {
 
     public List<Reserva> listarTodas() {
         List<Reserva> lista = new ArrayList<>();
-        String sql = "SELECT * FROM reservas ORDER BY fecha_entrada DESC";
+        String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
+                     "FROM reservas r " +
+                     "LEFT JOIN clientes c ON r.id_cliente = c.id " +
+                     "ORDER BY r.fecha_entrada DESC";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -24,7 +28,10 @@ public class ReservaDAO {
 
     public List<Reserva> listarActivas() {
         List<Reserva> lista = new ArrayList<>();
-        String sql = "SELECT * FROM reservas WHERE estado = 'Activa' ORDER BY fecha_entrada ASC";
+        String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
+                     "FROM reservas r " +
+                     "LEFT JOIN clientes c ON r.id_cliente = c.id " +
+                     "WHERE r.estado = 'Activa' ORDER BY r.fecha_entrada ASC";
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -36,24 +43,56 @@ public class ReservaDAO {
     }
 
     public boolean crear(int idHabitacion, int idUsuario, String clienteNombre,
-                         String clienteDoc, String fechaEntrada, String horaEntrada,
+                         String clienteDoc, String clienteTelefono, String clienteCorreo,
+                         String fechaEntrada, String horaEntrada,
                          String fechaSalida, String horaSalida, String tipoEstadia,
                          double anticipo) {
-        String sql = "INSERT INTO reservas (id_habitacion, id_usuario, cliente_nombre, " +
-                     "cliente_doc, fecha_entrada, hora_entrada, fecha_salida, hora_salida, tipo_estadia, anticipo) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        ClienteDAO clienteDAO = new ClienteDAO();
+        Cliente cliente = clienteDAO.buscarPorDocumento(clienteDoc);
+        int idCliente;
+        if (cliente == null) {
+            cliente = new Cliente(0, clienteNombre, clienteDoc, clienteTelefono, clienteCorreo);
+            idCliente = clienteDAO.crear(cliente);
+            if (idCliente == -1) {
+                System.err.println("Error: No se pudo crear el cliente al guardar la reserva.");
+                return false;
+            }
+        } else {
+            idCliente = cliente.getId();
+            // Actualizar si cambiaron los datos
+            boolean necesitaActualizar = false;
+            if (!clienteNombre.equals(cliente.getNombre())) {
+                cliente.setNombre(clienteNombre);
+                necesitaActualizar = true;
+            }
+            if ((clienteTelefono != null && !clienteTelefono.equals(cliente.getTelefono())) ||
+                (clienteTelefono == null && cliente.getTelefono() != null)) {
+                cliente.setTelefono(clienteTelefono);
+                necesitaActualizar = true;
+            }
+            if ((clienteCorreo != null && !clienteCorreo.equals(cliente.getCorreo())) ||
+                (clienteCorreo == null && cliente.getCorreo() != null)) {
+                cliente.setCorreo(clienteCorreo);
+                necesitaActualizar = true;
+            }
+            if (necesitaActualizar) {
+                clienteDAO.actualizar(cliente);
+            }
+        }
+
+        String sql = "INSERT INTO reservas (id_habitacion, id_usuario, id_cliente, fecha_entrada, hora_entrada, fecha_salida, hora_salida, tipo_estadia, anticipo) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idHabitacion);
             ps.setInt(2, idUsuario);
-            ps.setString(3, clienteNombre);
-            ps.setString(4, clienteDoc);
-            ps.setString(5, fechaEntrada);
-            ps.setString(6, horaEntrada);
-            ps.setString(7, fechaSalida);
-            ps.setString(8, horaSalida);
-            ps.setString(9, tipoEstadia);
-            ps.setDouble(10, anticipo);
+            ps.setInt(3, idCliente);
+            ps.setString(4, fechaEntrada);
+            ps.setString(5, horaEntrada);
+            ps.setString(6, fechaSalida);
+            ps.setString(7, horaSalida);
+            ps.setString(8, tipoEstadia);
+            ps.setDouble(9, anticipo);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error creando reserva: " + e.getMessage());
@@ -89,8 +128,11 @@ public class ReservaDAO {
 
     public Reserva buscarActivaPorHabitacion(int idHabitacion) {
         // Reserva activa cuya fecha_entrada ya pasó o es hoy (huésped presente)
-        String sql = "SELECT * FROM reservas WHERE id_habitacion = ? AND estado = 'Activa'" +
-                     " AND fecha_entrada <= date('now') LIMIT 1";
+        String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
+                     "FROM reservas r " +
+                     "LEFT JOIN clientes c ON r.id_cliente = c.id " +
+                     "WHERE r.id_habitacion = ? AND r.estado = 'Activa'" +
+                     " AND r.fecha_entrada <= date('now') LIMIT 1";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idHabitacion);
@@ -104,8 +146,11 @@ public class ReservaDAO {
 
     public Reserva buscarProximaPorHabitacion(int idHabitacion) {
         // Reserva activa cuya fecha_entrada es futura (todavía no llega)
-        String sql = "SELECT * FROM reservas WHERE id_habitacion = ? AND estado = 'Activa'" +
-                     " AND fecha_entrada > date('now') ORDER BY fecha_entrada ASC LIMIT 1";
+        String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
+                     "FROM reservas r " +
+                     "LEFT JOIN clientes c ON r.id_cliente = c.id " +
+                     "WHERE r.id_habitacion = ? AND r.estado = 'Activa'" +
+                     " AND r.fecha_entrada > date('now') ORDER BY r.fecha_entrada ASC LIMIT 1";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idHabitacion);
@@ -119,7 +164,10 @@ public class ReservaDAO {
 
     public List<Reserva> listarUltimasPorHabitacion(int idHabitacion, int limite) {
         List<Reserva> lista = new ArrayList<>();
-        String sql = "SELECT * FROM reservas WHERE id_habitacion = ? ORDER BY id DESC LIMIT ?";
+        String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
+                     "FROM reservas r " +
+                     "LEFT JOIN clientes c ON r.id_cliente = c.id " +
+                     "WHERE r.id_habitacion = ? ORDER BY r.id DESC LIMIT ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idHabitacion);

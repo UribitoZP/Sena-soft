@@ -269,11 +269,13 @@ java -cp ".;..\lib\jcalendar-1.4.jar;..\lib\sqlite-jdbc-3.45.1.0.jar;..\lib\slf4
 ├── model/        // Modelos de datos (POJO)
 │   ├── Usuario.java
 │   ├── Habitacion.java
-│   └── Reserva.java
+│   ├── Reserva.java
+│   └── Cliente.java
 ├── dao/          // Acceso a datos (consultas SQL)
 │   ├── UsuarioDAO.java
 │   ├── HabitacionDAO.java
-│   └── ReservaDAO.java
+│   ├── ReservaDAO.java
+│   └── ClienteDAO.java
 ├── controller/   // Lógica de negocio
 │   └── LoginController.java
 ├── view/         // Interfaces gráficas (Java Swing)
@@ -323,15 +325,27 @@ CREATE TABLE habitaciones (
     estado  TEXT NOT NULL CHECK(estado IN ('Disponible','Ocupada','Limpieza','Mantenimiento'))
 );
 
+-- Tabla clientes
+CREATE TABLE clientes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre      TEXT NOT NULL,
+    documento   TEXT UNIQUE NOT NULL,
+    telefono    TEXT,
+    correo      TEXT
+);
+
 -- Tabla reservas
 CREATE TABLE reservas (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     id_habitacion   INTEGER NOT NULL,
     id_usuario      INTEGER NOT NULL,
-    cliente_nombre  TEXT NOT NULL,
-    cliente_doc     TEXT NOT NULL,
+    id_cliente      INTEGER NOT NULL,
     fecha_entrada   TEXT NOT NULL,
+    hora_entrada    TEXT DEFAULT '12:00',
     fecha_salida    TEXT NOT NULL,
+    hora_salida     TEXT DEFAULT '12:00',
+    tipo_estadia    TEXT DEFAULT 'Noche',
+    anticipo        REAL DEFAULT 0,
     estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada'))
 );</code></pre>
                 </div>
@@ -354,7 +368,11 @@ CREATE TABLE reservas (
                             </tr>
                             <tr>
                                 <td><code>ReservaDAO</code></td>
-                                <td><code>listarTodas()</code>, <code>crear(idHab, idUsuario, cliente, doc, entrada, salida)</code>, <code>actualizarEstado(id, estado)</code></td>
+                                <td><code>listarTodas()</code>, <code>crear(idHab, idUsuario, nombre, doc, tel, correo, entrada, horaEnt, salida, horaSal, tipo, anticipo)</code>, <code>actualizarEstado(id, estado)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ClienteDAO</code></td>
+                                <td><code>buscarPorDocumento(doc)</code>, <code>crear(cliente)</code>, <code>actualizar(cliente)</code>, <code>listarTodos()</code></td>
                             </tr>
                             <tr>
                                 <td><code>UsuarioDAO</code></td>
