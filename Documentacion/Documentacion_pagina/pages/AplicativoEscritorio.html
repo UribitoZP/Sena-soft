@@ -31,7 +31,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v2.0.0</span>
+            <span class="version-tag">v2.2.0</span>
         </div>
     </header>
 
@@ -270,11 +270,14 @@ java -cp ".;..\lib\jcalendar-1.4.jar;..\lib\sqlite-jdbc-3.45.1.0.jar;..\lib\slf4
 │   ├── Usuario.java
 │   ├── Habitacion.java
 │   ├── Reserva.java
+│   ├── CierreMes.java            // Modelo para cierres mensuales
 │   └── Cliente.java
 ├── dao/          // Acceso a datos (consultas SQL)
 │   ├── UsuarioDAO.java
 │   ├── HabitacionDAO.java
 │   ├── ReservaDAO.java
+│   ├── CierreMesDAO.java         // Control de cierres mensuales
+│   ├── ReporteDAO.java           // Consultas estadísticas para reportes
 │   └── ClienteDAO.java
 ├── controller/   // Lógica de negocio
 │   └── LoginController.java
@@ -337,9 +340,9 @@ CREATE TABLE clientes (
 -- Tabla reservas
 CREATE TABLE reservas (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_habitacion   INTEGER NOT NULL,
-    id_usuario      INTEGER NOT NULL,
-    id_cliente      INTEGER NOT NULL,
+    id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id),
+    id_usuario      INTEGER NOT NULL REFERENCES usuarios(id),
+    id_cliente      INTEGER NOT NULL REFERENCES clientes(id),
     fecha_entrada   TEXT NOT NULL,
     hora_entrada    TEXT DEFAULT '12:00',
     fecha_salida    TEXT NOT NULL,
@@ -347,6 +350,29 @@ CREATE TABLE reservas (
     tipo_estadia    TEXT DEFAULT 'Noche',
     anticipo        REAL DEFAULT 0,
     estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada'))
+);
+
+-- Tabla historial
+CREATE TABLE historial (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo        TEXT NOT NULL,
+    titulo      TEXT NOT NULL,
+    descripcion TEXT NOT NULL,
+    fecha_hora  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    id_usuario  INTEGER DEFAULT 0
+);
+
+-- Tabla cierres_mes
+CREATE TABLE cierres_mes (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    mes              TEXT NOT NULL UNIQUE,
+    id_usuario       INTEGER NOT NULL REFERENCES usuarios(id),
+    fecha_cierre     TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    total_ingresos   REAL NOT NULL DEFAULT 0,
+    total_reservas   INTEGER NOT NULL DEFAULT 0,
+    total_completadas INTEGER NOT NULL DEFAULT 0,
+    total_canceladas INTEGER NOT NULL DEFAULT 0,
+    notas            TEXT DEFAULT ''
 );</code></pre>
                 </div>
 
@@ -377,6 +403,14 @@ CREATE TABLE reservas (
                             <tr>
                                 <td><code>UsuarioDAO</code></td>
                                 <td><code>autenticar(usuario, clave, rol)</code>, <code>autenticarSinRol(usuario, clave)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>CierreMesDAO</code></td>
+                                <td><code>esCerrado(mes)</code>, <code>cerrarMes(mes, idUsuario, notas)</code>, <code>listarCierres()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ReporteDAO</code></td>
+                                <td><code>getTotalIngresos()</code>, <code>getTotalAnticipos()</code>, <code>getTotalReservas()</code>, <code>getReservasPorEstado()</code>, <code>getIngresosPorMes()</code></td>
                             </tr>
                         </tbody>
                     </table>
