@@ -31,7 +31,7 @@
 
 ## 📖 Descripción
 
-**Hotel Santa Ana** es un sistema de gestión hotelera desarrollado para digitalizar y optimizar la operación de un hotel. Permite gestionar habitaciones, reservas, usuarios y generar reportes en tiempo real desde cualquier dispositivo.
+**Hotel Santa Ana** es un sistema de gestión hotelera desarrollado para digitalizar y optimizar la operación de un hotel. Permite gestionar habitaciones, reservas, usuarios y generar reportes en tiempo real desde un aplicativo de escritorio.
 
 El sistema está compuesto por dos módulos complementarios:
 
