@@ -72,6 +72,37 @@ public class SchemaManager {
                 ")"
             );
 
+            // v6c: tabla clientes (idempotente para casos sin migración completa)
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS clientes (" +
+                "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  nombre      TEXT    NOT NULL," +
+                "  documento   TEXT    UNIQUE NOT NULL," +
+                "  telefono    TEXT," +
+                "  correo      TEXT" +
+                ")"
+            );
+
+            // v6d: asegurar columna id_cliente en reservas (por si la migración v6 no se completó)
+            boolean tieneIdCliente = false;
+            ResultSet cr = stmt.executeQuery("PRAGMA table_info(reservas)");
+            while (cr.next()) if ("id_cliente".equals(cr.getString("name"))) tieneIdCliente = true;
+            cr.close();
+            if (!tieneIdCliente) {
+                stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN id_cliente INTEGER REFERENCES clientes(id)");
+                // Migrar datos: crear clientes desde cliente_nombre/cliente_doc existentes
+                stmt.executeUpdate(
+                    "INSERT OR IGNORE INTO clientes (nombre, documento) " +
+                    "SELECT DISTINCT cliente_nombre, cliente_doc FROM reservas " +
+                    "WHERE cliente_nombre IS NOT NULL AND cliente_doc IS NOT NULL"
+                );
+                stmt.executeUpdate(
+                    "UPDATE reservas SET id_cliente = (SELECT id FROM clientes WHERE clientes.documento = reservas.cliente_doc) " +
+                    "WHERE id_cliente IS NULL"
+                );
+                System.out.println("Migración v6d: columna id_cliente añadida a reservas y datos migrados.");
+            }
+
             System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
         } catch (SQLException e) {
