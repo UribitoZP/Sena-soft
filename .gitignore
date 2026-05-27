@@ -31,6 +31,9 @@ pubspec.lock
 Thumbs.db
 .DS_Store
 
+# --- Antigravity CLI ---
+.antigravitycli/
+
 # --- Flutter - archivos generados por plataforma ---
 **/generated_plugin_registrant.cc
 **/generated_plugin_registrant.h

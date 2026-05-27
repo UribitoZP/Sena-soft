@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 5;
+    private static final int SCHEMA_VERSION = 6;
 
     public static void inicializar() {
         Connection conn = null;
@@ -34,6 +34,41 @@ public class SchemaManager {
                 "  titulo      TEXT    NOT NULL," +
                 "  descripcion TEXT    NOT NULL," +
                 "  fecha_hora  TEXT    NOT NULL DEFAULT (datetime('now','localtime'))" +
+                ")"
+            );
+
+            // v5: anticipo en reservas (idempotente)
+            boolean tieneAnticipo = false;
+            ResultSet ca = stmt.executeQuery("PRAGMA table_info(reservas)");
+            while (ca.next()) if ("anticipo".equals(ca.getString("name"))) tieneAnticipo = true;
+            ca.close();
+            if (!tieneAnticipo) {
+                stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN anticipo REAL DEFAULT 0");
+                System.out.println("Migración v5: columna anticipo añadida a reservas.");
+            }
+
+            // v6a: id_usuario en historial (idempotente)
+            boolean tieneIdUsuario = false;
+            ResultSet ch = stmt.executeQuery("PRAGMA table_info(historial)");
+            while (ch.next()) if ("id_usuario".equals(ch.getString("name"))) tieneIdUsuario = true;
+            ch.close();
+            if (!tieneIdUsuario) {
+                stmt.executeUpdate("ALTER TABLE historial ADD COLUMN id_usuario INTEGER DEFAULT 0");
+                System.out.println("Migración v6a: columna id_usuario añadida a historial.");
+            }
+
+            // v6b: tabla cierres_mes
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS cierres_mes (" +
+                "  id               INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  mes              TEXT    NOT NULL UNIQUE," +
+                "  id_usuario       INTEGER NOT NULL REFERENCES usuarios(id)," +
+                "  fecha_cierre     TEXT    NOT NULL DEFAULT (datetime('now','localtime'))," +
+                "  total_ingresos   REAL    NOT NULL DEFAULT 0," +
+                "  total_reservas   INTEGER NOT NULL DEFAULT 0," +
+                "  total_completadas INTEGER NOT NULL DEFAULT 0," +
+                "  total_canceladas INTEGER NOT NULL DEFAULT 0," +
+                "  notas            TEXT    DEFAULT ''" +
                 ")"
             );
 
