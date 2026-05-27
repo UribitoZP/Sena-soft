@@ -9,6 +9,10 @@ import java.util.Date;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import com.toedter.calendar.JDateChooser;
 import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
@@ -155,6 +159,10 @@ public class NuevaReservaDialog extends JDialog {
                 }
             }
         });
+
+        setInputFilter(campoDoc, "[0-9]*");
+        setInputFilter(campoNombre, "[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]*");
+        setInputFilter(campoTelefono, "[0-9]*");
 
         p.add(caja("Identificación *", campoDoc));
         p.add(Box.createVerticalStrut(12));
@@ -941,6 +949,25 @@ public class NuevaReservaDialog extends JDialog {
                 BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
                 BorderFactory.createEmptyBorder(0, 10, 0, 10)));
         return tf;
+    }
+
+    private static void setInputFilter(JTextField field, String regex) {
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr)
+                    throws BadLocationException {
+                if (text != null && text.matches(regex)) {
+                    super.insertString(fb, offset, text, attr);
+                }
+            }
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                    throws BadLocationException {
+                if (text != null && text.matches(regex)) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
     }
 
     private JDateChooser dateChooser() {
