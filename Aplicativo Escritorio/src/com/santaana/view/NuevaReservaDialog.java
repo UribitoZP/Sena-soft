@@ -153,10 +153,16 @@ public class NuevaReservaDialog extends JDialog {
             public void removeUpdate(javax.swing.event.DocumentEvent e) { verificar(); }
             public void changedUpdate(javax.swing.event.DocumentEvent e) { verificar(); }
             private void verificar() {
-                String doc = campoDoc.getText().trim();
-                if (doc.length() >= 5) {
-                    autocompletarCliente();
-                }
+                SwingUtilities.invokeLater(() -> {
+                    String doc = campoDoc.getText().trim();
+                    if (doc.isEmpty()) {
+                        campoNombre.setText("");
+                        campoTelefono.setText("");
+                        campoCorreo.setText("");
+                    } else if (doc.length() >= 5) {
+                        autocompletarCliente();
+                    }
+                });
             }
         });
 

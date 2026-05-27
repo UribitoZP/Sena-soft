@@ -59,25 +59,6 @@ public class ReservaDAO {
             }
         } else {
             idCliente = cliente.getId();
-            // Actualizar si cambiaron los datos
-            boolean necesitaActualizar = false;
-            if (!clienteNombre.equals(cliente.getNombre())) {
-                cliente.setNombre(clienteNombre);
-                necesitaActualizar = true;
-            }
-            if ((clienteTelefono != null && !clienteTelefono.equals(cliente.getTelefono())) ||
-                (clienteTelefono == null && cliente.getTelefono() != null)) {
-                cliente.setTelefono(clienteTelefono);
-                necesitaActualizar = true;
-            }
-            if ((clienteCorreo != null && !clienteCorreo.equals(cliente.getCorreo())) ||
-                (clienteCorreo == null && cliente.getCorreo() != null)) {
-                cliente.setCorreo(clienteCorreo);
-                necesitaActualizar = true;
-            }
-            if (necesitaActualizar) {
-                clienteDAO.actualizar(cliente);
-            }
         }
 
         String sql = "INSERT INTO reservas (id_habitacion, id_usuario, id_cliente, fecha_entrada, hora_entrada, fecha_salida, hora_salida, tipo_estadia, anticipo) " +
