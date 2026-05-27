@@ -166,5 +166,38 @@ public class SchemaManager {
             stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN anticipo REAL DEFAULT 0");
             System.out.println("Migración v5: columna anticipo añadida a reservas.");
         }
+
+        // v6: normalización de base de datos (clientes y reservas)
+        if (fromVersion < 6) {
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS clientes (" +
+                "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  nombre      TEXT    NOT NULL," +
+                "  documento   TEXT    UNIQUE NOT NULL," +
+                "  telefono    TEXT," +
+                "  correo      TEXT" +
+                ")"
+            );
+
+            // Recreamos la tabla reservas
+            stmt.executeUpdate("DROP TABLE IF EXISTS reservas");
+            stmt.executeUpdate(
+                "CREATE TABLE reservas (" +
+                "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id)," +
+                "  id_usuario      INTEGER NOT NULL REFERENCES usuarios(id)," +
+                "  id_cliente      INTEGER NOT NULL REFERENCES clientes(id)," +
+                "  fecha_entrada   TEXT    NOT NULL," +
+                "  hora_entrada    TEXT    DEFAULT '12:00'," +
+                "  fecha_salida    TEXT    NOT NULL," +
+                "  hora_salida     TEXT    DEFAULT '12:00'," +
+                "  tipo_estadia    TEXT    DEFAULT 'Noche'," +
+                "  anticipo        REAL    DEFAULT 0," +
+                "  estado          TEXT    NOT NULL DEFAULT 'Activa' " +
+                "       CHECK(estado IN ('Activa','Completada','Cancelada'))" +
+                ")"
+            );
+            System.out.println("Migración v6: tabla clientes creada y tabla reservas normalizada.");
+        }
     }
 }
