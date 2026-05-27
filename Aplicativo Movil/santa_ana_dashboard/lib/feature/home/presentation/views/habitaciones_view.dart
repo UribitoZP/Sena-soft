@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/services/api_service.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
@@ -50,6 +52,7 @@ class RoomsView extends StatefulWidget {
 class _RoomsViewState extends State<RoomsView> {
   final _api = ApiService();
   late Future<List<RoomModel>> _roomsFuture;
+  Timer? _timer;
   int _selectedFilter = 0;
   final _filters = ['Todas', 'Ocupadas', 'Disponibles', 'Limpieza', 'Mantenimiento'];
 
@@ -57,6 +60,12 @@ class _RoomsViewState extends State<RoomsView> {
   void initState() {
     super.initState();
     _loadRooms();
+
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted) {
+        setState(() => _loadRooms());
+      }
+    });
   }
 
   void _loadRooms() {
@@ -74,6 +83,11 @@ class _RoomsViewState extends State<RoomsView> {
       4: RoomStatus.maintenance,
     };
     return rooms.where((r) => r.status == map[_selectedFilter]).toList();
+  }
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
