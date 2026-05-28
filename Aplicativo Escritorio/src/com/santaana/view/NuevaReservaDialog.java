@@ -9,6 +9,10 @@ import java.util.Date;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import com.toedter.calendar.JDateChooser;
 import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
@@ -136,6 +140,36 @@ public class NuevaReservaDialog extends JDialog {
         campoNombre = textField("Ej: Juan Pérez");
         campoCorreo = textField("correo@ejemplo.com");
         campoTelefono = textField("Ej: +57 300 000 0000");
+
+        // Autocompletado al digitar o perder el foco
+        campoDoc.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                autocompletarCliente();
+            }
+        });
+        campoDoc.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { verificar(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { verificar(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { verificar(); }
+            private void verificar() {
+                SwingUtilities.invokeLater(() -> {
+                    String doc = campoDoc.getText().trim();
+                    if (doc.isEmpty()) {
+                        campoNombre.setText("");
+                        campoTelefono.setText("");
+                        campoCorreo.setText("");
+                    } else if (doc.length() >= 5) {
+                        autocompletarCliente();
+                    }
+                });
+            }
+        });
+
+        setInputFilter(campoDoc, "[0-9]*");
+        setInputFilter(campoNombre, "[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]*");
+        setInputFilter(campoTelefono, "[0-9]*");
+
         p.add(caja("Identificación *", campoDoc));
         p.add(Box.createVerticalStrut(12));
         p.add(caja("Nombre completo *", campoNombre));
@@ -144,6 +178,26 @@ public class NuevaReservaDialog extends JDialog {
         p.add(Box.createVerticalStrut(12));
         p.add(caja("Teléfono *", campoTelefono));
         return p;
+    }
+
+    private void autocompletarCliente() {
+        String doc = campoDoc.getText().trim();
+        if (doc.isEmpty()) return;
+        com.santaana.dao.ClienteDAO clienteDAO = new com.santaana.dao.ClienteDAO();
+        com.santaana.model.Cliente cliente = clienteDAO.buscarPorDocumento(doc);
+        if (cliente != null) {
+            SwingUtilities.invokeLater(() -> {
+                campoNombre.setText(cliente.getNombre());
+                campoTelefono.setText(cliente.getTelefono());
+                campoCorreo.setText(cliente.getCorreo());
+            });
+        } else {
+            SwingUtilities.invokeLater(() -> {
+                campoNombre.setText("");
+                campoTelefono.setText("");
+                campoCorreo.setText("");
+            });
+        }
     }
 
     // ── Panel reserva ────────────────────────────────────────────────────────
@@ -744,13 +798,40 @@ public class NuevaReservaDialog extends JDialog {
         String nombre = campoNombre.getText().trim();
         String desde = formatearFecha(fechaEntrada.getDate());
         String horaEnt = formatearHora(horaEntrada);
-
         String telefono = campoTelefono.getText().trim();
+        String correo = campoCorreo.getText().trim();
+
         if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Identificación, nombre y teléfono son obligatorios.",
                     "Campos requeridos", JOptionPane.WARNING_MESSAGE);
             return;
         }
+
+        // Validaciones estrictas
+        if (!doc.matches("^[0-9]+$")) {
+            JOptionPane.showMessageDialog(this, "La identificación debe ser únicamente numérica.",
+                    "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!nombre.matches("^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\\s]+$")) {
+            JOptionPane.showMessageDialog(this, "El nombre completo debe contener únicamente letras y espacios.",
+                    "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!telefono.matches("^[0-9]+$")) {
+            JOptionPane.showMessageDialog(this, "El teléfono debe ser únicamente numérico.",
+                    "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!correo.isEmpty() && !correo.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$")) {
+            JOptionPane.showMessageDialog(this, "El correo electrónico no tiene un formato válido.",
+                    "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         if (desde == null) {
             JOptionPane.showMessageDialog(this, "Seleccione fecha de entrada.",
                     "Fecha requerida", JOptionPane.WARNING_MESSAGE);
@@ -791,17 +872,38 @@ public class NuevaReservaDialog extends JDialog {
             return;
         }
 
+        double totalEstimado = 0;
+        if ("Noche".equals(tipoEstadiaSeleccionado)) {
+            long noches = calcularNoches();
+            totalEstimado = (noches > 0 ? noches : 1) * habitacionSeleccionada.getPrecio();
+        }
+
         double anticipoVal = 0;
         try {
             String raw = campoAnticipo.getText().trim().replace(".", "").replace(",", ".");
-            if (!raw.isEmpty()) {
-                anticipoVal = Double.parseDouble(raw);
-            }
-        } catch (NumberFormatException ignored) {}
+            anticipoVal = Double.parseDouble(raw);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "El anticipo debe ser un valor numérico.",
+                    "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (anticipoVal < 0) {
+            JOptionPane.showMessageDialog(this, "El anticipo no puede ser un valor negativo.",
+                    "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if ("Noche".equals(tipoEstadiaSeleccionado) && anticipoVal > totalEstimado) {
+            JOptionPane.showMessageDialog(this, "El anticipo no puede ser superior al total estimado ($" + String.format("%,.0f", totalEstimado) + ").",
+                    "Dato inválido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
         boolean ok = reservaDAO.crear(
                 habitacionSeleccionada.getId(), idUsuario, nombre, doc,
-                desde, horaEnt, hasta, horaSal, tipoEstadiaSeleccionado, anticipoVal);
+                telefono, correo, desde, horaEnt, hasta, horaSal,
+                tipoEstadiaSeleccionado, anticipoVal);
 
         if (ok) {
             // Solo marcar Ocupada si el check-in es hoy
@@ -859,6 +961,25 @@ public class NuevaReservaDialog extends JDialog {
                 BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
                 BorderFactory.createEmptyBorder(0, 10, 0, 10)));
         return tf;
+    }
+
+    private static void setInputFilter(JTextField field, String regex) {
+        ((AbstractDocument) field.getDocument()).setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String text, AttributeSet attr)
+                    throws BadLocationException {
+                if (text != null && text.matches(regex)) {
+                    super.insertString(fb, offset, text, attr);
+                }
+            }
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                    throws BadLocationException {
+                if (text != null && text.matches(regex)) {
+                    super.replace(fb, offset, length, text, attrs);
+                }
+            }
+        });
     }
 
     private JDateChooser dateChooser() {

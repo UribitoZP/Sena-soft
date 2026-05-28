@@ -72,6 +72,66 @@ public class SchemaManager {
                 ")"
             );
 
+            // v6c: tabla clientes (idempotente para casos sin migración completa)
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS clientes (" +
+                "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  nombre      TEXT    NOT NULL," +
+                "  documento   TEXT    UNIQUE NOT NULL," +
+                "  telefono    TEXT," +
+                "  correo      TEXT" +
+                ")"
+            );
+
+            // v6d: migrar reservas del esquema antiguo (cliente_nombre/cliente_doc) al nuevo (id_cliente)
+            boolean tieneClienteNombre = false;
+            ResultSet crn = stmt.executeQuery("PRAGMA table_info(reservas)");
+            while (crn.next()) if ("cliente_nombre".equals(crn.getString("name"))) tieneClienteNombre = true;
+            crn.close();
+            if (tieneClienteNombre) {
+                stmt.executeUpdate(
+                    "INSERT OR IGNORE INTO clientes (nombre, documento) " +
+                    "SELECT DISTINCT cliente_nombre, cliente_doc FROM reservas " +
+                    "WHERE cliente_nombre IS NOT NULL AND cliente_doc IS NOT NULL"
+                );
+                stmt.executeUpdate("CREATE TABLE reservas_v2 (" +
+                    "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "  id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id)," +
+                    "  id_usuario      INTEGER NOT NULL REFERENCES usuarios(id)," +
+                    "  id_cliente      INTEGER NOT NULL REFERENCES clientes(id)," +
+                    "  fecha_entrada   TEXT    NOT NULL," +
+                    "  hora_entrada    TEXT    DEFAULT '12:00'," +
+                    "  fecha_salida    TEXT    NOT NULL," +
+                    "  hora_salida     TEXT    DEFAULT '12:00'," +
+                    "  tipo_estadia    TEXT    DEFAULT 'Noche'," +
+                    "  anticipo        REAL    DEFAULT 0," +
+                    "  estado          TEXT    NOT NULL DEFAULT 'Activa' " +
+                    "       CHECK(estado IN ('Activa','Completada','Cancelada'))" +
+                    ")"
+                );
+                stmt.executeUpdate(
+                    "INSERT INTO reservas_v2 " +
+                    "SELECT r.id, r.id_habitacion, r.id_usuario, " +
+                    "       COALESCE((SELECT c.id FROM clientes c WHERE c.documento = r.cliente_doc), 0), " +
+                    "       r.fecha_entrada, COALESCE(r.hora_entrada, '12:00'), " +
+                    "       r.fecha_salida, COALESCE(r.hora_salida, '12:00'), " +
+                    "       COALESCE(r.tipo_estadia, 'Noche'), COALESCE(r.anticipo, 0), r.estado " +
+                    "FROM reservas r"
+                );
+                stmt.executeUpdate("DROP TABLE reservas");
+                stmt.executeUpdate("ALTER TABLE reservas_v2 RENAME TO reservas");
+                System.out.println("Migración v6d: tabla reservas migrada a nuevo esquema con id_cliente.");
+            } else {
+                boolean tieneIdCliente = false;
+                ResultSet cr = stmt.executeQuery("PRAGMA table_info(reservas)");
+                while (cr.next()) if ("id_cliente".equals(cr.getString("name"))) tieneIdCliente = true;
+                cr.close();
+                if (!tieneIdCliente) {
+                    stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN id_cliente INTEGER REFERENCES clientes(id)");
+                    System.out.println("Migración v6d: columna id_cliente añadida a reservas.");
+                }
+            }
+
             System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
         } catch (SQLException e) {
@@ -165,6 +225,39 @@ public class SchemaManager {
         if (!tieneAnticipo) {
             stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN anticipo REAL DEFAULT 0");
             System.out.println("Migración v5: columna anticipo añadida a reservas.");
+        }
+
+        // v6: normalización de base de datos (clientes y reservas)
+        if (fromVersion < 6) {
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS clientes (" +
+                "  id          INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  nombre      TEXT    NOT NULL," +
+                "  documento   TEXT    UNIQUE NOT NULL," +
+                "  telefono    TEXT," +
+                "  correo      TEXT" +
+                ")"
+            );
+
+            // Recreamos la tabla reservas
+            stmt.executeUpdate("DROP TABLE IF EXISTS reservas");
+            stmt.executeUpdate(
+                "CREATE TABLE reservas (" +
+                "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id)," +
+                "  id_usuario      INTEGER NOT NULL REFERENCES usuarios(id)," +
+                "  id_cliente      INTEGER NOT NULL REFERENCES clientes(id)," +
+                "  fecha_entrada   TEXT    NOT NULL," +
+                "  hora_entrada    TEXT    DEFAULT '12:00'," +
+                "  fecha_salida    TEXT    NOT NULL," +
+                "  hora_salida     TEXT    DEFAULT '12:00'," +
+                "  tipo_estadia    TEXT    DEFAULT 'Noche'," +
+                "  anticipo        REAL    DEFAULT 0," +
+                "  estado          TEXT    NOT NULL DEFAULT 'Activa' " +
+                "       CHECK(estado IN ('Activa','Completada','Cancelada'))" +
+                ")"
+            );
+            System.out.println("Migración v6: tabla clientes creada y tabla reservas normalizada.");
         }
     }
 }

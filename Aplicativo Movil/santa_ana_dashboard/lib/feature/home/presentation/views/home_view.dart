@@ -128,14 +128,21 @@ class _HomeViewState extends State<HomeView> {
                           }
                           final reservas = resSnap.data ?? [];
                           // Solo muestra las activas (máx 3)
-                          final activas = reservas
-                              .where((r) =>
-                                  (r['estado'] ?? '').toString().toLowerCase() ==
-                                  'activa')
-                              .take(3)
-                              .toList();
+                          final hoy = DateTime.now();
 
-                          return _ReservationsList(reservas: activas);
+                          final reservasHoy = reservas.where((r) {
+                            final entrada = DateTime.tryParse(
+                              (r['entrada'] ?? '').toString(),
+                            );
+
+                            if (entrada == null) return false;
+
+                            return entrada.year == hoy.year &&
+                                entrada.month == hoy.month &&
+                                entrada.day == hoy.day;
+                          }).take(3).toList();
+
+                          return _ReservationsList(reservas: reservasHoy);
                         },
                       ),
                       const SizedBox(height: 16),
