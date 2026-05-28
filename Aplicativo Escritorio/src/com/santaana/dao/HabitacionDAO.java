@@ -48,7 +48,7 @@ public class HabitacionDAO {
     public List<Habitacion> listarDisponiblesEnFechas(String desdeDateTime, String hastaDateTime) {
         List<Habitacion> lista = new ArrayList<>();
         String sql =
-            "SELECT * FROM habitaciones WHERE estado != 'Mantenimiento' AND id NOT IN (" +
+            "SELECT * FROM habitaciones WHERE estado IN ('Disponible','Limpieza') AND id NOT IN (" +
             "  SELECT id_habitacion FROM reservas WHERE estado = 'Activa'" +
             "  AND (fecha_entrada || ' ' || COALESCE(hora_entrada,'12:00')) < ?" +
             "  AND (fecha_salida  || ' ' || COALESCE(hora_salida, '12:00')) > ?" +

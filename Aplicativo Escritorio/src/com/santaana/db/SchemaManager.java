@@ -132,6 +132,17 @@ public class SchemaManager {
                 }
             }
 
+            // v6e: telefono y correo en usuarios (idempotente)
+            boolean tieneTelefonoUsr = false;
+            ResultSet ctu = stmt.executeQuery("PRAGMA table_info(usuarios)");
+            while (ctu.next()) if ("telefono".equals(ctu.getString("name"))) tieneTelefonoUsr = true;
+            ctu.close();
+            if (!tieneTelefonoUsr) {
+                stmt.executeUpdate("ALTER TABLE usuarios ADD COLUMN telefono TEXT DEFAULT ''");
+                stmt.executeUpdate("ALTER TABLE usuarios ADD COLUMN correo TEXT DEFAULT ''");
+                System.out.println("Migración v6e: columnas telefono y correo añadidas a usuarios.");
+            }
+
             System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
         } catch (SQLException e) {
@@ -148,7 +159,9 @@ public class SchemaManager {
             "  nombre   TEXT    NOT NULL," +
             "  usuario  TEXT    NOT NULL UNIQUE," +
             "  clave    TEXT    NOT NULL," +
-            "  rol      TEXT    NOT NULL CHECK(rol IN ('Administrador','Recepcionista'))" +
+            "  rol      TEXT    NOT NULL CHECK(rol IN ('Administrador','Recepcionista'))," +
+            "  telefono TEXT    DEFAULT ''," +
+            "  correo   TEXT    DEFAULT ''" +
             ")"
         );
         stmt.executeUpdate(
