@@ -89,13 +89,11 @@ public class SchemaManager {
             while (crn.next()) if ("cliente_nombre".equals(crn.getString("name"))) tieneClienteNombre = true;
             crn.close();
             if (tieneClienteNombre) {
-                // Migrar datos de clientes desde las columnas viejas
                 stmt.executeUpdate(
                     "INSERT OR IGNORE INTO clientes (nombre, documento) " +
                     "SELECT DISTINCT cliente_nombre, cliente_doc FROM reservas " +
                     "WHERE cliente_nombre IS NOT NULL AND cliente_doc IS NOT NULL"
                 );
-                // Crear tabla temporal con nuevo esquema
                 stmt.executeUpdate("CREATE TABLE reservas_v2 (" +
                     "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "  id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id)," +
@@ -111,7 +109,6 @@ public class SchemaManager {
                     "       CHECK(estado IN ('Activa','Completada','Cancelada'))" +
                     ")"
                 );
-                // Copiar datos
                 stmt.executeUpdate(
                     "INSERT INTO reservas_v2 " +
                     "SELECT r.id, r.id_habitacion, r.id_usuario, " +
@@ -125,7 +122,6 @@ public class SchemaManager {
                 stmt.executeUpdate("ALTER TABLE reservas_v2 RENAME TO reservas");
                 System.out.println("Migración v6d: tabla reservas migrada a nuevo esquema con id_cliente.");
             } else {
-                // Si ya no tiene las columnas viejas, solo asegurar id_cliente
                 boolean tieneIdCliente = false;
                 ResultSet cr = stmt.executeQuery("PRAGMA table_info(reservas)");
                 while (cr.next()) if ("id_cliente".equals(cr.getString("name"))) tieneIdCliente = true;
