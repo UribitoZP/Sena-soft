@@ -191,6 +191,12 @@ public class NuevaReservaDialog extends JDialog {
                 campoTelefono.setText(cliente.getTelefono());
                 campoCorreo.setText(cliente.getCorreo());
             });
+        } else {
+            SwingUtilities.invokeLater(() -> {
+                campoNombre.setText("");
+                campoTelefono.setText("");
+                campoCorreo.setText("");
+            });
         }
     }
 
