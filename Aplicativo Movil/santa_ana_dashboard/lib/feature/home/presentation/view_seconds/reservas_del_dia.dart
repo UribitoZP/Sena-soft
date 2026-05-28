@@ -5,8 +5,34 @@ import 'package:santa_ana_dashboard/feature/home/presentation/view_seconds/bloc/
 import 'package:santa_ana_dashboard/feature/home/presentation/view_seconds/bloc/bloc_second_event.dart';
 import 'package:santa_ana_dashboard/feature/home/presentation/view_seconds/bloc/bloc_second_state.dart';
 
-class ReservasDelDiaView extends StatelessWidget {
+class ReservasDelDiaView extends StatefulWidget {
   const ReservasDelDiaView({super.key});
+
+  @override
+  State<ReservasDelDiaView> createState() => _ReservasDelDiaViewState();
+}
+
+class _ReservasDelDiaViewState extends State<ReservasDelDiaView> {
+  final TextEditingController _searchController = TextEditingController();
+
+  String _search = '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    _searchController.addListener(() {
+      setState(() {
+        _search = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +48,59 @@ class ReservasDelDiaView extends StatelessWidget {
                   _ReservasHeader(
                     onBack: () => Navigator.of(context).pop(),
                   ),
-                  const SizedBox(height: 12),
+
+                  const SizedBox(height: 14),
+
+                  // 🔹 FILTER BUTTONS
+                  SizedBox(
+                    height: 46,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: 4,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final filters = [
+                          'Todas',
+                          'Activas',
+                          'Completadas',
+                          'Canceladas',
+                        ];
+
+                        return GestureDetector(
+                          onTap: () {
+                            // TODO: lógica del filtro
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius:
+                                  BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppTheme.borderColor,
+                              ),
+                            ),
+                            child: Text(
+                              filters[index],
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.3,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
 
                   // 🔹 LOADING
                   if (state is ReservasLoading) ...[
@@ -40,24 +118,30 @@ class ReservasDelDiaView extends StatelessWidget {
                   else if (state is ReservasLoaded) ...[
                     Expanded(
                       child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 16),
                         itemCount: state.reservas.length,
                         itemBuilder: (context, index) {
                           final reserva = state.reservas[index];
 
                           return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
+                            margin:
+                                const EdgeInsets.only(bottom: 12),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: AppTheme.cardColor,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius:
+                                  BorderRadius.circular(12),
                               border: Border.all(
-                                  color: AppTheme.borderColor),
+                                color: AppTheme.borderColor,
+                              ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.person,
-                                    color: AppTheme.goldColor),
+                                const Icon(
+                                  Icons.person,
+                                  color: AppTheme.goldColor,
+                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
@@ -65,13 +149,19 @@ class ReservasDelDiaView extends StatelessWidget {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        reserva['cliente']?.toString() ?? 'Sin nombre',
-                                        style: Theme.of(context).textTheme.bodyLarge,
+                                        reserva['cliente']
+                                                ?.toString() ??
+                                            'Sin nombre',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         'Habitación: ${reserva['habitacion']?.toString() ?? '---'}',
-                                        style: Theme.of(context).textTheme.bodySmall,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
                                       ),
                                     ],
                                   ),
@@ -84,10 +174,12 @@ class ReservasDelDiaView extends StatelessWidget {
                     ),
                   ]
 
-                  // 🔹 DEFAULT (por si acaso)
+                  // 🔹 DEFAULT
                   else ...[
                     const Expanded(
-                      child: Center(child: Text("Sin datos")),
+                      child: Center(
+                        child: Text("Sin datos"),
+                      ),
                     ),
                   ]
                 ],
@@ -184,8 +276,11 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded,
-              color: AppTheme.errorColor, size: 40),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppTheme.errorColor,
+            size: 40,
+          ),
           const SizedBox(height: 12),
           Text(
             message,
