@@ -31,7 +31,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v2.1.0</span>
+            <span class="version-tag">v2.2.0</span>
         </div>
     </header>
 
@@ -270,13 +270,15 @@ java -cp ".;..\lib\jcalendar-1.4.jar;..\lib\sqlite-jdbc-3.45.1.0.jar;..\lib\slf4
 │   ├── Usuario.java
 │   ├── Habitacion.java
 │   ├── Reserva.java
-│   └── CierreMes.java            // Modelo para cierres mensuales
+│   ├── CierreMes.java            // Modelo para cierres mensuales
+│   └── Cliente.java
 ├── dao/          // Acceso a datos (consultas SQL)
 │   ├── UsuarioDAO.java
 │   ├── HabitacionDAO.java
 │   ├── ReservaDAO.java
 │   ├── CierreMesDAO.java         // Control de cierres mensuales
-│   └── ReporteDAO.java           // Consultas estadísticas para reportes
+│   ├── ReporteDAO.java           // Consultas estadísticas para reportes
+│   └── ClienteDAO.java
 ├── controller/   // Lógica de negocio
 │   └── LoginController.java
 ├── view/         // Interfaces gráficas (Java Swing)
@@ -327,20 +329,28 @@ CREATE TABLE habitaciones (
     estado  TEXT NOT NULL CHECK(estado IN ('Disponible','Ocupada','Limpieza','Mantenimiento'))
 );
 
+-- Tabla clientes
+CREATE TABLE clientes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre      TEXT NOT NULL,
+    documento   TEXT UNIQUE NOT NULL,
+    telefono    TEXT,
+    correo      TEXT
+);
+
 -- Tabla reservas
 CREATE TABLE reservas (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id),
     id_usuario      INTEGER NOT NULL REFERENCES usuarios(id),
-    cliente_nombre  TEXT NOT NULL,
-    cliente_doc     TEXT NOT NULL,
+    id_cliente      INTEGER NOT NULL REFERENCES clientes(id),
     fecha_entrada   TEXT NOT NULL,
-    fecha_salida    TEXT NOT NULL,
-    estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada')),
     hora_entrada    TEXT DEFAULT '12:00',
+    fecha_salida    TEXT NOT NULL,
     hora_salida     TEXT DEFAULT '12:00',
     tipo_estadia    TEXT DEFAULT 'Noche',
-    anticipo        REAL DEFAULT 0
+    anticipo        REAL DEFAULT 0,
+    estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada'))
 );
 
 -- Tabla historial
@@ -385,7 +395,11 @@ CREATE TABLE cierres_mes (
                             </tr>
                             <tr>
                                 <td><code>ReservaDAO</code></td>
-                                <td><code>listarTodas()</code>, <code>crear(idHab, idUsuario, cliente, doc, entrada, salida)</code>, <code>actualizarEstado(id, estado)</code></td>
+                                <td><code>listarTodas()</code>, <code>crear(idHab, idUsuario, nombre, doc, tel, correo, entrada, horaEnt, salida, horaSal, tipo, anticipo)</code>, <code>actualizarEstado(id, estado)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ClienteDAO</code></td>
+                                <td><code>buscarPorDocumento(doc)</code>, <code>crear(cliente)</code>, <code>actualizar(cliente)</code>, <code>listarTodos()</code></td>
                             </tr>
                             <tr>
                                 <td><code>UsuarioDAO</code></td>
