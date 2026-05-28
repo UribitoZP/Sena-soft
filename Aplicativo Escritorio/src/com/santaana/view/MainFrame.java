@@ -42,7 +42,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private TableroPanel      tableroPanel;
     private NotificacionPanel notifPanel;
     private ReportePanel      reportePanel;
-
+    private ProductoPanel     productoPanel;
+    
     public MainFrame(String role, String welcomeMessage, int idUsuario) {
         this.userRole  = role;
         this.idUsuario = idUsuario;
@@ -85,6 +86,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         // Agregar vistas
         tableroPanel = new TableroPanel(userRole, () -> abrirNuevaReserva(), () -> refrescarTodo());
         contentPanel.add(tableroPanel, "Tablero");
+        productoPanel = new ProductoPanel();
+        contentPanel.add(productoPanel, "Producto");
         reservaPanel = new ReservaPanel(userRole);
         reservaPanel.setOnEstadoCambiado(() -> refrescarTodo());
         contentPanel.add(reservaPanel, "Reserva");
@@ -267,7 +270,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         side.add(Box.createVerticalStrut(30));
 
 
-        String[] items = { "Tablero", "Gestión de Habitaciones","Gestión de Usuarios", "Reserva", "Historial", "Reporte" };
+        String[] items = { "Tablero", "Producto", "Gestión de Habitaciones","Gestión de Usuarios", "Reserva", "Historial", "Reporte" };
         for (String item : items) {
             if(userRole.equalsIgnoreCase("Recepcionista") && (item.equals("Gestión de Habitaciones") || item.equals("Gestión de Usuarios"))) {
                 continue;
@@ -336,7 +339,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                 }
                 
                 // Solo cambiar si la vista existe
-                if (text.equals("Tablero") || text.equals("Reserva") || text.equals("Gestión de Habitaciones")
+                if (text.equals("Tablero") || text.equals("Producto") || text.equals("Reserva") || text.equals("Gestión de Habitaciones")
                         || text.equals("Gestión de Usuarios") || text.equals("Notificaciones")
                         || text.equals("Historial") || text.equals("Reporte")) {
                     currentView = text;
@@ -383,7 +386,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         sidebarPanel.add(logoBrand);
         sidebarPanel.add(Box.createVerticalStrut(30));
 
-        String[] items = { "Tablero", "Gestión de Habitaciones", "Gestión de Usuarios", "Reserva", "Historial", "Reporte" };
+        String[] items = { "Tablero","Producto", "Gestión de Habitaciones", "Gestión de Usuarios", "Reserva", "Historial", "Reporte" };
         for (String item : items) {
             if(userRole.equalsIgnoreCase("Recepcionista") && (item.equals("Gestión de Habitaciones") || item.equals("Gestión de Usuarios"))) {
                 continue;
