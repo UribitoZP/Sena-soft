@@ -43,7 +43,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private NotificacionPanel notifPanel;
     private ReportePanel      reportePanel;
 
-    public MainFrame(String role, String welcomeMessage, int idUsuario) {
+    public MainFrame(String role, int idUsuario) {
         this.userRole  = role;
         this.idUsuario = idUsuario;
         setTitle("Hotel Santa Ana — Sistema de Gestión");
@@ -60,9 +60,6 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
             if (navbarPanel != null) navbarPanel.repaint();
         }).start();
 
-        if (welcomeMessage != null && !welcomeMessage.isEmpty()) {
-            JOptionPane.showMessageDialog(this, welcomeMessage, "Bienvenido", JOptionPane.INFORMATION_MESSAGE);
-        }
     }
 
     private void initUI() {
