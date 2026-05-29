@@ -66,4 +66,16 @@ class ApiService {
     }
     throw Exception('Error al cargar estadísticas');
   }
+
+  // ── reportes ─────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> getReportes() async {
+    final response = await http
+        .get(Uri.parse('$_baseUrl/reportes'))
+        .timeout(const Duration(seconds: 10));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Error al obtener reportes: ${response.statusCode}');
+  }
 }
+

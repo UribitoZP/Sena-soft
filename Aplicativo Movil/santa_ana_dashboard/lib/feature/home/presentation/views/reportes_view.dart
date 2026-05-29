@@ -1,96 +1,102 @@
 import 'package:flutter/material.dart';
+import 'package:santa_ana_dashboard/core/services/api_service.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
 
-//  MODELOS
+// ════════════════════════════════════════════════════════════════
+//  REPORTS VIEW — Conectada a /reportes
+// ════════════════════════════════════════════════════════════════
 
-class WeekDayData {
-  final String label;
-  final double value; // 0.0 - 1.0
-  final bool isToday;
-  const WeekDayData({required this.label, required this.value, this.isToday = false});
-}
-
-class CategorySummary {
-  final String icon, name, detail, amount, pct;
-  final Color iconBg;
-  const CategorySummary({
-    required this.icon, required this.name, required this.detail,
-    required this.amount, required this.pct, required this.iconBg,
-  });
-}
-
-// Datos de ejemplo — reemplazar con datos del BLoC
-const _weekBars = [
-  WeekDayData(label: 'LUN', value: 0.55),
-  WeekDayData(label: 'MAR', value: 0.70),
-  WeekDayData(label: 'MIÉ', value: 0.45),
-  WeekDayData(label: 'JUE', value: 0.85),
-  WeekDayData(label: 'HOY', value: 1.00, isToday: true),
-  WeekDayData(label: 'SÁB', value: 0.30),
-  WeekDayData(label: 'DOM', value: 0.20),
-];
-
-const _occupancyPoints = [0.65, 0.72, 0.58, 0.87, 0.84, 0.0, 0.0];
-
-const _categories = [
-  CategorySummary(
-    icon: '🏨', name: 'Suites', detail: '12 reservas · 100% ocupación',
-    amount: '\$42.0k', pct: '47% del total',
-    iconBg: Color(0x26C9A84C),
-  ),
-  CategorySummary(
-    icon: '🛏️', name: 'Estándar', detail: '68 reservas · 78% ocupación',
-    amount: '\$31.2k', pct: '35% del total',
-    iconBg: Color(0x265B8DEE),
-  ),
-  CategorySummary(
-    icon: '🌿', name: 'Junior Suite', detail: '22 reservas · 88% ocupación',
-    amount: '\$16.2k', pct: '18% del total',
-    iconBg: Color(0x264CAF82),
-  ),
-];
-
-//  REPORTS VIEW
-
-class ReportsView extends StatefulWidget {
-  const ReportsView({super.key});
+class ReportesView extends StatefulWidget {
+  const ReportesView({super.key});
 
   @override
-  State<ReportsView> createState() => _ReportsViewState();
+  State<ReportesView> createState() => _ReportesViewState();
 }
 
-class _ReportsViewState extends State<ReportsView> {
-  int _selectedPeriod = 1;
-  final _periods = ['Hoy', 'Semana', 'Mes', 'Año'];
+class _ReportesViewState extends State<ReportesView> {
+  final _api = ApiService();
+  late Future<Map<String, dynamic>> _future;
+  int _selectedPeriod = 0;
+  final _periods = ['Ingresos/Mes', 'Reservas/Mes'];
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _api.getReportes();
+  }
+
+  void _refresh() => setState(() => _future = _api.getReportes());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bgColor,
       body: SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(child: _buildHeader()),
-            SliverToBoxAdapter(child: _buildPeriodSelector()),
-            SliverToBoxAdapter(child: _buildKpiGrid()),
-            SliverToBoxAdapter(child: _buildBarChart()),
-            SliverToBoxAdapter(child: _buildLineChart()),
-            SliverToBoxAdapter(child: _buildSummaryTitle()),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: _CategoryRow(data: _categories[i]),
-                  ),
-                  childCount: _categories.length,
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: _future,
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: AppTheme.goldColor),
+              );
+            }
+            if (snap.hasError || snap.data == null) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.wifi_off_rounded,
+                        color: AppTheme.errorColor, size: 48),
+                    const SizedBox(height: 12),
+                    const Text('Sin conexión al servidor',
+                        style: TextStyle(
+                            color: AppTheme.errorColor, fontSize: 14)),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _refresh,
+                      child: const Text('Reintentar'),
+                    ),
+                  ],
                 ),
+              );
+            }
+
+            final data  = snap.data!;
+            final kpis  = data['kpis']  as Map<String, dynamic>? ?? {};
+            final ingresosMes  = (data['ingresosPorMes']  as List<dynamic>?) ?? [];
+            final reservasMes  = (data['reservasPorMes']  as List<dynamic>?) ?? [];
+            final topHabs      = (data['topHabitaciones'] as List<dynamic>?) ?? [];
+
+            return RefreshIndicator(
+              color: AppTheme.goldColor,
+              onRefresh: () async => _refresh(),
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics()),
+                slivers: [
+                  SliverToBoxAdapter(child: _buildHeader()),
+                  SliverToBoxAdapter(child: _buildKpiGrid(kpis)),
+                  SliverToBoxAdapter(child: _buildChartToggle()),
+                  SliverToBoxAdapter(
+                    child: _selectedPeriod == 0
+                        ? _buildBarChart(
+                            'Ingresos por mes',
+                            ingresosMes,
+                            isMoneda: true,
+                          )
+                        : _buildBarChart(
+                            'Reservas por mes',
+                            reservasMes,
+                            isMoneda: false,
+                          ),
+                  ),
+                  SliverToBoxAdapter(
+                      child: _buildTopHabs(topHabs)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                ],
               ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 16)),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -101,82 +107,71 @@ class _ReportsViewState extends State<ReportsView> {
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-      child: RichText(
-        text: const TextSpan(
-          style: TextStyle(
-            fontFamily: 'Georgia', fontSize: 22,
-            fontWeight: FontWeight.w700, color: AppTheme.textColor,
-          ),
-          children: [
-            TextSpan(text: 'Reportes '),
-            TextSpan(text: '· Marzo',
-                style: TextStyle(color: AppTheme.goldColor)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Period selector ──────────────────────────────────────────
-
-  Widget _buildPeriodSelector() {
-    return SizedBox(
-      height: 52,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(24, 14, 24, 0),
-        itemCount: _periods.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          final isActive = i == _selectedPeriod;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedPeriod = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-              decoration: BoxDecoration(
-                color: isActive ? AppTheme.goldDim : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isActive ? AppTheme.goldColor : AppTheme.borderColor,
-                ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          RichText(
+            text: const TextSpan(
+              style: TextStyle(
+                fontFamily: 'Georgia', fontSize: 22,
+                fontWeight: FontWeight.w700, color: AppTheme.textColor,
               ),
-              child: Text(
-                _periods[i],
-                style: TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600,
-                  letterSpacing: 0.3,
-                  color: isActive ? AppTheme.goldColor : AppTheme.textMuted,
+              children: [
+                TextSpan(text: 'Reportes '),
+                TextSpan(
+                  text: '· Contabilidad',
+                  style: TextStyle(color: AppTheme.goldColor),
                 ),
-              ),
+              ],
             ),
-          );
-        },
+          ),
+          GestureDetector(
+            onTap: _refresh,
+            child: Container(
+              width: 38, height: 38,
+              decoration: BoxDecoration(
+                color: AppTheme.cardColor,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.borderColor),
+              ),
+              child: const Icon(Icons.refresh_rounded,
+                  color: AppTheme.goldColor, size: 18),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // ── KPI grid ────────────────────────────────────────────────
+  // ── KPI Grid ────────────────────────────────────────────────
 
-  Widget _buildKpiGrid() {
-    final kpis = [
-      ('💰', 'INGRESOS',      '\$89.4k', '↑ 14% vs semana ant.', true,  AppTheme.goldColor),
-      ('📈', 'OCUPACIÓN',     '84%',     '↑ 5% vs semana ant.',  true,  AppTheme.successColor),
-      ('🛎️', 'RESERVAS',      '142',     '↑ 8 nuevas',           true,  AppTheme.infoColor),
-      ('❌', 'CANCELACIONES', '7',       '↓ 3 vs semana ant.',   false, AppTheme.errorColor),
+  Widget _buildKpiGrid(Map<String, dynamic> kpis) {
+    final ingresosConf  = kpis['ingresosConfirmadosFormato']  ?? '\$0';
+    final anticipos     = kpis['anticiposTotalesFormato']     ?? '\$0';
+    final totalRes      = kpis['totalReservas']               ?? 0;
+    final activas       = kpis['activas']                     ?? 0;
+    final completadas   = kpis['completadas']                 ?? 0;
+    final canceladas    = kpis['canceladas']                  ?? 0;
+    final tasaCanc      = (kpis['tasaCancelacion'] as num?)?.toDouble() ?? 0.0;
+
+    final items = [
+      ('💰', 'INGRESOS CONF.',  '$ingresosConf',    'De reservas completadas', AppTheme.successColor),
+      ('🏦', 'ANTICIPOS',       '$anticipos',        'Suma de todos los anticipos', AppTheme.infoColor),
+      ('🛎️', 'TOTAL RESERVAS',  '$totalRes',         '$activas activas · $completadas comp.', AppTheme.goldColor),
+      ('❌', 'CANCELACIONES',   '$canceladas',       '${tasaCanc.toStringAsFixed(1)}% tasa cancelación', AppTheme.errorColor),
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: GridView.count(
         crossAxisCount: 2,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
-        childAspectRatio: 1.6,
-        children: kpis.map((k) {
-          final (icon, label, value, change, isUp, color) = k;
+        childAspectRatio: 1.55,
+        children: items.map((k) {
+          final (icon, label, value, sub, color) = k;
           return Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -190,27 +185,21 @@ class _ReportsViewState extends State<ReportsView> {
               children: [
                 Text('$icon $label',
                     style: const TextStyle(
-                      fontSize: 10, color: AppTheme.textMuted,
-                      letterSpacing: 0.5,
-                    )),
+                        fontSize: 9, color: AppTheme.textMuted, letterSpacing: 0.5)),
                 Text(value,
                     style: TextStyle(
-                      fontFamily: 'Georgia', fontSize: 22,
-                      fontWeight: FontWeight.w700, color: AppTheme.textColor,
-                      height: 1,
+                      fontFamily: 'Georgia', fontSize: 20,
+                      fontWeight: FontWeight.w700, color: color, height: 1,
                     )),
-                Text(change,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isUp ? AppTheme.successColor : AppTheme.errorColor,
-                    )),
-                // Barra inferior de color
+                Text(sub,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 9, color: AppTheme.textMuted)),
                 Container(
                   height: 2,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [color, Colors.transparent],
-                    ),
+                        colors: [color, Colors.transparent]),
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),
@@ -222,9 +211,52 @@ class _ReportsViewState extends State<ReportsView> {
     );
   }
 
+  // ── Chart toggle ─────────────────────────────────────────────
+
+  Widget _buildChartToggle() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Row(
+        children: _periods.asMap().entries.map((e) {
+          final isActive = e.key == _selectedPeriod;
+          return Padding(
+            padding: EdgeInsets.only(right: e.key == 0 ? 8 : 0),
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedPeriod = e.key),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isActive ? AppTheme.goldDim : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isActive ? AppTheme.goldColor : AppTheme.borderColor,
+                  ),
+                ),
+                child: Text(e.value,
+                    style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600,
+                      color: isActive ? AppTheme.goldColor : AppTheme.textMuted,
+                    )),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   // ── Bar chart ────────────────────────────────────────────────
 
-  Widget _buildBarChart() {
+  Widget _buildBarChart(String titulo, List<dynamic> data,
+      {required bool isMoneda}) {
+    if (data.isEmpty) return _emptyCard(titulo);
+
+    final valores = data
+        .map((e) => (e['valor'] as num).toDouble())
+        .toList();
+    final maxVal = valores.reduce((a, b) => a > b ? a : b);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Container(
@@ -237,86 +269,71 @@ class _ReportsViewState extends State<ReportsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Ingresos por día',
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 2),
-                    const Text('Esta semana',
-                        style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
-                  ],
-                ),
-                RichText(
-                  text: const TextSpan(
-                    children: [
-                      TextSpan(
-                        text: '\$89.4k',
-                        style: TextStyle(
-                          fontFamily: 'Georgia', fontSize: 18,
-                          fontWeight: FontWeight.w700, color: AppTheme.goldColor,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' total',
-                        style: TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+            Text(titulo,
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 4),
+            Text('Últimos 6 meses',
+                style: const TextStyle(
+                    fontSize: 11, color: AppTheme.textMuted)),
             const SizedBox(height: 16),
-            // Barras
             SizedBox(
-              height: 80,
+              height: 100,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
-                children: _weekBars.map((d) {
+                children: data.asMap().entries.map((e) {
+                  final item   = e.value as Map<String, dynamic>;
+                  final val    = (item['valor'] as num).toDouble();
+                  final mes    = (item['mes'] as String).length >= 7
+                      ? (item['mes'] as String).substring(5)
+                      : item['mes'] as String;
+                  final isLast = e.key == data.length - 1;
+                  final ratio  = maxVal == 0 ? 0.0 : val / maxVal;
+
                   return Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 3),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 600),
-                                  width: double.infinity,
-                                  height: 60 * d.value,
-                                  decoration: BoxDecoration(
-                                    color: d.isToday
-                                        ? AppTheme.goldColor
-                                        : d.value > 0
-                                            ? AppTheme.goldColor.withOpacity(0.45)
-                                            : AppTheme.borderColor,
-                                    borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(4)),
-                                  ),
-                                ),
-                              ],
+                          // Valor encima
+                          if (val > 0)
+                            Text(
+                              isMoneda
+                                  ? _abreviar(val)
+                                  : val.toInt().toString(),
+                              style: TextStyle(
+                                fontSize: 8,
+                                color: isLast
+                                    ? AppTheme.goldColor
+                                    : AppTheme.textMuted,
+                              ),
+                            ),
+                          const SizedBox(height: 2),
+                          // Barra
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 600),
+                            width: double.infinity,
+                            height: (70 * ratio).clamp(4.0, 70.0),
+                            decoration: BoxDecoration(
+                              color: isLast
+                                  ? AppTheme.goldColor
+                                  : AppTheme.goldColor.withOpacity(0.4),
+                              borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(4)),
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text(
-                            d.label,
-                            style: TextStyle(
-                              fontSize: 9,
-                              color: d.isToday
-                                  ? AppTheme.goldColor
-                                  : AppTheme.textMuted,
-                              fontWeight: d.isToday
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
-                            ),
-                          ),
+                          // Mes
+                          Text(mes,
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: isLast
+                                    ? AppTheme.goldColor
+                                    : AppTheme.textMuted,
+                                fontWeight: isLast
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                              )),
                         ],
                       ),
                     ),
@@ -330,9 +347,23 @@ class _ReportsViewState extends State<ReportsView> {
     );
   }
 
-  // ── Line chart ───────────────────────────────────────────────
+  // ── Top habitaciones ─────────────────────────────────────────
 
-  Widget _buildLineChart() {
+  Widget _buildTopHabs(List<dynamic> data) {
+    if (data.isEmpty) return _emptyCard('Top habitaciones');
+
+    final maxVal = data
+        .map((e) => (e['reservas'] as num).toDouble())
+        .reduce((a, b) => a > b ? a : b);
+
+    final colors = [
+      AppTheme.goldColor,
+      AppTheme.successColor,
+      AppTheme.infoColor,
+      AppTheme.errorColor,
+      const Color(0xFFA855F7),
+    ];
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       child: Container(
@@ -345,204 +376,78 @@ class _ReportsViewState extends State<ReportsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Ocupación semanal',
+            Text('Top habitaciones más reservadas',
                 style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 2),
-            const Text('Promedio: 84% esta semana',
-                style: TextStyle(fontSize: 11, color: AppTheme.textMuted)),
             const SizedBox(height: 16),
-            SizedBox(
-              height: 80,
-              child: CustomPaint(
-                size: const Size(double.infinity, 80),
-                painter: _LineChartPainter(points: _occupancyPoints),
-              ),
-            ),
-            const SizedBox(height: 8),
-            // Labels
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: ['LUN', 'MAR', 'MIÉ', 'JUE', 'HOY', 'SÁB', 'DOM']
-                  .map((d) => Text(
-                        d,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: d == 'HOY'
-                              ? AppTheme.goldColor
-                              : AppTheme.textMuted,
-                          fontWeight: d == 'HOY'
-                              ? FontWeight.w700
-                              : FontWeight.w400,
-                        ),
-                      ))
-                  .toList(),
-            ),
+            ...data.asMap().entries.map((e) {
+              final item  = e.value as Map<String, dynamic>;
+              final hab   = item['habitacion'] as String;
+              final res   = (item['reservas'] as num).toInt();
+              final ratio = maxVal == 0 ? 0.0 : res / maxVal;
+              final color = colors[e.key % colors.length];
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(hab,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textColor,
+                                fontWeight: FontWeight.w600)),
+                        Text('$res reservas',
+                            style: TextStyle(
+                                fontSize: 11, color: color,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: ratio,
+                        minHeight: 5,
+                        backgroundColor: AppTheme.borderColor,
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),
     );
   }
 
-  // ── Summary title ────────────────────────────────────────────
+  // ── Helpers ──────────────────────────────────────────────────
 
-  Widget _buildSummaryTitle() {
+  Widget _emptyCard(String titulo) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 18, 24, 10),
-      child: Text('Resumen por categoría',
-          style: Theme.of(context).textTheme.titleMedium),
-    );
-  }
-}
-
-//  LINE CHART PAINTER
-
-class _LineChartPainter extends CustomPainter {
-  final List<double> points;
-  const _LineChartPainter({required this.points});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Solo pinta los puntos con valor > 0
-    final activePoints = points.where((p) => p > 0).toList();
-    if (activePoints.length < 2) return;
-
-    final spacing = size.width / (points.length - 1);
-    final activeOffsets = <Offset>[];
-
-    for (int i = 0; i < points.length; i++) {
-      if (points[i] > 0) {
-        activeOffsets.add(Offset(
-          i * spacing,
-          size.height - (points[i] * size.height * 0.85) - 8,
-        ));
-      }
-    }
-
-    // Path de la línea
-    final path = Path()..moveTo(activeOffsets.first.dx, activeOffsets.first.dy);
-    for (int i = 1; i < activeOffsets.length; i++) {
-      final prev = activeOffsets[i - 1];
-      final curr = activeOffsets[i];
-      final cp1 = Offset((prev.dx + curr.dx) / 2, prev.dy);
-      final cp2 = Offset((prev.dx + curr.dx) / 2, curr.dy);
-      path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, curr.dx, curr.dy);
-    }
-
-    // Area rellena
-    final areaPath = Path.from(path)
-      ..lineTo(activeOffsets.last.dx, size.height)
-      ..lineTo(activeOffsets.first.dx, size.height)
-      ..close();
-
-    canvas.drawPath(
-      areaPath,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            AppTheme.goldColor.withOpacity(0.25),
-            AppTheme.goldColor.withOpacity(0.0),
-          ],
-        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
-    );
-
-    // Línea
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = AppTheme.goldColor
-        ..strokeWidth = 2
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round,
-    );
-
-    // Puntos
-    for (int i = 0; i < activeOffsets.length; i++) {
-      final isLast = i == activeOffsets.length - 1;
-      canvas.drawCircle(
-        activeOffsets[i],
-        isLast ? 4 : 3,
-        Paint()..color = AppTheme.goldColor,
-      );
-      if (isLast) {
-        canvas.drawCircle(
-          activeOffsets[i],
-          4,
-          Paint()
-            ..color = AppTheme.bgColor
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2,
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_LineChartPainter old) => old.points != points;
-}
-
-//  CATEGORY ROW
-
-class _CategoryRow extends StatelessWidget {
-  final CategorySummary data;
-  const _CategoryRow({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
-      child: Row(
-        children: [
-          // Ícono
-          Container(
-            width: 38, height: 38,
-            decoration: BoxDecoration(
-              color: data.iconBg,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(child: Text(data.icon, style: const TextStyle(fontSize: 18))),
-          ),
-          const SizedBox(width: 12),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(data.name,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontSize: 13)),
-                const SizedBox(height: 2),
-                Text(data.detail,
-                    style: const TextStyle(
-                        fontSize: 11, color: AppTheme.textMuted)),
-              ],
-            ),
-          ),
-          // Valores
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(data.amount,
-                  style: const TextStyle(
-                    fontFamily: 'Georgia', fontSize: 16,
-                    fontWeight: FontWeight.w700, color: AppTheme.goldColor,
-                  )),
-              const SizedBox(height: 2),
-              Text(data.pct,
-                  style: const TextStyle(
-                      fontSize: 10, color: AppTheme.successColor)),
-            ],
-          ),
-        ],
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.borderColor),
+        ),
+        child: Center(
+          child: Text('Sin datos para $titulo',
+              style: const TextStyle(
+                  color: AppTheme.textMuted, fontSize: 13)),
+        ),
       ),
     );
+  }
+
+  String _abreviar(double val) {
+    if (val >= 1_000_000) return '\$${(val / 1_000_000).toStringAsFixed(1)}M';
+    if (val >= 1_000)     return '\$${(val / 1_000).toStringAsFixed(0)}k';
+    return '\$${val.toInt()}';
   }
 }
