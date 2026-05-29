@@ -14,12 +14,12 @@ public class SeedData {
             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM usuarios");
             if (rs.next() && rs.getInt(1) > 0) return; // ya tiene datos
 
-            // Usuarios
-            stmt.executeUpdate("INSERT INTO usuarios (nombre, usuario, clave, rol) VALUES " +
-                "('Carlos Admin',    'admin',       '1234', 'Administrador')," +
-                "('Laura Recepcion', 'recepcion',   '1234', 'Recepcionista')");
+            // Usuarios - CORREGIDO: Se cerró la comilla de 'admin' y se añadieron telefono y correo
+            stmt.executeUpdate("INSERT INTO usuarios (nombre, usuario, clave, rol, telefono, correo) VALUES " +
+                "('---- Admin',    'admin',    '1234', 'Administrador', '3000000000', 'admin@hotelsantaana.com')," +
+                "('---- Recepcion', 'recepcion', '1234', 'Recepcionista',  '3000000001', 'recepcion@hotelsantaana.com')");
 
-            // Habitaciones — Piso 1: Simple | Piso 2: Doble
+            // Habitaciones
             stmt.executeUpdate("INSERT INTO habitaciones (numero, tipo, precio, estado) VALUES " +
                 "('101', 'Simple', 120000, 'Disponible')," +
                 "('102', 'Simple', 120000, 'Disponible')," +
@@ -37,7 +37,7 @@ public class SeedData {
                 "('214', 'Doble',  200000, 'Disponible')," +
                 "('215', 'Doble',  200000, 'Disponible')");
 
-            System.out.println("Datos iniciales insertados.");
+            System.out.println("Datos iniciales insertados con éxito.");
 
         } catch (SQLException e) {
             System.err.println("Error insertando seed: " + e.getMessage());
