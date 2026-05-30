@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguridad | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html" class="active">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="seguridad">
+                <h1>Seguridad</h1>
+                <p class="lead">Medidas implementadas para proteger contraseñas, datos sensibles y el acceso a la API REST.</p>
+                <hr>
+
+                <h2>1. Hash de Contraseñas — PBKDF2</h2>
+                <p>Las contraseñas ya no se almacenan en texto plano. <code>PasswordUtil</code> aplica <strong>PBKDF2WithHmacSHA256</strong> con 600.000 iteraciones y sal aleatoria de 16 bytes, usando solo el JDK estándar (<code>javax.crypto.SecretKeyFactory</code>), sin dependencias externas.</p>
+
+                <div class="code-block">
+                    <pre><code>private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
+private static final int ITERATIONS = 600_000;
+private static final int KEY_LENGTH = 256;
+private static final int SALT_LENGTH = 16;
+
+public static String hash(String password) {
+    byte[] salt = SecureRandom.getSeed(SALT_LENGTH);
+    SecretKeyFactory skf = SecretKeyFactory.getInstance(ALGORITHM);
+    PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH);
+    byte[] hash = skf.generateSecret(spec).getEncoded();
+    return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
+}</code></pre>
+                </div>
+
+                <div class="callout info">
+                    <p><strong>Migración automática:</strong> El <code>SchemaManager</code> versión 7 migra las contraseñas en texto plano existentes a hash PBKDF2 al iniciar la aplicación. No requiere intervención manual.</p>
+                </div>
+
+                <h2>2. Autenticación por Token</h2>
+                <p>El servidor REST genera un token UUID tras un login exitoso. Todos los endpoints protegidos requieren el header <code>Authorization: Bearer &lt;token&gt;</code>. <code>TokenManager</code> almacena los tokens activos en memoria y los invalida al cerrar la aplicación.</p>
+
+                <h2>3. Rate Limiting</h2>
+                <p>5 intentos fallidos de login desde la misma IP producen un bloqueo de 30 segundos, evitando ataques de fuerza bruta.</p>
+
+                <h2>4. Contraseñas en Memoria</h2>
+                <p>Los campos de contraseña en la interfaz gráfica se limpian explícitamente después de usar (<code>clearPassword()</code>). En el diálogo de edición de usuarios, el campo de contraseña no se pre-rellena, evitando que el hash quede visible o que se reenvíe accidentalmente.</p>
+
+                <h2>5. Base de datos excluida de Git</h2>
+                <p>El archivo <code>santaana.db</code> fue eliminado del repositorio y agregado a <code>.gitignore</code> mediante los patrones <code>bin/</code> y <code>*.db</code>. Esto evita que datos de prueba o reales queden expuestos en el control de versiones.</p>
+
+                <h2>6. Pendientes</h2>
+                <ul>
+                    <li><strong>TLS/SSL:</strong> El servidor HTTP actual no tiene cifrado. Se requiere un keystore y configuración de <code>HttpsServer</code> para entornos productivos.</li>
+                    <li><strong>Parser JSON:</strong> <code>AuthHandler.extraer()</code> usa un parser manual. Se recomienda migrar a <code>org.json</code> o Gson.</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

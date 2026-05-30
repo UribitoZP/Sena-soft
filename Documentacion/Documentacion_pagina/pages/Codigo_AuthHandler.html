@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código: AuthHandler | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html" class="active">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="codigo-authhandler">
+    <h1>Código Fuente: AuthHandler</h1>
+    <p class="lead">Maneja la autenticación de usuarios con rate limiting y generación de tokens.</p>
+    <hr>
+
+    <h2>Propósito</h2>
+    <p>Procesa las solicitudes POST a <code>/auth/login</code>. Verifica credenciales contra la base de datos, aplica rate limiting por IP y genera un token UUID para el cliente autenticado.</p>
+
+    <h2>Código completo</h2>
+    <div class="code-block">
+        <pre><code>public class AuthHandler implements HttpHandler {
+    private static final Map&lt;String, int[]&gt; intentos = new HashMap&lt;&gt;();
+    private static final int MAX_INTENTOS = 5;
+    private static final long BLOQUEO_MS = 30_000;
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        if ("OPTIONS".equals(exchange.getRequestMethod())) {
+            JsonUtil.enviarRespuesta(exchange, 204, "");
+            return;
+        }
+        if (!"POST".equals(exchange.getRequestMethod())) {
+            JsonUtil.enviarRespuesta(exchange, 405, "{\"error\":\"Método no permitido\"}");
+            return;
+        }
+
+        String ip = exchange.getRemoteAddress().getAddress().getHostAddress();
+        long ahora = System.currentTimeMillis();
+
+        synchronized (intentos) {
+            if (intentos.containsKey(ip)) {
+                int[] datos = intentos.get(ip);
+                if (datos[0] >= MAX_INTENTOS) {
+                    if (ahora - datos[1] &lt; BLOQUEO_MS) {
+                        JsonUtil.enviarRespuesta(exchange, 429,
+                            "{\"error\":\"Demasiados intentos. Espere 30 segundos.\"}");
+                        return;
+                    } else {
+                        intentos.remove(ip);
+                    }
+                }
+            }
+        }
+
+        String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        String usuario = extraer(body, "usuario");
+        String clave = extraer(body, "clave");
+
+        UsuarioDAO dao = new UsuarioDAO();
+        String token = null;
+        try {
+            int idUsuario = dao.autenticarSinRol(usuario, clave);
+            if (idUsuario != -1) {
+                synchronized (intentos) { intentos.remove(ip); }
+                token = TokenManager.generar(usuario);
+                String json = String.format(
+                    "{\"token\":\"%s\",\"usuario\":\"%s\",\"rol\":\"%s\"}",
+                    token, usuario, dao.buscarPorId(idUsuario).getRol());
+                JsonUtil.enviarRespuesta(exchange, 200, json);
+            } else {
+                registrarIntento(ip);
+                JsonUtil.enviarRespuesta(exchange, 401,
+                    "{\"error\":\"Credenciales inválidas\"}");
+            }
+        } catch (DatabaseException e) {
+            JsonUtil.enviarRespuesta(exchange, 500,
+                "{\"error\":\"Error interno del servidor\"}");
+        }
+    }
+
+    private synchronized void registrarIntento(String ip) {
+        intentos.putIfAbsent(ip, new int[]{0, (int) System.currentTimeMillis()});
+        intentos.get(ip)[0]++;
+    }
+
+    private String extraer(String json, String campo) {
+        String busca = "\"" + campo + "\":\"";
+        int inicio = json.indexOf(busca) + busca.length();
+        int fin = json.indexOf("\"", inicio);
+        return fin == -1 || inicio &lt; busca.length() ? "" : json.substring(inicio, fin);
+    }
+}</code></pre>
+    </div>
+
+    <h2>Explicación</h2>
+
+    <h3>Rate limiting</h3>
+    <p>El mapa <code>intentos</code> almacena por IP el contador de fallos y el timestamp del primer intento. Si se superan 5 intentos fallidos dentro de 30 segundos, la IP es bloqueada temporalmente. El bloqueo usa <code>synchronized</code> para acceso thread-safe.</p>
+
+    <h3>Flujo de autenticación</h3>
+    <ol>
+        <li>Verifica que sea método POST (responde 405 si no).</li>
+        <li>Verifica rate limiting (responde 429 si bloqueado).</li>
+        <li>Lee el body JSON y extrae usuario/clave.</li>
+        <li>Llama a <code>UsuarioDAO.autenticarSinRol()</code> que verifica contra hash PBKDF2.</li>
+        <li>Si es válido: remueve el contador de intentos, genera token UUID y retorna 200.</li>
+        <li>Si no es válido: registra el intento fallido y retorna 401.</li>
+        <li>Si hay error de BD: retorna 500 sin exponer detalles.</li>
+    </ol>
+
+    <h3>Parser JSON manual</h3>
+    <p>El método <code>extraer()</code> busca el campo en el string JSON recorriendo caracteres. Es un enfoque frágil que se recomienda reemplazar por una librería como <code>org.json</code> o Gson en el futuro.</p>
+</section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

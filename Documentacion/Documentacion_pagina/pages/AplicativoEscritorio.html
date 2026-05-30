@@ -62,7 +62,14 @@
                 <div class="nav-group">
                     <h3>Galería</h3>
                     <ul>
-                        <li><a href="../pages/AplicativoEscritorio.html" class="active">Aplicativo de escritorio</a></li>
+                        <li><a href="../pages/Instalacion.html" class="active">Instalación</a></li>
+                        <li><a href="../pages/Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="../pages/BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="../pages/APIREST.html">API REST</a></li>
+                        <li><a href="../pages/Seguridad.html">Seguridad</a></li>
+                        <li><a href="../pages/Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="../pages/UI.html">UI / Componentes</a></li>
+                        <li><a href="../pages/SolucionProblemas.html">Solución de Problemas</a></li>
                         <li><a href="../pages/AplicativoMovil.html">Aplicativo móvil</a></li>
                     </ul>
                 </div>
@@ -78,13 +85,24 @@
 
         <main class="content">
 
-            <!-- ══════════════════════════════════════════
-                 SECCIÓN 1 — REQUISITOS
-            ══════════════════════════════════════════ -->
-            <section id="requisitos">
+            <section id="redireccion">
                 <h1>Aplicativo de Escritorio</h1>
-                <p class="lead">Guía completa de instalación, configuración y funcionamiento del sistema de gestión hotelera Hotel Santa Ana.</p>
-                <hr>
+                <div class="callout info">
+                    <p><strong>Contenido reestructurado:</strong> La documentación del aplicativo de escritorio se ha dividido en páginas temáticas para facilitar la navegación.</p>
+                </div>
+                <p style="font-size:1.1em;">Selecciona un tema en el menú lateral:</p>
+                <ul style="font-size:1.05em; line-height:2;">
+                    <li><a href="Instalacion.html"><strong>Instalación</strong></a> — Requisitos, librerías, ejecución y credenciales</li>
+                    <li><a href="Arquitectura.html"><strong>Arquitectura</strong></a> — Paquetes, DAO, ciclo de vida de habitaciones, modo oscuro</li>
+                    <li><a href="BaseDeDatos.html"><strong>Base de Datos</strong></a> — Esquema SQLite, migraciones y datos iniciales</li>
+                    <li><a href="APIREST.html"><strong>API REST</strong></a> — Endpoints, autenticación por token, rate limiting, CORS</li>
+                    <li><a href="Seguridad.html"><strong>Seguridad</strong></a> — Hash PBKDF2, tokens, rate limiting, .gitignore</li>
+                    <li><a href="Concurrencia.html"><strong>Concurrencia</strong></a> — synchronized, ruta absoluta de BD, hilos EDT vs servidor</li>
+                    <li><a href="UI.html"><strong>UI / Componentes</strong></a> — ThemeManager, DateUtil, formularios, validaciones</li>
+                    <li><a href="SolucionProblemas.html"><strong>Solución de Problemas</strong></a> — Errores comunes y soluciones</li>
+                </ul>
+                <p style="margin-top:1.5rem;">También puedes consultar las páginas de <strong>Desarrollo</strong> en el menú lateral para ver el código fuente explicado de cada clase.</p>
+            </section>
 
                 <h2>1. Requisitos del Sistema</h2>
                 <p>Antes de ejecutar el aplicativo, asegúrate de tener instalado lo siguiente en tu máquina:</p>

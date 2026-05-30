@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base de Datos | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html" class="active">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="basededatos">
+                <h1>Base de Datos SQLite</h1>
+                <p class="lead">Esquema completo, sistema de migraciones y datos iniciales del sistema hotelero.</p>
+                <hr>
+
+                <h2>1. SQLite Embebido</h2>
+                <p>A diferencia de sistemas que requieren un servidor de base de datos separado (MySQL, PostgreSQL), este sistema usa <strong>SQLite</strong>. El archivo de base de datos (<code>santaana.db</code>) se almacena en la raíz del proyecto y no requiere ningún proceso externo corriendo.</p>
+                <ul>
+                    <li><strong>Sin instalación:</strong> La librería viene incluida en el JAR, no hay que instalar nada.</li>
+                    <li><strong>Portabilidad:</strong> Toda la información queda en un solo archivo que se puede copiar o respaldar fácilmente.</li>
+                    <li><strong>Ideal para un solo equipo:</strong> Perfecta para aplicaciones de escritorio de uso local.</li>
+                </ul>
+
+                <h2>2. Esquema de la base de datos</h2>
+                <div class="code-block">
+                    <pre><code>-- Tabla usuarios
+CREATE TABLE usuarios (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre   TEXT NOT NULL,
+    usuario  TEXT NOT NULL UNIQUE,
+    clave    TEXT NOT NULL,
+    rol      TEXT NOT NULL CHECK(rol IN ('Administrador','Recepcionista'))
+);
+
+-- Tabla habitaciones
+CREATE TABLE habitaciones (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero  TEXT NOT NULL UNIQUE,
+    tipo    TEXT NOT NULL,
+    precio  REAL NOT NULL,
+    estado  TEXT NOT NULL CHECK(estado IN ('Disponible','Ocupada','Limpieza','Mantenimiento'))
+);
+
+-- Tabla clientes
+CREATE TABLE clientes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre      TEXT NOT NULL,
+    documento   TEXT UNIQUE NOT NULL,
+    telefono    TEXT,
+    correo      TEXT
+);
+
+-- Tabla reservas
+CREATE TABLE reservas (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id),
+    id_usuario      INTEGER NOT NULL REFERENCES usuarios(id),
+    id_cliente      INTEGER NOT NULL REFERENCES clientes(id),
+    fecha_entrada   TEXT NOT NULL,
+    hora_entrada    TEXT DEFAULT '12:00',
+    fecha_salida    TEXT NOT NULL,
+    hora_salida     TEXT DEFAULT '12:00',
+    tipo_estadia    TEXT DEFAULT 'Noche',
+    anticipo        REAL DEFAULT 0,
+    estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada'))
+);
+
+-- Tabla historial
+CREATE TABLE historial (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo        TEXT NOT NULL,
+    titulo      TEXT NOT NULL,
+    descripcion TEXT NOT NULL,
+    fecha_hora  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    id_usuario  INTEGER DEFAULT 0
+);
+
+-- Tabla cierres_mes
+CREATE TABLE cierres_mes (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    mes              TEXT NOT NULL UNIQUE,
+    id_usuario       INTEGER NOT NULL REFERENCES usuarios(id),
+    fecha_cierre     TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    total_ingresos   REAL NOT NULL DEFAULT 0,
+    total_reservas   INTEGER NOT NULL DEFAULT 0,
+    total_completadas INTEGER NOT NULL DEFAULT 0,
+    total_canceladas INTEGER NOT NULL DEFAULT 0,
+    notas            TEXT DEFAULT ''
+);</code></pre>
+                </div>
+
+                <h2>3. Sistema de Migraciones (SchemaManager)</h2>
+                <p>El sistema usa <code>PRAGMA user_version</code> de SQLite para versionar el esquema y aplicar migraciones automáticas al arrancar. Cada versión incrementa el número y ejecuta los cambios necesarios.</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Versión</th>
+                                <th>Cambio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>v1</td><td>Esquema inicial: <code>usuarios</code>, <code>habitaciones</code>, <code>reservas</code>, <code>historial</code></td></tr>
+                            <tr><td>v2</td><td>Columna <code>correo</code> en <code>usuarios</code></td></tr>
+                            <tr><td>v3</td><td>Columna <code>id_cliente</code> en <code>reservas</code></td></tr>
+                            <tr><td>v4</td><td>Columnas <code>hora</code> y <code>tipo_estadia</code> en <code>reservas</code></td></tr>
+                            <tr><td>v5</td><td>Columna <code>anticipo</code> en <code>reservas</code></td></tr>
+                            <tr><td>v6</td><td>Tabla <code>clientes</code> creada y <code>reservas</code> normalizada</td></tr>
+                            <tr><td>v7</td><td>Migración de contraseñas planas a hash PBKDF2</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>4. Datos Iniciales (SeedData)</h2>
+                <p>Al iniciar con la base de datos vacía, <code>SeedData</code> inserta:</p>
+                <ul>
+                    <li><strong>2 usuarios:</strong> <code>admin</code> y <code>recepcion</code> con contraseñas hasheadas con PBKDF2.</li>
+                    <li><strong>15 habitaciones:</strong> de distintos tipos y precios, todas en estado <code>Disponible</code>.</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>
