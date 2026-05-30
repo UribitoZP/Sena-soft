@@ -339,7 +339,23 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.forEach(el => observer.observe(el));
     };
 
+    // --- Preservar scroll del sidebar entre páginas ---
+    const setupSidebarScroll = () => {
+        const sidebar = document.querySelector('.sidebar');
+        if (!sidebar) return;
+
+        const saved = sessionStorage.getItem('sidebarScroll');
+        if (saved) sidebar.scrollTop = parseInt(saved, 10);
+
+        document.querySelectorAll('.side-nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                sessionStorage.setItem('sidebarScroll', sidebar.scrollTop);
+            });
+        });
+    };
+
     // --- INICIALIZACIÓN SEGURA ---
+    setupSidebarScroll();
     setupVersion();
     setupDarkMode();
     setupMobileMenu();

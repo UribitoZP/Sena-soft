@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código: SchemaManager | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html" class="active">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="codigo-schema">
+    <h1>Código Fuente: SchemaManager</h1>
+    <p class="lead">Sistema de migraciones automáticas para la base de datos SQLite usando PRAGMA user_version.</p>
+    <hr>
+
+    <h2>Propósito</h2>
+    <p>Crear y migrar el esquema de la base de datos automáticamente al iniciar la aplicación. Cada versión incrementa el número de schema y ejecuta los cambios necesarios (CREATE TABLE, ALTER TABLE, migración de datos).</p>
+
+    <h2>Estructura</h2>
+    <p>El método principal <code>aplicarMigraciones()</code> lee la versión actual con <code>PRAGMA user_version</code> y ejecuta las migraciones pendientes en orden:</p>
+
+    <div class="code-block">
+        <pre><code>public class SchemaManager {
+
+    public static void aplicarMigraciones() {
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            int versionActual = obtenerVersion(stmt);
+
+            if (versionActual &lt; 1) { migracionV1(stmt); versionActual = 1; }
+            if (versionActual &lt; 2) { migracionV2(stmt); versionActual = 2; }
+            if (versionActual &lt; 3) { migracionV3(stmt); versionActual = 3; }
+            if (versionActual &lt; 4) { migracionV4(stmt); versionActual = 4; }
+            if (versionActual &lt; 5) { migracionV5(stmt); versionActual = 5; }
+            if (versionActual &lt; 6) { migracionV6(stmt); versionActual = 6; }
+            if (versionActual &lt; 7) { migracionV7(stmt); versionActual = 7; }
+
+            stmt.execute("PRAGMA user_version = " + versionActual);
+            System.out.println("Esquema v" + versionActual + " listo.");
+        } catch (SQLException e) {
+            throw new DatabaseException("aplicar migraciones", e);
+        }
+    }
+
+    private static int obtenerVersion(Statement stmt) throws SQLException {
+        ResultSet rs = stmt.executeQuery("PRAGMA user_version");
+        return rs.getInt(1);
+    }
+}</code></pre>
+    </div>
+
+    <h2>Migraciones</h2>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr><th>Versión</th><th>SQL ejecutado</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>v1</td><td>CREATE TABLE usuarios, habitaciones, reservas, historial</td></tr>
+                <tr><td>v2</td><td>ALTER TABLE usuarios ADD COLUMN correo</td></tr>
+                <tr><td>v3</td><td>ALTER TABLE reservas ADD COLUMN id_cliente</td></tr>
+                <tr><td>v4</td><td>ALTER TABLE reservas ADD COLUMN hora, tipo_estadia</td></tr>
+                <tr><td>v5</td><td>ALTER TABLE reservas ADD COLUMN anticipo</td></tr>
+                <tr><td>v6</td><td>CREATE TABLE clientes, normalizar reservas</td></tr>
+                <tr><td>v7</td><td>Migrar contraseñas planas a hash PBKDF2</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Migración v7 (passwords a hash)</h2>
+    <div class="code-block">
+        <pre><code>private static void migracionV7(Statement stmt) throws SQLException {
+    ResultSet rs = stmt.executeQuery(
+        "SELECT id, clave FROM usuarios WHERE clave NOT LIKE '%:%'");
+    while (rs.next()) {
+        int id = rs.getInt("id");
+        String clavePlana = rs.getString("clave");
+        String hash = PasswordUtil.hash(clavePlana);
+        stmt.execute("UPDATE usuarios SET clave = '" + hash + "' WHERE id = " + id);
+    }
+}</code></pre>
+    </div>
+    <p>Detecta contraseñas sin el separador <code>:</code> (característico de PBKDF2 con Base64), las hashea y actualiza la base de datos.</p>
+
+    <h2>SeedData</h2>
+    <p>Después de las migraciones, <code>SeedData</code> verifica si la base está vacía y si es así inserta los datos iniciales con contraseñas ya hasheadas usando <code>PasswordUtil.hash("1234")</code>.</p>
+</section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

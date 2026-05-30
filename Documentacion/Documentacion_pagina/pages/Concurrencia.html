@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concurrencia | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html" class="active">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="concurrencia">
+                <h1>Concurrencia</h1>
+                <p class="lead">Manejo de hilos, sincronización de conexiones y resolución de condiciones de carrera.</p>
+                <hr>
+
+                <h2>1. Entorno Multihilo</h2>
+                <p>La aplicación funciona en un entorno multihilo real con dos fuentes de concurrencia:</p>
+                <ul>
+                    <li><strong>EDT (Event Dispatch Thread):</strong> Hilo principal de Java Swing que maneja la interfaz gráfica y responde a eventos del usuario.</li>
+                    <li><strong>Servidor REST:</strong> Se ejecuta en su propio hilo (<code>Executors.newSingleThreadExecutor()</code>) para atender peticiones HTTP del aplicativo móvil.</li>
+                </ul>
+                <p>Ambos hilos pueden solicitar una conexión a la base de datos simultáneamente.</p>
+
+                <h2>2. Thread Safety — synchronized</h2>
+                <p>Para evitar condiciones de carrera al crear la conexión SQLite, <code>DatabaseConnection.getConnection()</code> se marcó como <code>synchronized</code>. Esto garantiza que si el EDT y el servidor REST llaman al método al mismo tiempo mientras la instancia es <code>null</code>, solo un hilo ejecuta la inicialización. El otro hilo espera y obtiene la misma instancia ya creada.</p>
+
+                <div class="code-block">
+                    <pre><code>public static synchronized Connection getConnection() throws SQLException {
+    if (instance == null || instance.isClosed()) {
+        Class.forName("org.sqlite.JDBC");
+        instance = DriverManager.getConnection(DB_URL);
+        instance.setAutoCommit(true);
+    }
+    return instance;
+}</code></pre>
+                </div>
+
+                <div class="callout info">
+                    <p>El <code>synchronized</code> solo afecta el rendimiento durante la inicialización. Una vez creada la conexión, el bloqueo es prácticamente instantáneo (solo lectura de referencia).</p>
+                </div>
+
+                <h2>3. Ruta Absoluta de Base de Datos</h2>
+                <p>Otro problema de concurrencia indirecto: si el usuario ejecutaba la aplicación desde un acceso directo en el Escritorio, el directorio de trabajo cambiaba y SQLite creaba un archivo <code>santaana.db</code> vacío en el Escritorio, mientras el servidor REST y la UI apuntaban a bases de datos diferentes.</p>
+                <p>La solución calcula la ruta absoluta usando <code>ProtectionDomain.getCodeSource().getLocation()</code>, asegurando que sin importar desde dónde se ejecute el proceso, la base de datos siempre se busque y cree en la carpeta raíz del proyecto.</p>
+
+                <div class="code-block">
+                    <pre><code>private static String inicializarDbUrl() {
+    File dirClases = new File(
+        DatabaseConnection.class
+            .getProtectionDomain().getCodeSource().getLocation()
+            .toURI()
+    ).getAbsoluteFile();
+
+    File dbFile = dirClases.isDirectory()
+        && dirClases.getName().equalsIgnoreCase("bin")
+        ? new File(dirClases.getParentFile(), "santaana.db")
+        : new File(dirClases.getParentFile(), "santaana.db");
+
+    return "jdbc:sqlite:" + dbFile.getAbsolutePath();
+}</code></pre>
+                </div>
+
+                <h2>4. Manejo Global de Excepciones</h2>
+                <p><code>ApplicationMain</code> registra un manejador global de excepciones no capturadas en el EDT mediante <code>SwingUtilities.invokeLater()</code>, asegurando que cualquier error inesperado en la interfaz gráfica se muestre al usuario y no pase desapercibido en la consola.</p>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

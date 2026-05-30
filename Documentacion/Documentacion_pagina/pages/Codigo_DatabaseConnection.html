@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código: DatabaseConnection | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html" class="active">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html" class="">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html" class="">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <h1>Código Fuente: DatabaseConnection</h1>
+            <p class="lead">Singleton thread-safe con ruta absoluta para la base de datos SQLite.</p>
+
+            <h2>Propósito</h2>
+            <p>Es un singleton para la conexión SQLite, thread-safe con synchronized.</p>
+
+            <h2>Código completo</h2>
+            <pre><code>package com.santaana.db;
+
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class DatabaseConnection {
+
+    private static final String DB_URL;
+    private static Connection instance;
+
+    static {
+        DB_URL = inicializarDbUrl();
+    }
+
+    private DatabaseConnection() {}
+
+    private static String inicializarDbUrl() {
+        try {
+            File dirClases = new File(
+                DatabaseConnection.class
+                    .getProtectionDomain().getCodeSource().getLocation()
+                    .toURI()
+            ).getAbsoluteFile();
+
+            File dbFile;
+            if (dirClases.isDirectory() && dirClases.getName().equalsIgnoreCase("bin")) {
+                dbFile = new File(dirClases.getParentFile(), "santaana.db");
+            } else {
+                dbFile = new File(dirClases.getParentFile(), "santaana.db");
+            }
+
+            return "jdbc:sqlite:" + dbFile.getAbsolutePath();
+        } catch (Exception e) {
+            return "jdbc:sqlite:santaana.db";
+        }
+    }
+
+    public static synchronized Connection getConnection() throws SQLException {
+        if (instance == null || instance.isClosed()) {
+            try {
+                Class.forName("org.sqlite.JDBC");
+                instance = DriverManager.getConnection(DB_URL);
+                instance.setAutoCommit(true);
+            } catch (ClassNotFoundException e) {
+                throw new SQLException("Driver SQLite no encontrado", e);
+            }
+        }
+        return instance;
+    }
+
+    public static void cerrar() {
+        try {
+            if (instance != null && !instance.isClosed()) {
+                instance.close();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error al cerrar conexion: " + e.getMessage());
+        }
+    }
+}</code></pre>
+
+            <h2>Explicación línea por línea</h2>
+
+            <h3>static { DB_URL = inicializarDbUrl(); }</h3>
+            <p>El bloque estático se ejecuta una vez al cargar la clase. Calcula la URL absoluta de la BD basándose en la ubicación de los archivos .class.</p>
+
+            <h3>inicializarDbUrl()</h3>
+            <p>Usa ProtectionDomain.getCodeSource().getLocation() para obtener la ruta del directorio donde están los .class (bin/). Si el directorio se llama "bin", sube al directorio padre para usar la raíz del proyecto. Si falla, usa la ruta relativa como fallback.</p>
+
+            <h3>getConnection()</h3>
+            <p>Marcado como synchronized para garantizar que solo un hilo cree la conexión si la instancia es null o está cerrada. Carga el driver JDBC, abre la conexión y establece auto-commit.</p>
+
+            <h3>cerrar()</h3>
+            <p>Cierra la conexión si está abierta. Útil para liberar recursos al salir de la aplicación.</p>
+
+            <h2>Uso</h2>
+            <p>Se llama desde todos los DAOs: <code>DatabaseConnection.getConnection()</code>.</p>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>
