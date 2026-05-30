@@ -18,12 +18,22 @@ public class ReservasHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange ex) throws IOException {
-        if (!ex.getRequestMethod().equalsIgnoreCase("GET")) {
+        if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
+            JsonUtil.enviar(ex, 204, "");
+            return;
+        }
+
+        if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
             JsonUtil.enviar(ex, 405, "{\"error\":\"Metodo no permitido\"}");
             return;
         }
 
-        // Mapa id -> numero para enriquecer la respuesta
+        String auth = ex.getRequestHeaders().getFirst("Authorization");
+        if (!TokenManager.verificar(auth)) {
+            JsonUtil.enviar(ex, 401, "{\"error\":\"Token requerido\"}");
+            return;
+        }
+
         Map<Integer, String> numHab = new HashMap<>();
         for (Habitacion h : habitacionDAO.listarTodas()) {
             numHab.put(h.getId(), h.getNumero());

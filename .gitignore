@@ -1,6 +1,7 @@
 # --- Java ---
 *.class
 *.log
+*.db
 bin/
 out/
 build/

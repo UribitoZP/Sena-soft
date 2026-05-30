@@ -13,8 +13,19 @@ public class HabitacionesHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange ex) throws IOException {
-        if (!ex.getRequestMethod().equalsIgnoreCase("GET")) {
+        if ("OPTIONS".equalsIgnoreCase(ex.getRequestMethod())) {
+            JsonUtil.enviar(ex, 204, "");
+            return;
+        }
+
+        if (!"GET".equalsIgnoreCase(ex.getRequestMethod())) {
             JsonUtil.enviar(ex, 405, "{\"error\":\"Metodo no permitido\"}");
+            return;
+        }
+
+        String auth = ex.getRequestHeaders().getFirst("Authorization");
+        if (!TokenManager.verificar(auth)) {
+            JsonUtil.enviar(ex, 401, "{\"error\":\"Token requerido\"}");
             return;
         }
 

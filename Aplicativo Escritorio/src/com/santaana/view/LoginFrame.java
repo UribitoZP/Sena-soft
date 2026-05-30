@@ -252,6 +252,10 @@ public class LoginFrame extends JFrame {
         return new String(passwordField.getPassword());
     }
 
+    public void clearPassword() {
+        passwordField.setText("");
+    }
+
     public void addLoginListener(ActionListener l) {
         loginButton.addActionListener(l);
     }

@@ -2,7 +2,9 @@ package com.santaana.view;
 
 import com.santaana.dao.CierreMesDAO;
 import com.santaana.dao.ReporteDAO;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.CierreMes;
+import com.santaana.util.ErrorUtil;
 import com.santaana.util.ThemeManager;
 
 import javax.swing.*;
@@ -102,13 +104,23 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         cont.setOpaque(false);
         cont.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
 
-        double totalIngresos  = dao.getTotalIngresos();
-        double totalAnticipos = dao.getTotalAnticipos();
-        int    totalReservas  = dao.getTotalReservas();
-        Map<String, Integer> porEstado   = dao.getReservasPorEstado();
-        Map<String, Double>  ingresosMes = dao.getIngresosPorMes();
-        Map<String, Integer> reservasMes = dao.getReservasPorMes();
-        Map<String, Integer> topHabs     = dao.getTopHabitaciones();
+        double totalIngresos; double totalAnticipos; int totalReservas;
+        Map<String, Integer> porEstado; Map<String, Double> ingresosMes;
+        Map<String, Integer> reservasMes; Map<String, Integer> topHabs;
+        try {
+            totalIngresos  = dao.getTotalIngresos();
+            totalAnticipos = dao.getTotalAnticipos();
+            totalReservas  = dao.getTotalReservas();
+            porEstado   = dao.getReservasPorEstado();
+            ingresosMes = dao.getIngresosPorMes();
+            reservasMes = dao.getReservasPorMes();
+            topHabs     = dao.getTopHabitaciones();
+        } catch (DatabaseException e) {
+            ErrorUtil.mostrarError(this, "cargar reportes", e);
+            totalIngresos = 0; totalAnticipos = 0; totalReservas = 0;
+            porEstado = new java.util.LinkedHashMap<>(); ingresosMes = new java.util.LinkedHashMap<>();
+            reservasMes = new java.util.LinkedHashMap<>(); topHabs = new java.util.LinkedHashMap<>();
+        }
 
         int completadas = porEstado.getOrDefault("Completada", 0);
         int canceladas  = porEstado.getOrDefault("Cancelada",  0);
@@ -171,7 +183,8 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         String mesActual  = mesCierre.format(DateTimeFormatter.ofPattern("yyyy-MM"));
         String mesLabel   = mesCierre.format(FMT_MES);
         mesLabel = mesLabel.substring(0, 1).toUpperCase() + mesLabel.substring(1);
-        CierreMes cierre  = cierreDAO.getCierre(mesActual);
+        CierreMes cierre;
+        try { cierre = cierreDAO.getCierre(mesActual); } catch (DatabaseException e) { cierre = null; }
         boolean   cerrado = cierre != null;
 
         Color bg      = cerrado ? new Color(0xF0FDF4) : new Color(0xFFFBEB);
@@ -264,7 +277,13 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (res == JOptionPane.OK_OPTION) {
-            boolean ok = cierreDAO.cerrarMes(mes, idUsuario, txtNotas.getText().trim());
+            boolean ok;
+            try {
+                ok = cierreDAO.cerrarMes(mes, idUsuario, txtNotas.getText().trim());
+            } catch (DatabaseException e) {
+                ErrorUtil.mostrarError(ReportePanel.this, "cerrar mes", e);
+                return;
+            }
             if (ok) {
                 JOptionPane.showMessageDialog(this,
                         "Mes " + mesLabel + " cerrado correctamente.",

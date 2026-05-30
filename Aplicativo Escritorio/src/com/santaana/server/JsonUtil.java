@@ -11,9 +11,15 @@ public class JsonUtil {
         byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
         ex.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
         ex.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        ex.sendResponseHeaders(codigo, bytes.length);
-        try (OutputStream os = ex.getResponseBody()) {
-            os.write(bytes);
+        ex.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        ex.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        if (codigo == 204) {
+            ex.sendResponseHeaders(codigo, -1);
+        } else {
+            ex.sendResponseHeaders(codigo, bytes.length);
+            try (OutputStream os = ex.getResponseBody()) {
+                os.write(bytes);
+            }
         }
     }
 
