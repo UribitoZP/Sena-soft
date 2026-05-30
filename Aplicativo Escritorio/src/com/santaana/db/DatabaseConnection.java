@@ -11,7 +11,7 @@ public class DatabaseConnection {
 
     private DatabaseConnection() {}
 
-    public static Connection getConnection() throws SQLException {
+    public static synchronized Connection getConnection() throws SQLException {
         if (instance == null || instance.isClosed()) {
             try {
                 Class.forName("org.sqlite.JDBC");
