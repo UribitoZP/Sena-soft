@@ -31,7 +31,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v2.2.0</span>
+            <span class="version-tag">v2.4.0</span>
         </div>
     </header>
 
@@ -495,7 +495,174 @@ Mantenimiento     ──[Gestión]──►  Disponible</code></pre>
             </section>
 
             <!-- ══════════════════════════════════════════
-                 SECCIÓN 4 — SOLUCIÓN DE PROBLEMAS
+                 SECCIÓN 7 — SEGURIDAD Y CONCURRENCIA
+            ══════════════════════════════════════════ -->
+            <section id="seguridad">
+                <h1>Seguridad, Concurrencia y Calidad</h1>
+                <p class="lead">Mejoras implementadas para proteger los datos, evitar condiciones de carrera y garantizar formateo consistente de fechas.</p>
+                <hr>
+
+                <h2>1. Hash de Contraseñas — PBKDF2</h2>
+                <p>Las contraseñas ya no se almacenan en texto plano. <code>PasswordUtil</code> aplica <strong>PBKDF2WithHmacSHA256</strong> con 600.000 iteraciones y sal aleatoria de 16 bytes, usando solo el JDK estándar (<code>javax.crypto.SecretKeyFactory</code>), sin dependencias externas.</p>
+
+                <div class="code-block">
+                    <pre><code>// PasswordUtil — Hash PBKDF2
+private static final String ALGORITHM = "PBKDF2WithHmacSHA256";
+private static final int ITERATIONS = 600_000;
+private static final int KEY_LENGTH = 256;
+private static final int SALT_LENGTH = 16;
+
+public static String hash(String password) {
+    byte[] salt = SecureRandom.getSeed(SALT_LENGTH);
+    SecretKeyFactory skf = SecretKeyFactory.getInstance(ALGORITHM);
+    PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH);
+    byte[] hash = skf.generateSecret(spec).getEncoded();
+    return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
+}</code></pre>
+                </div>
+
+                <div class="callout info">
+                    <p>El <code>SchemaManager</code> versión 7 migra automáticamente las contraseñas en texto plano existentes a hash PBKDF2 al iniciar la aplicación por primera vez después de la actualización.</p>
+                </div>
+
+                <h2>2. Autenticación por Token — API REST</h2>
+                <p>El servidor REST ahora requiere autenticación mediante token para todos los endpoints protegidos. <code>TokenManager</code> genera y valida tokens UUID en memoria.</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Método</th>
+                                <th>Autenticación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/auth/login</code></td>
+                                <td>POST</td>
+                                <td>Público — recibe credenciales, retorna <code>{"token":"..."}</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>/habitaciones</code></td>
+                                <td>GET</td>
+                                <td><code>Authorization: Bearer &lt;token&gt;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>/reservas</code></td>
+                                <td>GET</td>
+                                <td><code>Authorization: Bearer &lt;token&gt;</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>/stats</code></td>
+                                <td>GET</td>
+                                <td><code>Authorization: Bearer &lt;token&gt;</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>3. Rate Limiting en Login</h2>
+                <p><code>AuthHandler</code> implementa un contador de intentos por dirección IP: después de 5 intentos fallidos, la IP queda bloqueada durante 30 segundos. Los intentos se registran automáticamente en el historial del sistema.</p>
+
+                <h2>4. Thread Safety — Conexión a Base de Datos</h2>
+                <p>La aplicación funciona en un entorno multihilo real: el <strong>EDT</strong> (Event Dispatch Thread) de Java Swing maneja la interfaz gráfica, mientras el servidor REST corre en su propio hilo. Si ambos hilos intentan obtener una conexión a la vez, <code>DatabaseConnection.getConnection()</code> ahora está marcado como <code>synchronized</code>, garantizando que solo un hilo cree la instancia de conexión.</p>
+
+                <div class="code-block">
+                    <pre><code>// DatabaseConnection — Singleton thread-safe
+public static synchronized Connection getConnection() throws SQLException {
+    if (instance == null || instance.isClosed()) {
+        Class.forName("org.sqlite.JDBC");
+        instance = DriverManager.getConnection(DB_URL);
+    }
+    return instance;
+}</code></pre>
+                </div>
+
+                <h2>5. Ruta Absoluta de Base de Datos</h2>
+                <p>Anteriormente la ruta <code>jdbc:sqlite:santaana.db</code> era relativa al directorio de trabajo, lo que causaba que la base de datos se creara en el lugar equivocado si el usuario ejecutaba la aplicación desde un acceso directo. Ahora <code>DatabaseConnection</code> calcula la ruta absoluta usando la ubicación de los archivos compilados (<code>ProtectionDomain.getCodeSource()</code>), asegurando que siempre apunte a la carpeta raíz del proyecto.</p>
+
+                <div class="code-block">
+                    <pre><code>// DatabaseConnection — Ruta absoluta
+private static String inicializarDbUrl() {
+    File dirClases = new File(
+        DatabaseConnection.class
+            .getProtectionDomain().getCodeSource().getLocation()
+            .toURI()
+    ).getAbsoluteFile();
+
+    File dbFile = dirClases.getName().equalsIgnoreCase("bin")
+        ? new File(dirClases.getParentFile(), "santaana.db")
+        : new File(dirClases.getParentFile(), "santaana.db");
+
+    return "jdbc:sqlite:" + dbFile.getAbsolutePath();
+}</code></pre>
+                </div>
+
+                <h2>6. Formato Estricto de Fechas — DateUtil</h2>
+                <p>Las consultas SQL de disponibilidad de habitaciones comparan fechas como texto ISO (<code>fecha_entrada || ' ' || hora_entrada</code>). Para que esta comparación funcione correctamente, todas las fechas deben estar en formato <code>yyyy-MM-dd HH:mm</code>. <code>DateUtil</code> centraliza el formateo usando <code>java.time.format.DateTimeFormatter</code>, reemplazando <code>SimpleDateFormat</code> en toda la capa de UI y garantizando que ningún string no ISO llegue al DAO.</p>
+
+                <div class="code-block">
+                    <pre><code>// DateUtil — Formateo estricto con DateTimeFormatter
+private static final DateTimeFormatter FMT_FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+private static final DateTimeFormatter FMT_HORA  = DateTimeFormatter.ofPattern("HH:mm");
+
+public static String formatearFecha(Date d) {
+    return d.toInstant().atZone(ZoneId.systemDefault())
+            .toLocalDate().format(FMT_FECHA);
+}
+
+public static String formatearHora(Date d) {
+    return d.toInstant().atZone(ZoneId.systemDefault())
+            .toLocalTime().format(FMT_HORA);
+}</code></pre>
+                </div>
+
+                <p>Archivos actualizados para usar DateUtil:</p>
+                <ul>
+                    <li><code>NuevaReservaDialog.java</code> - <code>formatearFecha()</code> y <code>formatearHora()</code></li>
+                    <li><code>HistorialPanel.java</code> - <code>aplicarFiltros()</code></li>
+                    <li><code>TableroPanel.java</code> - <code>crearAlertasVencidas()</code> y carga de reservas</li>
+                </ul>
+
+                <h2>7. Manejo de Errores de Base de Datos</h2>
+                <p>Antes, los errores SQL se imprimían en consola sin que el usuario se enterara. Ahora:</p>
+                <ul>
+                    <li><code>DatabaseException</code> (RuntimeException) envuelve <code>SQLException</code> y se propaga desde los DAOs.</li>
+                    <li><code>ErrorUtil.mostrarError()</code> muestra un <code>JOptionPane</code> con el mensaje de error y el contexto.</li>
+                    <li><code>ApplicationMain</code> tiene un manejador global de excepciones no capturadas en el EDT.</li>
+                </ul>
+
+                <div class="code-block">
+                    <pre><code>// Los 8 DAOs lanzan DatabaseException en lugar de System.err
+catch (SQLException e) {
+    throw new DatabaseException("contexto de la operación", e);
+}
+
+// La UI captura y muestra el error al usuario
+try {
+    actividades = historialDAO.buscar(texto, desde, hasta);
+} catch (DatabaseException e) {
+    ErrorUtil.mostrarError(this, "buscar en historial", e);
+}</code></pre>
+                </div>
+
+                <p>Paneles que capturan y muestran errores de BD:</p>
+                <ul>
+                    <li><code>LoginController</code> - error de autenticación</li>
+                    <li><code>GestionUsuarioPanel</code> - CRUD de usuarios</li>
+                    <li><code>GestHabitacionPanel</code> - CRUD de habitaciones</li>
+                    <li><code>HistorialPanel</code> - búsqueda en historial</li>
+                    <li><code>ReportePanel</code> - reportes y cierre de mes</li>
+                </ul>
+
+                <div class="callout info">
+                    <p><strong>Sin dependencias externas:</strong> PBKDF2, tokens UUID y el servidor HTTP usan solo clases del JDK estándar. No fue necesario agregar JARs adicionales.</p>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 SECCIÓN 8 — SOLUCIÓN DE PROBLEMAS
             ══════════════════════════════════════════ -->
             <section id="problemas">
                 <h1>Solución de Problemas Comunes</h1>
