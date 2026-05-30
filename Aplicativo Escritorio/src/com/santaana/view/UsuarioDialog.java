@@ -33,7 +33,6 @@ public class UsuarioDialog extends JDialog {
         initUI();
         campoNombre.setText(u.getNombre());
         campoUsuario.setText(u.getUsuario());
-        campoClave.setText(u.getClave());
         campoTelefono.setText(u.getTelefono());
         campoCorreo.setText(u.getCorreo());
         comboTipo.setSelectedItem(u.getRol());
@@ -146,7 +145,10 @@ public class UsuarioDialog extends JDialog {
         String clave = new String(campoClave.getPassword()).trim();
         String rol = (String) comboTipo.getSelectedItem();
 
-        if (nombre.isEmpty() || usuario.isEmpty() || clave.isEmpty()) {
+        boolean editando = getTitle().equals("Editar usuario");
+        if (editando && clave.isEmpty()) {
+            // En edición la contraseña es opcional (se conserva la actual)
+        } else if (nombre.isEmpty() || usuario.isEmpty() || clave.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                     "Nombre, usuario y contraseña son obligatorios.",
                     "Campos requeridos", JOptionPane.WARNING_MESSAGE);

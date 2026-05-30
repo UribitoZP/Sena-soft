@@ -1,5 +1,6 @@
 package com.santaana.db;
 
+import com.santaana.util.PasswordUtil;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,10 +15,11 @@ public class SeedData {
             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM usuarios");
             if (rs.next() && rs.getInt(1) > 0) return; // ya tiene datos
 
-            // Usuarios - CORREGIDO: Se cerró la comilla de 'admin' y se añadieron telefono y correo
+            String hashAdmin = PasswordUtil.hash("1234");
+            String hashRecep = PasswordUtil.hash("1234");
             stmt.executeUpdate("INSERT INTO usuarios (nombre, usuario, clave, rol, telefono, correo) VALUES " +
-                "('---- Admin',    'admin',    '1234', 'Administrador', '3000000000', 'admin@hotelsantaana.com')," +
-                "('---- Recepcion', 'recepcion', '1234', 'Recepcionista',  '3000000001', 'recepcion@hotelsantaana.com')");
+                "('---- Admin',    'admin',    '" + hashAdmin + "', 'Administrador', '3000000000', 'admin@hotelsantaana.com')," +
+                "('---- Recepcion', 'recepcion', '" + hashRecep + "', 'Recepcionista',  '3000000001', 'recepcion@hotelsantaana.com')");
 
             // Habitaciones
             stmt.executeUpdate("INSERT INTO habitaciones (numero, tipo, precio, estado) VALUES " +

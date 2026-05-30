@@ -254,9 +254,10 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
             }
         }
 
+        String clave = d.getClaveValue();
         u.setNombre(d.getNombreValue());
         u.setUsuario(d.getUsuarioValue());
-        u.setClave(d.getClaveValue());
+        if (!clave.isEmpty()) u.setClave(clave);
         u.setRol(d.getRolValue());
         u.setTelefono(d.getTelefonoValue());
         u.setCorreo(d.getCorreoValue());
