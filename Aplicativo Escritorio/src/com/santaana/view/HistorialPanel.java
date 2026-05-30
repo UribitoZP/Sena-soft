@@ -3,7 +3,6 @@ package com.santaana.view;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeListener;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -16,6 +15,7 @@ import com.toedter.calendar.JDateChooser;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.db.DatabaseException;
 import com.santaana.model.Actividad;
+import com.santaana.util.DateUtil;
 import com.santaana.util.ErrorUtil;
 import com.santaana.util.ThemeManager;
 
@@ -205,9 +205,10 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
     private void aplicarFiltros() {
         String texto = txtBuscar != null ? txtBuscar.getText().trim() : null;
         if (texto != null && texto.isEmpty()) texto = null;
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        String desde = (dateDesde != null && dateDesde.getDate() != null) ? sdf.format(dateDesde.getDate()) : null;
-        String hasta = (dateHasta != null && dateHasta.getDate() != null) ? sdf.format(dateHasta.getDate()) : null;
+        String desde = (dateDesde != null && dateDesde.getDate() != null)
+                ? DateUtil.formatearFecha(dateDesde.getDate()) : null;
+        String hasta = (dateHasta != null && dateHasta.getDate() != null)
+                ? DateUtil.formatearFecha(dateHasta.getDate()) : null;
         cargarYMostrar(texto, desde, hasta);
     }
 

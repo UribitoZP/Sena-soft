@@ -33,6 +33,7 @@ javac -cp ".;%LIB_DIR%\jcalendar-1.4.jar;%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;%LIB
     "%SRC_DIR%\com\santaana\dao\ClienteDAO.java" ^
     "%SRC_DIR%\com\santaana\util\ThemeManager.java" ^
     "%SRC_DIR%\com\santaana\util\PasswordUtil.java" ^
+    "%SRC_DIR%\com\santaana\util\DateUtil.java" ^
     "%SRC_DIR%\com\santaana\util\ErrorUtil.java" ^
     "%SRC_DIR%\com\santaana\view\LoginFrame.java" ^
     "%SRC_DIR%\com\santaana\view\MainFrame.java" ^
