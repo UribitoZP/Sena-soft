@@ -201,12 +201,12 @@ java -cp ".;..\lib\jcalendar-1.4.jar;..\lib\sqlite-jdbc-3.45.1.0.jar;..\lib\slf4
                             <tr>
                                 <td>1</td>
                                 <td><code>SchemaManager</code></td>
-                                <td>Crea el archivo <code>santaana.db</code> y las tablas <code>usuarios</code>, <code>habitaciones</code> y <code>reservas</code>.</td>
+                                <td>Crea el archivo <code>santaana.db</code> y las tablas <code>usuarios</code>, <code>habitaciones</code>, <code>reservas</code>, <code>clientes</code>, <code>historial</code> y <code>cierres_mes</code>.</td>
                             </tr>
                             <tr>
                                 <td>2</td>
                                 <td><code>SeedData</code></td>
-                                <td>Si la base está vacía, inserta 2 usuarios y 6 habitaciones de prueba.</td>
+                                <td>Si la base está vacía, inserta 2 usuarios y 15 habitaciones por defecto.</td>
                             </tr>
                             <tr>
                                 <td>3</td>
@@ -403,7 +403,7 @@ CREATE TABLE cierres_mes (
                             </tr>
                             <tr>
                                 <td><code>UsuarioDAO</code></td>
-                                <td><code>autenticar(usuario, clave, rol)</code>, <code>autenticarSinRol(usuario, clave)</code></td>
+                                <td><code>autenticar(usuario, clave, rol)</code>, <code>autenticarSinRol(usuario, clave)</code>, <code>listarTodos()</code>, <code>buscarPorId(id)</code>, <code>crear(usuario)</code>, <code>actualizar(usuario)</code>, <code>eliminar(id)</code>, <code>contarPorRol(rol)</code></td>
                             </tr>
                             <tr>
                                 <td><code>CierreMesDAO</code></td>
