@@ -1,6 +1,7 @@
 package com.santaana.dao;
 
 import com.santaana.db.DatabaseConnection;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Cliente;
 
 import java.sql.*;
@@ -26,7 +27,7 @@ public class ClienteDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error buscando cliente por documento: " + e.getMessage());
+            throw new DatabaseException("buscar cliente por documento", e);
         }
         return null;
     }
@@ -42,13 +43,11 @@ public class ClienteDAO {
             int affected = ps.executeUpdate();
             if (affected > 0) {
                 try (ResultSet gk = ps.getGeneratedKeys()) {
-                    if (gk.next()) {
-                        return gk.getInt(1);
-                    }
+                    if (gk.next()) return gk.getInt(1);
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Error creando cliente: " + e.getMessage());
+            throw new DatabaseException("crear cliente", e);
         }
         return -1;
     }
@@ -63,9 +62,8 @@ public class ClienteDAO {
             ps.setInt(4, cliente.getId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error actualizando cliente: " + e.getMessage());
+            throw new DatabaseException("actualizar cliente", e);
         }
-        return false;
     }
 
     public List<Cliente> listarTodos() {
@@ -84,7 +82,7 @@ public class ClienteDAO {
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Error listando clientes: " + e.getMessage());
+            throw new DatabaseException("listar clientes", e);
         }
         return lista;
     }

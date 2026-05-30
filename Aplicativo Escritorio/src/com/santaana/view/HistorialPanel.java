@@ -14,7 +14,9 @@ import javax.swing.event.*;
 
 import com.toedter.calendar.JDateChooser;
 import com.santaana.dao.HistorialDAO;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Actividad;
+import com.santaana.util.ErrorUtil;
 import com.santaana.util.ThemeManager;
 
 public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener {
@@ -214,7 +216,13 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         if (listaContainer == null) return;
         listaContainer.removeAll();
 
-        List<Actividad> actividades = historialDAO.buscar(texto, desde, hasta);
+        List<Actividad> actividades;
+        try {
+            actividades = historialDAO.buscar(texto, desde, hasta);
+        } catch (DatabaseException e) {
+            ErrorUtil.mostrarError(this, "buscar en historial", e);
+            return;
+        }
 
         if (actividades.isEmpty()) {
             String msg = (texto != null || desde != null || hasta != null)

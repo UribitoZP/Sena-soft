@@ -6,7 +6,9 @@ import java.awt.event.ActionListener;
 import javax.swing.JOptionPane;
 
 import com.santaana.dao.UsuarioDAO;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Usuario;
+import com.santaana.util.ErrorUtil;
 import com.santaana.view.LoginFrame;
 import com.santaana.view.MainFrame;
 
@@ -22,6 +24,14 @@ public class LoginController {
     private class LoginListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
+            try {
+                ejecutarLogin();
+            } catch (DatabaseException ex) {
+                ErrorUtil.mostrarError(view, "iniciar sesión", ex);
+            }
+        }
+
+        private void ejecutarLogin() {
             String rol      = view.getSelectedRole();
             String username = view.getUsername().trim();
             String password = view.getPassword();

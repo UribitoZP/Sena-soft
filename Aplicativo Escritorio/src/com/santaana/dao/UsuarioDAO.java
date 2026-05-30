@@ -1,6 +1,7 @@
 package com.santaana.dao;
 
 import com.santaana.db.DatabaseConnection;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Usuario;
 import com.santaana.util.PasswordUtil;
 
@@ -18,10 +19,8 @@ public class UsuarioDAO {
         String sql = "SELECT * FROM usuarios WHERE usuario = ? AND rol = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, usuario);
             ps.setString(2, rol);
-
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 String stored = rs.getString("clave");
@@ -34,7 +33,7 @@ public class UsuarioDAO {
                 return mapear(rs);
             }
         } catch (SQLException e) {
-            System.err.println("Error autenticando usuario: " + e.getMessage());
+            throw new DatabaseException("autenticar usuario", e);
         }
         return null;
     }
@@ -43,9 +42,7 @@ public class UsuarioDAO {
         String sql = "SELECT * FROM usuarios WHERE usuario = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, usuario);
-
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 String stored = rs.getString("clave");
@@ -58,7 +55,7 @@ public class UsuarioDAO {
                 return mapear(rs);
             }
         } catch (SQLException e) {
-            System.err.println("Error autenticando usuario: " + e.getMessage());
+            throw new DatabaseException("autenticar usuario sin rol", e);
         }
         return null;
     }
@@ -69,11 +66,9 @@ public class UsuarioDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                lista.add(mapear(rs));
-            }
+            while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException e) {
-            System.err.println("Error listando usuarios: " + e.getMessage());
+            throw new DatabaseException("listar usuarios", e);
         }
         return lista;
     }
@@ -87,7 +82,7 @@ public class UsuarioDAO {
                 if (rs.next()) return mapear(rs);
             }
         } catch (SQLException e) {
-            System.err.println("Error buscando usuario por id: " + e.getMessage());
+            throw new DatabaseException("buscar usuario por ID", e);
         }
         return null;
     }
@@ -104,8 +99,7 @@ public class UsuarioDAO {
             ps.setString(6, usuario.getCorreo());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error creando usuario: " + e.getMessage());
-            return false;
+            throw new DatabaseException("crear usuario", e);
         }
     }
 
@@ -132,8 +126,7 @@ public class UsuarioDAO {
             }
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error actualizando usuario: " + e.getMessage());
-            return false;
+            throw new DatabaseException("actualizar usuario", e);
         }
     }
 
@@ -146,7 +139,7 @@ public class UsuarioDAO {
                 if (rs.next()) return rs.getInt(1);
             }
         } catch (SQLException e) {
-            System.err.println("Error contando usuarios por rol: " + e.getMessage());
+            throw new DatabaseException("contar usuarios por rol", e);
         }
         return 0;
     }
@@ -158,8 +151,7 @@ public class UsuarioDAO {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error eliminando usuario: " + e.getMessage());
-            return false;
+            throw new DatabaseException("eliminar usuario", e);
         }
     }
 

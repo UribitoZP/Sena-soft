@@ -6,8 +6,10 @@ import javax.swing.*;
 import javax.swing.border.MatteBorder;
 
 import com.santaana.dao.UsuarioDAO;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Usuario;
 import com.santaana.util.BackupManager;
+import com.santaana.util.ErrorUtil;
 import com.santaana.util.ThemeManager;
 
 public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeListener {
@@ -110,7 +112,15 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
 
     private void cargarUsuarios() {
         contenedorLista.removeAll();
-        List<Usuario> usuarios = usuarioDAO.listarTodos();
+        List<Usuario> usuarios;
+        try {
+            usuarios = usuarioDAO.listarTodos();
+        } catch (DatabaseException e) {
+            ErrorUtil.mostrarError(this, "cargar usuarios", e);
+            contenedorLista.revalidate();
+            contenedorLista.repaint();
+            return;
+        }
         if (usuarios.isEmpty()) {
             JLabel vacio = new JLabel("No hay usuarios registrados.", SwingConstants.CENTER);
             vacio.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -198,6 +208,14 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
     }
 
     private void abrirNuevoUsuario() {
+        try {
+            abrirNuevoUsuarioInterno();
+        } catch (DatabaseException e) {
+            ErrorUtil.mostrarError(this, "crear usuario", e);
+        }
+    }
+
+    private void abrirNuevoUsuarioInterno() {
         String rol = null;
         UsuarioDialog d = new UsuarioDialog(SwingUtilities.getWindowAncestor(this));
         d.setVisible(true);
@@ -232,6 +250,14 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
     }
 
     private void abrirEditarUsuario(Usuario u) {
+        try {
+            abrirEditarUsuarioInterno(u);
+        } catch (DatabaseException e) {
+            ErrorUtil.mostrarError(this, "editar usuario", e);
+        }
+    }
+
+    private void abrirEditarUsuarioInterno(Usuario u) {
         String rolOriginal = u.getRol();
         UsuarioDialog d = new UsuarioDialog(SwingUtilities.getWindowAncestor(this), u);
         d.setVisible(true);
@@ -276,12 +302,16 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
                 "Confirmar eliminación", JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
         if (r == JOptionPane.YES_OPTION) {
-            if (usuarioDAO.eliminar(u.getId())) {
-                cargarUsuarios();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "No se pudo eliminar el usuario.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+            try {
+                if (usuarioDAO.eliminar(u.getId())) {
+                    cargarUsuarios();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "No se pudo eliminar el usuario.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (DatabaseException e) {
+                ErrorUtil.mostrarError(this, "eliminar usuario", e);
             }
         }
     }
