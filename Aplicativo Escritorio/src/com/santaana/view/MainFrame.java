@@ -36,17 +36,19 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel sidebarPanel;
     private JPanel navbarPanel;
     private String userRole;
-    private String currentView = "Tablero";
+    private String currentView = "  ";
     private int idUsuario;
     private ReservaPanel      reservaPanel;
     private TableroPanel      tableroPanel;
     private NotificacionPanel notifPanel;
     private ReportePanel      reportePanel;
     private ProductoPanel     productoPanel;
+    private String nombreUsuario;
     
-    public MainFrame(String role, String welcomeMessage, int idUsuario) {
+    public MainFrame(String role, int idUsuario, String nombreUsuario) {
         this.userRole  = role;
         this.idUsuario = idUsuario;
+        this.nombreUsuario = nombreUsuario;
         setTitle("Hotel Santa Ana — Sistema de Gestión");
         setSize(1280, 800);
         setMinimumSize(new Dimension(1100, 720));
@@ -61,9 +63,6 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
             if (navbarPanel != null) navbarPanel.repaint();
         }).start();
 
-        if (welcomeMessage != null && !welcomeMessage.isEmpty()) {
-            JOptionPane.showMessageDialog(this, welcomeMessage, "Bienvenido", JOptionPane.INFORMATION_MESSAGE);
-        }
     }
 
     private void initUI() {
@@ -84,7 +83,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.setOpaque(false);
 
         // Agregar vistas
-        tableroPanel = new TableroPanel(userRole, () -> abrirNuevaReserva(), () -> refrescarTodo());
+        tableroPanel = new TableroPanel(userRole, nombreUsuario, () -> abrirNuevaReserva(), () -> refrescarTodo());
         contentPanel.add(tableroPanel, "Tablero");
         productoPanel = new ProductoPanel();
         contentPanel.add(productoPanel, "Producto");

@@ -35,8 +35,11 @@ import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
+import com.santaana.dao.UsuarioDAO;
+
 
 public class TableroPanel extends JPanel {
+    private String nombreUsuario;
     private String userRole;
     private Runnable onNuevaReserva;
     private Runnable onEstadoCambiado;
@@ -46,6 +49,7 @@ public class TableroPanel extends JPanel {
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
     private final ReservaDAO    reservaDAO    = new ReservaDAO();
     private JPanel roomsGrid;
+    
 
     private Color getBorde() { return ThemeManager.getBorder(); }
     private Color getPrimario() { return ThemeManager.getPrimary(); }
@@ -54,8 +58,11 @@ public class TableroPanel extends JPanel {
     private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
     private Color getTextCol() { return ThemeManager.getTextPrimary(); }
 
-    public TableroPanel(String role, Runnable onNuevaReserva, Runnable onEstadoCambiado) {
+    
+
+    public TableroPanel(String role,String nombreUsuario, Runnable onNuevaReserva, Runnable onEstadoCambiado) {
         this.userRole         = role;
+        this.nombreUsuario    =  nombreUsuario;
         this.onNuevaReserva   = onNuevaReserva;
         this.onEstadoCambiado = onEstadoCambiado;
         setLayout(new BorderLayout());
@@ -81,6 +88,12 @@ public class TableroPanel extends JPanel {
         title.setFont(new Font("Segoe UI", Font.BOLD, 14));
         title.setForeground(getTextCol());
         navbar.add(title, BorderLayout.WEST);
+
+        JLabel welcome = new JLabel("Bienvenido " + nombreUsuario, JLabel.CENTER);
+        welcome.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        welcome.setForeground(getLabel());
+        navbar.add(welcome, BorderLayout.CENTER);
+
 
         return navbar;
     }
