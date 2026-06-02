@@ -6,6 +6,7 @@ import 'package:santa_ana_dashboard/feature/home/presentation/views/reservas_vie
 import 'package:santa_ana_dashboard/feature/home/presentation/views/reportes_view.dart';
 
 
+
 //  DASHBOARD VIEW — Nav centralizado con IndexedStack
 
 
@@ -24,7 +25,7 @@ class _DashboardViewState extends State<DashboardView> {
     const HomeView(),
     const ReservationsView(),
     const RoomsView(),
-    const ReportsView()
+    const ReportesView()
   ];
 
   @override

@@ -16,6 +16,7 @@ public class RestServer {
             server.createContext("/habitaciones",  new HabitacionesHandler());
             server.createContext("/reservas",      new ReservasHandler());
             server.createContext("/stats",         new StatsHandler());
+            server.createContext("/reportes",      new ReportesHandler());
             server.setExecutor(null);
             server.start();
             System.out.println("Servidor REST iniciado en puerto " + PORT);
