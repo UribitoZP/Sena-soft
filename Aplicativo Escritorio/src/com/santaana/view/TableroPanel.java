@@ -33,6 +33,7 @@ import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
+import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
 
 public class TableroPanel extends JPanel {
@@ -102,7 +103,7 @@ public class TableroPanel extends JPanel {
     }
 
     private JPanel crearAlertasVencidas() {
-        String ahora = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date());
+        String ahora = DateUtil.formatearFechaHora(new java.util.Date());
         java.util.List<com.santaana.model.Reserva> vencidas = new java.util.ArrayList<>();
         for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
             if ("Indefinido".equals(r.getTipoEstadia())) continue;
@@ -315,7 +316,7 @@ public class TableroPanel extends JPanel {
 
         // Cargar próximas reservas (check-in futuro) para mostrar en tarjetas
         java.util.Map<Integer, com.santaana.model.Reserva> proximas = new java.util.HashMap<>();
-        String hoyStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+        String hoyStr = DateUtil.formatearFecha(new java.util.Date());
         for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
             if (r.getFechaEntrada().compareTo(hoyStr) > 0) {
                 proximas.putIfAbsent(r.getIdHabitacion(), r);

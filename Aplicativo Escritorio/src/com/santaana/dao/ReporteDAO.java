@@ -1,6 +1,7 @@
 package com.santaana.dao;
 
 import com.santaana.db.DatabaseConnection;
+import com.santaana.db.DatabaseException;
 
 import java.sql.*;
 import java.util.LinkedHashMap;
@@ -14,7 +15,9 @@ public class ReporteDAO {
              Statement s  = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
             if (rs.next()) return rs.getDouble(1);
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) {
+            throw new DatabaseException("obtener total de ingresos", e);
+        }
         return 0;
     }
 
@@ -24,7 +27,9 @@ public class ReporteDAO {
              Statement s  = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
             if (rs.next()) return rs.getDouble(1);
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) {
+            throw new DatabaseException("obtener total de anticipos", e);
+        }
         return 0;
     }
 
@@ -34,11 +39,12 @@ public class ReporteDAO {
              Statement s  = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
             if (rs.next()) return rs.getInt(1);
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) {
+            throw new DatabaseException("obtener total de reservas", e);
+        }
         return 0;
     }
 
-    /** Conteo por estado: Activa, Completada, Cancelada */
     public Map<String, Integer> getReservasPorEstado() {
         Map<String, Integer> map = new LinkedHashMap<>();
         map.put("Activa", 0);
@@ -49,11 +55,12 @@ public class ReporteDAO {
              Statement s  = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
             while (rs.next()) map.put(rs.getString(1), rs.getInt(2));
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) {
+            throw new DatabaseException("obtener reservas por estado", e);
+        }
         return map;
     }
 
-    /** Ingresos (anticipo) por mes, últimos 6 meses */
     public Map<String, Double> getIngresosPorMes() {
         Map<String, Double> map = new LinkedHashMap<>();
         String sql =
@@ -65,11 +72,12 @@ public class ReporteDAO {
              Statement s  = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
             while (rs.next()) map.put(rs.getString("mes"), rs.getDouble("total"));
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) {
+            throw new DatabaseException("obtener ingresos por mes", e);
+        }
         return map;
     }
 
-    /** Reservas por mes, últimos 6 meses */
     public Map<String, Integer> getReservasPorMes() {
         Map<String, Integer> map = new LinkedHashMap<>();
         String sql =
@@ -81,11 +89,12 @@ public class ReporteDAO {
              Statement s  = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
             while (rs.next()) map.put(rs.getString("mes"), rs.getInt("total"));
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) {
+            throw new DatabaseException("obtener reservas por mes", e);
+        }
         return map;
     }
 
-    /** Top 5 habitaciones más reservadas */
     public Map<String, Integer> getTopHabitaciones() {
         Map<String, Integer> map = new LinkedHashMap<>();
         String sql =
@@ -96,7 +105,9 @@ public class ReporteDAO {
              Statement s  = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
             while (rs.next()) map.put("Hab. " + rs.getString(1), rs.getInt(2));
-        } catch (SQLException e) { System.err.println(e.getMessage()); }
+        } catch (SQLException e) {
+            throw new DatabaseException("obtener top habitaciones", e);
+        }
         return map;
     }
 

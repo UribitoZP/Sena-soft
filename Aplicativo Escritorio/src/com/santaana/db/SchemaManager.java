@@ -1,13 +1,15 @@
 package com.santaana.db;
 
+import com.santaana.util.PasswordUtil;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 6;
+    private static final int SCHEMA_VERSION = 7;
 
     public static void inicializar() {
         Connection conn = null;
@@ -132,6 +134,17 @@ public class SchemaManager {
                 }
             }
 
+            // v6e: telefono y correo en usuarios (idempotente)
+            boolean tieneTelefonoUsr = false;
+            ResultSet ctu = stmt.executeQuery("PRAGMA table_info(usuarios)");
+            while (ctu.next()) if ("telefono".equals(ctu.getString("name"))) tieneTelefonoUsr = true;
+            ctu.close();
+            if (!tieneTelefonoUsr) {
+                stmt.executeUpdate("ALTER TABLE usuarios ADD COLUMN telefono TEXT DEFAULT ''");
+                stmt.executeUpdate("ALTER TABLE usuarios ADD COLUMN correo TEXT DEFAULT ''");
+                System.out.println("Migración v6e: columnas telefono y correo añadidas a usuarios.");
+            }
+
             System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
         } catch (SQLException e) {
@@ -148,7 +161,9 @@ public class SchemaManager {
             "  nombre   TEXT    NOT NULL," +
             "  usuario  TEXT    NOT NULL UNIQUE," +
             "  clave    TEXT    NOT NULL," +
-            "  rol      TEXT    NOT NULL CHECK(rol IN ('Administrador','Recepcionista'))" +
+            "  rol      TEXT    NOT NULL CHECK(rol IN ('Administrador','Recepcionista'))," +
+            "  telefono TEXT    DEFAULT ''," +
+            "  correo   TEXT    DEFAULT ''" +
             ")"
         );
         stmt.executeUpdate(
@@ -258,6 +273,27 @@ public class SchemaManager {
                 ")"
             );
             System.out.println("Migración v6: tabla clientes creada y tabla reservas normalizada.");
+        }
+
+        // v7: migrar contraseñas de texto plano a hash PBKDF2
+        if (fromVersion < 7) {
+            String select = "SELECT id, clave FROM usuarios";
+            try (Statement s = conn.createStatement();
+                 ResultSet users = s.executeQuery(select)) {
+                while (users.next()) {
+                    int id = users.getInt("id");
+                    String clave = users.getString("clave");
+                    if (clave != null && !clave.contains(":")) {
+                        String hashed = PasswordUtil.hash(clave);
+                        try (PreparedStatement ps = conn.prepareStatement("UPDATE usuarios SET clave = ? WHERE id = ?")) {
+                            ps.setString(1, hashed);
+                            ps.setInt(2, id);
+                            ps.executeUpdate();
+                        }
+                    }
+                }
+            }
+            System.out.println("Migración v7: contraseñas migradas a hash PBKDF2.");
         }
     }
 }

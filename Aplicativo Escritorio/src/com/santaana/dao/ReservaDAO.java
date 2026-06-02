@@ -1,6 +1,7 @@
 package com.santaana.dao;
 
 import com.santaana.db.DatabaseConnection;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Reserva;
 import com.santaana.model.Cliente;
 
@@ -21,7 +22,7 @@ public class ReservaDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException e) {
-            System.err.println("Error listando reservas: " + e.getMessage());
+            throw new DatabaseException("listar reservas", e);
         }
         return lista;
     }
@@ -37,7 +38,7 @@ public class ReservaDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException e) {
-            System.err.println("Error listando activas: " + e.getMessage());
+            throw new DatabaseException("listar reservas activas", e);
         }
         return lista;
     }
@@ -54,8 +55,7 @@ public class ReservaDAO {
             cliente = new Cliente(0, clienteNombre, clienteDoc, clienteTelefono, clienteCorreo);
             idCliente = clienteDAO.crear(cliente);
             if (idCliente == -1) {
-                System.err.println("Error: No se pudo crear el cliente al guardar la reserva.");
-                return false;
+                throw new DatabaseException("crear cliente durante reserva", new SQLException("No se pudo crear el cliente"));
             }
         } else {
             idCliente = cliente.getId();
@@ -76,8 +76,7 @@ public class ReservaDAO {
             ps.setDouble(9, anticipo);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error creando reserva: " + e.getMessage());
-            return false;
+            throw new DatabaseException("crear reserva", e);
         }
     }
 
@@ -89,8 +88,7 @@ public class ReservaDAO {
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error actualizando anticipo: " + e.getMessage());
-            return false;
+            throw new DatabaseException("actualizar anticipo de reserva", e);
         }
     }
 
@@ -102,13 +100,11 @@ public class ReservaDAO {
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error actualizando reserva: " + e.getMessage());
-            return false;
+            throw new DatabaseException("actualizar estado de reserva", e);
         }
     }
 
     public Reserva buscarActivaPorHabitacion(int idHabitacion) {
-        // Reserva activa cuya fecha_entrada ya pasó o es hoy (huésped presente)
         String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
                      "FROM reservas r " +
                      "LEFT JOIN clientes c ON r.id_cliente = c.id " +
@@ -120,13 +116,12 @@ public class ReservaDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return mapear(rs);
         } catch (SQLException e) {
-            System.err.println("Error buscando reserva activa: " + e.getMessage());
+            throw new DatabaseException("buscar reserva activa por habitación", e);
         }
         return null;
     }
 
     public Reserva buscarProximaPorHabitacion(int idHabitacion) {
-        // Reserva activa cuya fecha_entrada es futura (todavía no llega)
         String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
                      "FROM reservas r " +
                      "LEFT JOIN clientes c ON r.id_cliente = c.id " +
@@ -138,7 +133,7 @@ public class ReservaDAO {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return mapear(rs);
         } catch (SQLException e) {
-            System.err.println("Error buscando próxima reserva: " + e.getMessage());
+            throw new DatabaseException("buscar próxima reserva por habitación", e);
         }
         return null;
     }
@@ -156,7 +151,7 @@ public class ReservaDAO {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException e) {
-            System.err.println("Error listando historial: " + e.getMessage());
+            throw new DatabaseException("listar últimas reservas por habitación", e);
         }
         return lista;
     }

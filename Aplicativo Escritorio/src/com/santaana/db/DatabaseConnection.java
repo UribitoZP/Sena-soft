@@ -1,17 +1,45 @@
 package com.santaana.db;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
 
-    private static final String DB_URL = "jdbc:sqlite:santaana.db";
+    private static final String DB_URL;
     private static Connection instance;
+
+    static {
+        DB_URL = inicializarDbUrl();
+    }
 
     private DatabaseConnection() {}
 
-    public static Connection getConnection() throws SQLException {
+    private static String inicializarDbUrl() {
+        try {
+            File dirClases = new File(
+                DatabaseConnection.class
+                    .getProtectionDomain().getCodeSource().getLocation()
+                    .toURI()
+            ).getAbsoluteFile();
+
+            // Si los .class están en bin/, la DB va en la raíz del proyecto
+            File dbFile;
+            if (dirClases.isDirectory() && dirClases.getName().equalsIgnoreCase("bin")) {
+                dbFile = new File(dirClases.getParentFile(), "santaana.db");
+            } else {
+                dbFile = new File(dirClases.getParentFile(), "santaana.db");
+            }
+
+            return "jdbc:sqlite:" + dbFile.getAbsolutePath();
+        } catch (Exception e) {
+            // Fallback: directorio actual
+            return "jdbc:sqlite:santaana.db";
+        }
+    }
+
+    public static synchronized Connection getConnection() throws SQLException {
         if (instance == null || instance.isClosed()) {
             try {
                 Class.forName("org.sqlite.JDBC");

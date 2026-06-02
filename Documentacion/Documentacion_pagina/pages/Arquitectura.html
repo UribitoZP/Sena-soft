@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectura | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html" class="active">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="arquitectura">
+                <h1>Arquitectura del Sistema</h1>
+                <p class="lead">Diseño en capas con patrón MVC y base de datos SQLite embebida.</p>
+                <hr>
+
+                <h2>1. Estructura de Paquetes</h2>
+                <pre><code>src/com/santaana/
+├── main/         // Punto de entrada: ApplicationMain.java
+├── db/           // Base de datos
+│   ├── DatabaseConnection.java   // Singleton de conexión SQLite
+│   ├── DatabaseException.java    // Excepción propagable de BD
+│   ├── SchemaManager.java        // Creación y migración de tablas
+│   └── SeedData.java             // Datos iniciales de prueba
+├── model/        // Modelos de datos (POJO)
+│   ├── Usuario.java
+│   ├── Habitacion.java
+│   ├── Reserva.java
+│   ├── CierreMes.java
+│   └── Cliente.java
+├── dao/          // Acceso a datos (consultas SQL)
+│   ├── UsuarioDAO.java
+│   ├── HabitacionDAO.java
+│   ├── ReservaDAO.java
+│   ├── HistorialDAO.java
+│   ├── CierreMesDAO.java
+│   ├── ReporteDAO.java
+│   └── ClienteDAO.java
+├── controller/   // Lógica de negocio
+│   └── LoginController.java
+├── view/         // Interfaces gráficas (Java Swing)
+│   ├── LoginFrame.java
+│   ├── MainFrame.java
+│   ├── TableroPanel.java
+│   ├── TableroFrame.java
+│   ├── ReservaPanel.java
+│   ├── ReservaFrame.java
+│   ├── GestHabitacionPanel.java
+│   ├── GestHabitacion.java
+│   ├── NotificacionPanel.java
+│   ├── NotificacionFrame.java
+│   ├── NuevaReservaDialog.java
+│   ├── UsuarioDialog.java
+│   ├── GestionUsuarioPanel.java
+│   ├── InfoHabitacionFrame.java
+│   ├── HistorialPanel.java
+│   └── ReportePanel.java
+├── server/       // Servidor REST para el móvil
+│   ├── RestServer.java
+│   ├── AuthHandler.java
+│   ├── HabitacionesHandler.java
+│   ├── ReservasHandler.java
+│   ├── StatsHandler.java
+│   ├── TokenManager.java
+│   └── JsonUtil.java
+└── util/
+    ├── ThemeManager.java         // Modo claro / oscuro
+    ├── PasswordUtil.java         // Hash PBKDF2
+    ├── ErrorUtil.java            // Diálogos de error
+    ├── BackupManager.java        // Copias de seguridad
+    └── DateUtil.java             // Formateo estricto de fechas</code></pre>
+
+                <h2>2. Patrón DAO (Data Access Object)</h2>
+                <p>Cada entidad del sistema tiene su propio DAO que centraliza todas las consultas SQL. Las vistas nunca acceden directamente a la base de datos — siempre lo hacen a través del DAO correspondiente.</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>DAO</th>
+                                <th>Métodos principales</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>HabitacionDAO</code></td>
+                                <td><code>listarTodas()</code>, <code>listarDisponibles()</code>, <code>listarDisponiblesEnFechas(desde, hasta)</code>, <code>actualizarEstado(id, estado)</code>, <code>agregar()</code>, <code>eliminar()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ReservaDAO</code></td>
+                                <td><code>listarTodas()</code>, <code>listarActivas()</code>, <code>crear(...)</code>, <code>actualizarEstado(id, estado)</code>, <code>buscarActivaPorHabitacion(id)</code>, <code>actualizarAnticipo(id, monto)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>UsuarioDAO</code></td>
+                                <td><code>autenticar(usuario, clave, rol)</code>, <code>autenticarSinRol(usuario, clave)</code>, <code>listarTodos()</code>, <code>crear(usuario)</code>, <code>actualizar(usuario)</code>, <code>eliminar(id)</code>, <code>contarPorRol(rol)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ClienteDAO</code></td>
+                                <td><code>buscarPorDocumento(doc)</code>, <code>crear(cliente)</code>, <code>actualizar(cliente)</code>, <code>listarTodos()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>HistorialDAO</code></td>
+                                <td><code>buscar(texto, desde, hasta)</code>, <code>registrar(tipo, titulo, desc, idUsuario)</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>CierreMesDAO</code></td>
+                                <td><code>esCerrado(mes)</code>, <code>cerrarMes(mes, idUsuario, notas)</code>, <code>getCierre(mes)</code>, <code>listarCierres()</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>ReporteDAO</code></td>
+                                <td><code>getTotalIngresos()</code>, <code>getTotalAnticipos()</code>, <code>getTotalReservas()</code>, <code>getReservasPorEstado()</code>, <code>getIngresosPorMes()</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>3. Ciclo de vida de una habitación</h2>
+                <p>El sistema controla los estados de las habitaciones con el siguiente flujo obligatorio:</p>
+
+                <div class="code-block">
+                    <pre><code>Disponible  ──[Nueva reserva]──►  Ocupada
+Ocupada     ──[Checkout]────────►  Limpieza
+Limpieza    ──[Habilitar]────────►  Disponible
+
+Cualquier estado  ──[Gestión]──►  Mantenimiento
+Mantenimiento     ──[Gestión]──►  Disponible</code></pre>
+                </div>
+
+                <h2>4. Personalización: Modo Oscuro "Dark Blue"</h2>
+                <p>El sistema incluye un alternador de tema claro/oscuro implementado con el patrón <strong>Observer</strong>.</p>
+                <ul>
+                    <li><strong>ThemeManager:</strong> Clase central que almacena el tema activo y notifica a todos los oyentes registrados.</li>
+                    <li><strong>ThemeListener:</strong> Interfaz que implementa cada ventana para recibir actualizaciones en tiempo real.</li>
+                </ul>
+
+                <div class="gallery">
+                    <div class="gallery-item">
+                        <img src="../img_dashboard/light_mode.png" alt="Modo Claro" class="zoom-img" style="cursor:pointer;">
+                        <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Interfaz Modo Claro</p>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="../img_dashboard/dark_mode.png" alt="Modo Oscuro" class="zoom-img" style="cursor:pointer;">
+                        <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Interfaz Modo Oscuro "Dark Blue"</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

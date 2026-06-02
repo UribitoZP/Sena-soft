@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalación | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html" class="active">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="requisitos">
+                <h1>Instalación y Ejecución</h1>
+                <p class="lead">Guía completa para instalar, compilar y ejecutar el sistema de gestión hotelera Hotel Santa Ana.</p>
+                <hr>
+
+                <h2>1. Requisitos del Sistema</h2>
+                <p>Antes de ejecutar el aplicativo, asegúrate de tener instalado lo siguiente en tu máquina:</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Requisito</th>
+                                <th>Versión mínima</th>
+                                <th>Notas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>JDK (Java Development Kit)</strong></td>
+                                <td>17 o superior</td>
+                                <td>Necesario para compilar y ejecutar el proyecto</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Sistema Operativo</strong></td>
+                                <td>Windows 10/11</td>
+                                <td>El script <code>run.bat</code> es para Windows</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Espacio en disco</strong></td>
+                                <td>~50 MB</td>
+                                <td>Incluye JARs, binarios y base de datos</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Red local (opcional)</strong></td>
+                                <td>WiFi o LAN</td>
+                                <td>Solo si se usará el aplicativo móvil</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="callout info">
+                    <p><strong>Sin base de datos externa:</strong> El sistema usa <strong>SQLite embebido</strong>. No necesitas instalar MySQL, MariaDB ni ningún servidor de base de datos. La base de datos se crea automáticamente al ejecutar por primera vez.</p>
+                </div>
+
+                <h2>2. Librerías incluidas (carpeta <code>/lib</code>)</h2>
+                <p>El proyecto ya incluye todas las dependencias en la carpeta <code>Aplicativo Escritorio/lib/</code>. No necesitas descargar nada adicional.</p>
+
+                <pre><code>Aplicativo Escritorio/
+└── lib/
+    ├── jcalendar-1.4.jar          // Selector visual de fechas
+    ├── sqlite-jdbc-3.45.1.0.jar   // Driver de conexión a SQLite
+    ├── slf4j-api-1.7.36.jar       // Interfaz de logging (requerida por SQLite)
+    └── slf4j-nop-1.7.36.jar       // Suprime los mensajes de log internos</code></pre>
+            </section>
+
+            <section id="ejecucion">
+                <h1>Ejecución</h1>
+                <hr>
+
+                <h2>Opción A — Ejecución con <code>run.bat</code> (Recomendada)</h2>
+                <p>Abre el Explorador de archivos, navega a la carpeta <code>Aplicativo Escritorio/</code> y haz doble clic en <code>run.bat</code>.</p>
+
+                <p>El script realiza automáticamente estos pasos:</p>
+                <ol>
+                    <li>Crea la carpeta <code>bin/</code> si no existe.</li>
+                    <li>Compila todos los archivos <code>.java</code> del proyecto incluyendo las librerías.</li>
+                    <li>Copia los recursos gráficos a la carpeta de binarios.</li>
+                    <li>Ejecuta la aplicación.</li>
+                </ol>
+
+                <div class="code-block">
+                    <pre><code>:: run.bat (simplificado)
+javac -cp ".;lib\jcalendar-1.4.jar;lib\sqlite-jdbc-3.45.1.0.jar;..." ^
+      -d bin -sourcepath src src\com\santaana\main\ApplicationMain.java ...
+
+java -cp ".;..\lib\jcalendar-1.4.jar;..." com.santaana.main.ApplicationMain</code></pre>
+                </div>
+
+                <div class="callout warning">
+                    <p><strong>Error de compilación:</strong> Si aparece un error, verifica que el JDK esté instalado y que la variable de entorno <code>JAVA_HOME</code> esté configurada. Puedes comprobarlo ejecutando <code>java -version</code> en la terminal.</p>
+                </div>
+
+                <h2>Opción B — Ejecución Manual desde terminal</h2>
+                <div class="code-block">
+                    <pre><code># Desde la carpeta "Aplicativo Escritorio/"
+
+# 1. Crear carpeta de binarios
+mkdir bin
+
+# 2. Compilar (Windows — usar ; como separador de classpath)
+javac -cp ".;lib\jcalendar-1.4.jar;lib\sqlite-jdbc-3.45.1.0.jar;lib\slf4j-api-1.7.36.jar;lib\slf4j-nop-1.7.36.jar" ^
+      -d bin -sourcepath src src\com\santaana\main\ApplicationMain.java
+
+# 3. Ejecutar (desde la carpeta bin/)
+cd bin
+java -cp ".;..\lib\jcalendar-1.4.jar;..\lib\sqlite-jdbc-3.45.1.0.jar;..\lib\slf4j-api-1.7.36.jar;..\lib\slf4j-nop-1.7.36.jar" ^
+     com.santaana.main.ApplicationMain</code></pre>
+                </div>
+
+                <h2>Primera ejecución — ¿Qué pasa automáticamente?</h2>
+                <p>Al iniciar por primera vez, el sistema realiza en orden:</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Paso</th>
+                                <th>Clase responsable</th>
+                                <th>Qué hace</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>1</td>
+                                <td><code>SchemaManager</code></td>
+                                <td>Crea el archivo <code>santaana.db</code> y las tablas <code>usuarios</code>, <code>habitaciones</code>, <code>reservas</code>, <code>clientes</code>, <code>historial</code> y <code>cierres_mes</code>.</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td><code>SeedData</code></td>
+                                <td>Si la base está vacía, inserta 2 usuarios y 15 habitaciones por defecto.</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td><code>RestServer</code></td>
+                                <td>Levanta el servidor HTTP en el puerto <strong>8080</strong> para el aplicativo móvil.</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td><code>LoginFrame</code></td>
+                                <td>Muestra la pantalla de inicio de sesión.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>Credenciales de acceso</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Contraseña</th>
+                                <th>Rol</th>
+                                <th>Acceso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>admin</code></td>
+                                <td><code>1234</code></td>
+                                <td>Administrador</td>
+                                <td>Tablero, Reservas, Gestión de habitaciones</td>
+                            </tr>
+                            <tr>
+                                <td><code>recepcion</code></td>
+                                <td><code>1234</code></td>
+                                <td>Recepcionista</td>
+                                <td>Reservas (sin gestión de habitaciones)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

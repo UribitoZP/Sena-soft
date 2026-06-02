@@ -11,7 +11,9 @@ import java.util.List;
 import java.util.ArrayList;
 import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Habitacion;
+import com.santaana.util.ErrorUtil;
 import com.santaana.util.ThemeManager;
 
 public class GestHabitacionPanel extends JPanel {
@@ -81,15 +83,19 @@ public class GestHabitacionPanel extends JPanel {
                 double p = Double.parseDouble(precio.getText().trim());
                 String numStr  = numero.getText().trim();
                 String tipoStr = (String) tipo.getSelectedItem();
-                boolean ok = habitacionDAO.agregar(numStr, tipoStr, p);
-                if (ok) {
-                    HistorialDAO.registrar("Habitacion", "Habitación registrada",
-                        "Nueva habitación " + numStr + " tipo " + tipoStr
-                        + " a $" + (int) p + "/noche agregada");
-                    JOptionPane.showMessageDialog(this, "Habitación agregada.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    refreshUI();
-                } else {
-                    JOptionPane.showMessageDialog(this, "No se pudo agregar.", "Error", JOptionPane.ERROR_MESSAGE);
+                try {
+                    boolean ok = habitacionDAO.agregar(numStr, tipoStr, p);
+                    if (ok) {
+                        HistorialDAO.registrar("Habitacion", "Habitación registrada",
+                            "Nueva habitación " + numStr + " tipo " + tipoStr
+                            + " a $" + (int) p + "/noche agregada");
+                        JOptionPane.showMessageDialog(this, "Habitación agregada.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                        refreshUI();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se pudo agregar.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } catch (DatabaseException ex) {
+                    ErrorUtil.mostrarError(this, "agregar habitación", ex);
                 }
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Precio inválido.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -139,7 +145,12 @@ public class GestHabitacionPanel extends JPanel {
         header.add(searchBar(), BorderLayout.CENTER);
         area.add(header, BorderLayout.NORTH);
 
-        habitacionesCache = habitacionDAO.listarTodas();
+        try {
+            habitacionesCache = habitacionDAO.listarTodas();
+        } catch (DatabaseException e) {
+            ErrorUtil.mostrarError(this, "cargar habitaciones", e);
+            habitacionesCache = new ArrayList<>();
+        }
 
         gridPanel = new JPanel(new GridLayout(0, 3, 14, 14));
         gridPanel.setOpaque(false);
@@ -299,10 +310,14 @@ public class GestHabitacionPanel extends JPanel {
             btnHabilitar.setMaximumSize(new Dimension(120, 30));
             btnHabilitar.setAlignmentX(0.0f);
             btnHabilitar.addActionListener(e -> {
-                habitacionDAO.actualizarEstado(h.getId(), "Disponible");
-                HistorialDAO.registrar("Habitacion", "Habitación habilitada",
-                    "Hab. " + h.getNumero() + " pasó a estado Disponible tras limpieza");
-                refreshUI();
+                try {
+                    habitacionDAO.actualizarEstado(h.getId(), "Disponible");
+                    HistorialDAO.registrar("Habitacion", "Habitación habilitada",
+                        "Hab. " + h.getNumero() + " pasó a estado Disponible tras limpieza");
+                    refreshUI();
+                } catch (DatabaseException ex) {
+                    ErrorUtil.mostrarError(GestHabitacionPanel.this, "habilitar habitación", ex);
+                }
             });
             c.add(Box.createVerticalStrut(18));
             c.add(btnHabilitar);
@@ -358,6 +373,8 @@ public class GestHabitacionPanel extends JPanel {
             refreshUI();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Precio inválido.", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (DatabaseException ex) {
+            ErrorUtil.mostrarError(this, "gestionar habitación", ex);
         }
     }
 }

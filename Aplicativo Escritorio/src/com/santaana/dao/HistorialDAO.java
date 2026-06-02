@@ -1,6 +1,7 @@
 package com.santaana.dao;
 
 import com.santaana.db.DatabaseConnection;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Actividad;
 
 import java.sql.*;
@@ -29,7 +30,7 @@ public class HistorialDAO {
             ps.executeUpdate();
             pendingCount++;
         } catch (SQLException e) {
-            System.err.println("Error registrando historial: " + e.getMessage());
+            throw new DatabaseException("registrar en historial", e);
         }
     }
 
@@ -74,7 +75,7 @@ public class HistorialDAO {
                 ));
             }
         } catch (SQLException e) {
-            System.err.println("Error buscando historial: " + e.getMessage());
+            throw new DatabaseException("buscar en historial", e);
         }
         return lista;
     }
