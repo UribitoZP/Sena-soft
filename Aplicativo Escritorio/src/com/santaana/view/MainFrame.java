@@ -36,6 +36,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel sidebarPanel;
     private JPanel navbarPanel;
     private String userRole;
+    private String nombreUsuario;
     private String currentView = "Tablero";
     private int idUsuario;
     private ReservaPanel      reservaPanel;
@@ -44,6 +45,10 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private ReportePanel      reportePanel;
     private ProductoPanel     productoPanel;
     
+    public MainFrame(String role, String welcomeMessage, int idUsuario) {
+        this.userRole  = role;
+        this.idUsuario = idUsuario;
+
     public MainFrame(String role, String welcomeMessage, int idUsuario) {
         this.userRole  = role;
         this.idUsuario = idUsuario;

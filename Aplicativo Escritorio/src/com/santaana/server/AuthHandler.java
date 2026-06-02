@@ -2,6 +2,7 @@ package com.santaana.server;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.UsuarioDAO;
 import com.santaana.model.Usuario;
 import java.io.IOException;
@@ -52,7 +53,7 @@ public class AuthHandler implements HttpHandler {
             ? dao.autenticarSinRol(usuario, clave)
             : dao.autenticar(usuario, clave, rol);
         if (u == null) {
-            registrarFallo(ip);
+
             JsonUtil.enviar(ex, 401, "{\"error\":\"Credenciales incorrectas\"}");
             return;
         }

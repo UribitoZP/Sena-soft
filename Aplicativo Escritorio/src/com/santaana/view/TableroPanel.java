@@ -82,7 +82,7 @@ public class TableroPanel extends JPanel {
         title.setForeground(getTextCol());
         navbar.add(title, BorderLayout.WEST);
 
-        return navbar;
+           return navbar;
     }
 
     private JPanel crearContenido() {
