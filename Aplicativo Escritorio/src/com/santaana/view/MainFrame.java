@@ -48,10 +48,6 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     public MainFrame(String role, String welcomeMessage, int idUsuario) {
         this.userRole  = role;
         this.idUsuario = idUsuario;
-
-    public MainFrame(String role, String welcomeMessage, int idUsuario) {
-        this.userRole  = role;
-        this.idUsuario = idUsuario;
         setTitle("Hotel Santa Ana — Sistema de Gestión");
         setSize(1280, 800);
         setMinimumSize(new Dimension(1100, 720));

@@ -52,7 +52,7 @@ public class LoginController {
             Usuario usuario = usuarioDAO.autenticar(username, password, rol);
 
             if (usuario == null) {
-                HistorialDAO.registrar("login", "Intento fallido", "Usuario: " + username);
+                HistorialDAO.registrar("Login", "Intento fallido", "Usuario: " + username);
                 view.showMessage("Credenciales incorrectas o rol no coincide.",
                         "Acceso denegado", JOptionPane.ERROR_MESSAGE);
                 return;

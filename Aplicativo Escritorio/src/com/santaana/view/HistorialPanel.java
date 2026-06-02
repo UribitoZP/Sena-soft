@@ -35,7 +35,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
     private final Set<String> tiposAbiertos  = new HashSet<>();
 
     private static final String[] ORDEN_FECHA = {"Hoy", "Ayer", "Esta semana", "Este mes", "Anterior"};
-    private static final String[] ORDEN_TIPO  = {"Reserva", "Checkout", "Cancelacion", "Habitacion", "Sistema"};
+    private static final String[] ORDEN_TIPO  = {"Reserva", "Checkout", "Cancelacion", "Habitacion", "Login", "Sistema"};
 
     private Color getPrimario() { return ThemeManager.getPrimary(); }
     private Color getFondo()    { return ThemeManager.getBackground(); }
@@ -574,6 +574,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
             case "Checkout":    return new Color(0x27AE60);
             case "Cancelacion": return new Color(0xE74C3C);
             case "Habitacion":  return new Color(0xF39C12);
+            case "Login":       return new Color(0x8E44AD);
             default:            return new Color(0x95A5A6);
         }
     }

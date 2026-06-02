@@ -53,7 +53,7 @@ public class AuthHandler implements HttpHandler {
             ? dao.autenticarSinRol(usuario, clave)
             : dao.autenticar(usuario, clave, rol);
         if (u == null) {
-
+            HistorialDAO.registrar("Login", "Intento fallido", "Usuario: " + usuario);
             JsonUtil.enviar(ex, 401, "{\"error\":\"Credenciales incorrectas\"}");
             return;
         }
