@@ -33,9 +33,13 @@ import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
+import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
+import com.santaana.dao.UsuarioDAO;
+
 
 public class TableroPanel extends JPanel {
+    private String nombreUsuario;
     private String userRole;
     private Runnable onNuevaReserva;
     private Runnable onEstadoCambiado;
@@ -45,6 +49,7 @@ public class TableroPanel extends JPanel {
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
     private final ReservaDAO    reservaDAO    = new ReservaDAO();
     private JPanel roomsGrid;
+    
 
     private Color getBorde() { return ThemeManager.getBorder(); }
     private Color getPrimario() { return ThemeManager.getPrimary(); }
@@ -53,8 +58,11 @@ public class TableroPanel extends JPanel {
     private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
     private Color getTextCol() { return ThemeManager.getTextPrimary(); }
 
-    public TableroPanel(String role, Runnable onNuevaReserva, Runnable onEstadoCambiado) {
+    
+
+    public TableroPanel(String role,String nombreUsuario, Runnable onNuevaReserva, Runnable onEstadoCambiado) {
         this.userRole         = role;
+        this.nombreUsuario    =  nombreUsuario;
         this.onNuevaReserva   = onNuevaReserva;
         this.onEstadoCambiado = onEstadoCambiado;
         setLayout(new BorderLayout());
@@ -81,6 +89,12 @@ public class TableroPanel extends JPanel {
         title.setForeground(getTextCol());
         navbar.add(title, BorderLayout.WEST);
 
+        JLabel welcome = new JLabel("Bienvenido " + nombreUsuario, JLabel.CENTER);
+        welcome.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        welcome.setForeground(getLabel());
+        navbar.add(welcome, BorderLayout.CENTER);
+
+
         return navbar;
     }
 
@@ -102,7 +116,7 @@ public class TableroPanel extends JPanel {
     }
 
     private JPanel crearAlertasVencidas() {
-        String ahora = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm").format(new java.util.Date());
+        String ahora = DateUtil.formatearFechaHora(new java.util.Date());
         java.util.List<com.santaana.model.Reserva> vencidas = new java.util.ArrayList<>();
         for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
             if ("Indefinido".equals(r.getTipoEstadia())) continue;
@@ -315,7 +329,7 @@ public class TableroPanel extends JPanel {
 
         // Cargar próximas reservas (check-in futuro) para mostrar en tarjetas
         java.util.Map<Integer, com.santaana.model.Reserva> proximas = new java.util.HashMap<>();
-        String hoyStr = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
+        String hoyStr = DateUtil.formatearFecha(new java.util.Date());
         for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
             if (r.getFechaEntrada().compareTo(hoyStr) > 0) {
                 proximas.putIfAbsent(r.getIdHabitacion(), r);

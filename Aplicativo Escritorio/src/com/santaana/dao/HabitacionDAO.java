@@ -1,6 +1,7 @@
 package com.santaana.dao;
 
 import com.santaana.db.DatabaseConnection;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Habitacion;
 
 import java.sql.*;
@@ -15,12 +16,9 @@ public class HabitacionDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                lista.add(mapear(rs));
-            }
+            while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException e) {
-            System.err.println("Error listando habitaciones: " + e.getMessage());
+            throw new DatabaseException("listar habitaciones", e);
         }
         return lista;
     }
@@ -31,24 +29,17 @@ public class HabitacionDAO {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                lista.add(mapear(rs));
-            }
+            while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException e) {
-            System.err.println("Error listando disponibles: " + e.getMessage());
+            throw new DatabaseException("listar habitaciones disponibles", e);
         }
         return lista;
     }
 
-    /**
-     * @param desdeDateTime  "yyyy-MM-dd HH:mm" — inicio de la nueva reserva
-     * @param hastaDateTime  "yyyy-MM-dd HH:mm" — fin de la nueva reserva
-     */
     public List<Habitacion> listarDisponiblesEnFechas(String desdeDateTime, String hastaDateTime) {
         List<Habitacion> lista = new ArrayList<>();
         String sql =
-            "SELECT * FROM habitaciones WHERE estado != 'Mantenimiento' AND id NOT IN (" +
+            "SELECT * FROM habitaciones WHERE estado IN ('Disponible','Limpieza') AND id NOT IN (" +
             "  SELECT id_habitacion FROM reservas WHERE estado = 'Activa'" +
             "  AND (fecha_entrada || ' ' || COALESCE(hora_entrada,'12:00')) < ?" +
             "  AND (fecha_salida  || ' ' || COALESCE(hora_salida, '12:00')) > ?" +
@@ -60,7 +51,7 @@ public class HabitacionDAO {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) lista.add(mapear(rs));
         } catch (SQLException e) {
-            System.err.println("Error listando disponibles por fechas: " + e.getMessage());
+            throw new DatabaseException("listar habitaciones disponibles por fechas", e);
         }
         return lista;
     }
@@ -69,14 +60,11 @@ public class HabitacionDAO {
         String sql = "UPDATE habitaciones SET estado = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, nuevoEstado);
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
-            System.err.println("Error actualizando estado: " + e.getMessage());
-            return false;
+            throw new DatabaseException("actualizar estado de habitación", e);
         }
     }
 
@@ -84,15 +72,12 @@ public class HabitacionDAO {
         String sql = "INSERT INTO habitaciones (numero, tipo, precio) VALUES (?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, numero);
             ps.setString(2, tipo);
             ps.setDouble(3, precio);
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
-            System.err.println("Error agregando habitacion: " + e.getMessage());
-            return false;
+            throw new DatabaseException("agregar habitación", e);
         }
     }
 
@@ -105,8 +90,7 @@ public class HabitacionDAO {
             ps.setInt(3, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("Error actualizando habitacion: " + e.getMessage());
-            return false;
+            throw new DatabaseException("actualizar datos de habitación", e);
         }
     }
 
@@ -114,13 +98,10 @@ public class HabitacionDAO {
         String sql = "DELETE FROM habitaciones WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
-
         } catch (SQLException e) {
-            System.err.println("Error eliminando habitacion: " + e.getMessage());
-            return false;
+            throw new DatabaseException("eliminar habitación", e);
         }
     }
 

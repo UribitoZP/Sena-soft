@@ -1,6 +1,7 @@
 package com.santaana.dao;
 
 import com.santaana.db.DatabaseConnection;
+import com.santaana.db.DatabaseException;
 import com.santaana.model.Actividad;
 
 import java.sql.*;
@@ -40,7 +41,7 @@ public class NotificacionDAO {
                     rs.getString("fecha_hora")
                 ));
         } catch (SQLException e) {
-            System.err.println("Error cargando notificaciones: " + e.getMessage());
+            throw new DatabaseException("listar notificaciones", e);
         }
         return lista;
     }

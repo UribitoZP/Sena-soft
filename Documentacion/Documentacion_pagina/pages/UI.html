@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI / Componentes | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html" class="active">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="ui">
+                <h1>UI / Componentes</h1>
+                <p class="lead">Temas visuales, formateo estricto de fechas, formularios y validaciones de la interfaz gráfica.</p>
+                <hr>
+
+                <h2>1. ThemeManager — Modo Oscuro "Dark Blue"</h2>
+                <p>El sistema incluye un alternador de tema claro/oscuro implementado con el patrón <strong>Observer</strong>.</p>
+                <ul>
+                    <li><strong>ThemeManager:</strong> Clase central que almacena el tema activo (<code>LIGHT</code> o <code>DARK</code>) y notifica a todos los oyentes registrados mediante <code>ThemeListener</code>.</li>
+                    <li><strong>ThemeListener:</strong> Interfaz que implementa cada ventana para recibir actualizaciones en tiempo real cuando el usuario cambia de tema.</li>
+                    <li>Los colores se definen mediante constantes en <code>ThemeManager</code>: <code>getBackground()</code>, <code>getPanelBackground()</code>, <code>getPrimary()</code>, <code>getTextPrimary()</code>, <code>getTextSecondary()</code>, <code>getBorder()</code>.</li>
+                </ul>
+
+                <div class="gallery">
+                    <div class="gallery-item">
+                        <img src="../img_dashboard/light_mode.png" alt="Modo Claro" class="zoom-img" style="cursor:pointer;">
+                        <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Interfaz Modo Claro</p>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="../img_dashboard/dark_mode.png" alt="Modo Oscuro" class="zoom-img" style="cursor:pointer;">
+                        <p style="text-align:center; font-size:0.9em; color:var(--text-secondary);">Interfaz Modo Oscuro "Dark Blue"</p>
+                    </div>
+                </div>
+
+                <h2>2. DateUtil — Formateo Estricto de Fechas</h2>
+                <p>Las consultas SQL de disponibilidad de habitaciones comparan fechas como texto ISO (<code>fecha_entrada || ' ' || hora_entrada</code>). Para que esta comparación funcione correctamente, todas las fechas deben estar en formato <code>yyyy-MM-dd HH:mm</code>.</p>
+                <p><code>DateUtil</code> centraliza el formateo usando <code>java.time.format.DateTimeFormatter</code>, reemplazando <code>SimpleDateFormat</code> en toda la capa de UI. Cualquier string que no cumpla con el formato ISO lanza una excepción en vez de pasar corrupto a la consulta SQL.</p>
+
+                <div class="code-block">
+                    <pre><code>private static final DateTimeFormatter FMT_FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+private static final DateTimeFormatter FMT_HORA  = DateTimeFormatter.ofPattern("HH:mm");
+
+public static String formatearFecha(Date d) {
+    return d.toInstant().atZone(ZoneId.systemDefault())
+            .toLocalDate().format(FMT_FECHA);
+}
+
+public static String formatearHora(Date d) {
+    return d.toInstant().atZone(ZoneId.systemDefault())
+            .toLocalTime().format(FMT_HORA);
+}</code></pre>
+                </div>
+
+                <p>Archivos que usan DateUtil:</p>
+                <ul>
+                    <li><code>NuevaReservaDialog.java</code> — <code>formatearFecha()</code> y <code>formatearHora()</code> para enviar fechas al DAO</li>
+                    <li><code>HistorialPanel.java</code> — <code>aplicarFiltros()</code> para filtrar por rango de fechas</li>
+                    <li><code>TableroPanel.java</code> — alertas de checkout vencido y carga de próximas reservas</li>
+                </ul>
+
+                <h2>3. Formularios y Validaciones</h2>
+
+                <h3>Nueva Reserva (NuevaReservaDialog)</h3>
+                <ul>
+                    <li>Selector de fechas con <code>JDateChooser</code> y spinner de hora.</li>
+                    <li>Tres tipos de estadía: <strong>Una Noche</strong>, <strong>Pasadía</strong>, <strong>Indefinido</strong>.</li>
+                    <li>Validaciones estrictas: cédula numérica, nombre solo letras, teléfono numérico, correo con formato, anticipo no negativo ni superior al total.</li>
+                    <li>Autocompletado de datos del cliente al digitar la cédula.</li>
+                    <li>Filtro de habitaciones por tipo.</li>
+                </ul>
+
+                <h3>Gestión de Usuarios (GestionUsuarioPanel + UsuarioDialog)</h3>
+                <ul>
+                    <li>CRUD completo con restricciones por rol: máximo 2 Administradores y 3 Recepcionistas.</li>
+                    <li>En edición, el campo de contraseña no se pre-rellena. Si se deja vacío, conserva la actual.</li>
+                    <li>Validación de duplicados en nombre de usuario.</li>
+                </ul>
+
+                <h3>ErrorUtil — Manejo de Errores de BD</h3>
+                <p>Antes, los errores SQL se imprimían en consola sin que el usuario se enterara. Ahora:</p>
+                <ul>
+                    <li><code>DatabaseException</code> (RuntimeException) envuelve <code>SQLException</code> y se propaga desde los DAOs.</li>
+                    <li><code>ErrorUtil.mostrarError(Component, String, DatabaseException)</code> muestra un <code>JOptionPane</code> con el mensaje de error y el contexto de la operación.</li>
+                    <li><code>ApplicationMain</code> tiene un manejador global de excepciones no capturadas en el EDT.</li>
+                </ul>
+
+                <p>Paneles que capturan y muestran errores de BD:</p>
+                <ul>
+                    <li><code>LoginController</code> — error de autenticación</li>
+                    <li><code>GestionUsuarioPanel</code> — CRUD de usuarios</li>
+                    <li><code>GestHabitacionPanel</code> — CRUD de habitaciones</li>
+                    <li><code>HistorialPanel</code> — búsqueda en historial</li>
+                    <li><code>ReportePanel</code> — reportes y cierre de mes</li>
+                </ul>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

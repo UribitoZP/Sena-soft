@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código: ErrorUtil / DatabaseException | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html" class="active">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="codigo-errorutil">
+    <h1>Código Fuente: ErrorUtil y DatabaseException</h1>
+    <p class="lead">Manejo centralizado de errores de base de datos con notificaciones visuales al usuario.</p>
+    <hr>
+
+    <h2>DatabaseException</h2>
+    <p>RuntimeException que envuelve <code>SQLException</code> para propagar errores de base de datos sin modificar las firmas de los métodos DAO.</p>
+
+    <div class="code-block">
+        <pre><code>public class DatabaseException extends RuntimeException {
+    private final String contexto;
+
+    public DatabaseException(String contexto, SQLException causa) {
+        super("Error en " + contexto + ": " + causa.getMessage(), causa);
+        this.contexto = contexto;
+    }
+
+    public String getContexto() {
+        return contexto;
+    }
+}</code></pre>
+    </div>
+
+    <h3>¿Por qué RuntimeException?</h3>
+    <p>Para no obligar a todos los llamadores de los DAOs a declarar <code>throws SQLException</code>. La excepción se propaga hasta la capa de UI o REST, donde se captura y se muestra al usuario.</p>
+
+    <h2>ErrorUtil</h2>
+    <p>Helper estático que muestra un <code>JOptionPane</code> con el error, permitiendo al usuario saber qué falló sin necesidad de revisar la consola.</p>
+
+    <div class="code-block">
+        <pre><code>public class ErrorUtil {
+    public static void mostrarError(Component padre, String operacion, DatabaseException e) {
+        String msg = "Ocurrió un error al " + operacion + ".\n\n" +
+                      "Detalle: " + e.getMessage();
+        JOptionPane.showMessageDialog(
+            padre instanceof JFrame ? (JFrame) padre
+                : (JFrame) SwingUtilities.getWindowAncestor(padre),
+            msg,
+            "Error de Base de Datos",
+            JOptionPane.ERROR_MESSAGE
+        );
+        e.printStackTrace();
+    }
+}</code></pre>
+    </div>
+
+    <h3>¿Por qué no System.err.println?</h3>
+    <p>Antes los errores solo se imprimían en consola. El recepcionista no veía la consola, así que los errores pasaban desapercibidos. Ahora un JOptionPane le informa inmediatamente.</p>
+
+    <h2>Manejador global en ApplicationMain</h2>
+    <p>Además, <code>ApplicationMain</code> registra un manejador de excepciones no capturadas en el EDT:</p>
+    <div class="code-block">
+        <pre><code>SwingUtilities.invokeLater(() -> {
+            // ...
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            JOptionPane.showMessageDialog(null,
+                "Error inesperado: " + e.getMessage(),
+                "Error del sistema", JOptionPane.ERROR_MESSAGE);
+        });
+    });</code></pre>
+    </div>
+
+    <h2>Paneles que capturan DatabaseException</h2>
+    <ul>
+        <li><code>LoginController</code> — autenticación</li>
+        <li><code>GestionUsuarioPanel</code> — CRUD usuarios</li>
+        <li><code>GestHabitacionPanel</code> — CRUD habitaciones</li>
+        <li><code>HistorialPanel</code> — búsqueda</li>
+        <li><code>ReportePanel</code> — reportes</li>
+    </ul>
+</section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

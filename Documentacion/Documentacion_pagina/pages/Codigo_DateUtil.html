@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Código: DateUtil | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html" class="active">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="codigo-dateutil">
+    <h1>Código Fuente: DateUtil</h1>
+    <p class="lead">Formateo estricto de fechas con DateTimeFormatter para garantizar formato ISO en las consultas SQL.</p>
+    <hr>
+
+    <h2>Propósito</h2>
+    <p>Centralizar el formateo de fechas en toda la aplicación usando <code>java.time.format.DateTimeFormatter</code>, reemplazando <code>SimpleDateFormat</code> y garantizando que todas las fechas que llegan a los DAOs usen el formato ISO <code>yyyy-MM-dd HH:mm</code>.</p>
+
+    <h2>Código completo</h2>
+    <div class="code-block">
+        <pre><code>public class DateUtil {
+    private static final DateTimeFormatter FMT_FECHA = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter FMT_HORA  = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter FMT_MES   = DateTimeFormatter.ofPattern("yyyy-MM");
+
+    public static String formatearFecha(Date d) {
+        if (d == null) return null;
+        return d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().format(FMT_FECHA);
+    }
+
+    public static String formatearFecha(LocalDate d) {
+        return d.format(FMT_FECHA);
+    }
+
+    public static String formatearHora(Date d) {
+        return d.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().format(FMT_HORA);
+    }
+
+    public static String formatearHora(LocalTime t) {
+        return t.format(FMT_HORA);
+    }
+
+    public static String formatearFechaHora(Date d) {
+        if (d == null) return null;
+        return d.toInstant().atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+    }
+
+    public static String formatearMes(YearMonth m) {
+        return m.format(FMT_MES);
+    }
+
+    public static String formatearMes(LocalDate d) {
+        return YearMonth.from(d).format(FMT_MES);
+    }
+
+    public static LocalDate parseFecha(String str) {
+        return LocalDate.parse(str, FMT_FECHA);
+    }
+
+    public static LocalTime parseHora(String str) {
+        return LocalTime.parse(str, FMT_HORA);
+    }
+}</code></pre>
+    </div>
+
+    <h2>Explicación</h2>
+
+    <h3>DateTimeFormatter vs SimpleDateFormat</h3>
+    <p><code>DateTimeFormatter</code> es inmutable y thread-safe, a diferencia de <code>SimpleDateFormat</code>. Además, <code>LocalDate.parse()</code> lanza <code>DateTimeParseException</code> si el formato no coincide, detectando errores de inmediato.</p>
+
+    <h3>Conversión Date → LocalDate</h3>
+    <p>Los componentes Swing (<code>JDateChooser</code>, <code>JSpinner</code>) usan <code>java.util.Date</code>. DateUtil convierte a <code>LocalDate</code>/<code>LocalTime</code> vía <code>Instant</code> + <code>ZoneId.systemDefault()</code> antes de formatear.</p>
+
+    <h3>Métodos disponibles</h3>
+    <ul>
+        <li><code>formatearFecha(Date)</code> — <code>yyyy-MM-dd</code></li>
+        <li><code>formatearHora(Date)</code> — <code>HH:mm</code></li>
+        <li><code>formatearFechaHora(Date)</code> — <code>yyyy-MM-dd HH:mm</code></li>
+        <li><code>formatearMes(YearMonth)</code> — <code>yyyy-MM</code></li>
+        <li><code>parseFecha(String)</code> — Retorna <code>LocalDate</code></li>
+        <li><code>parseHora(String)</code> — Retorna <code>LocalTime</code></li>
+    </ul>
+
+    <h2>Archivos que lo usan</h2>
+    <ul>
+        <li><code>NuevaReservaDialog.java</code> — <code>formatearFecha()</code> y <code>formatearHora()</code></li>
+        <li><code>HistorialPanel.java</code> — <code>aplicarFiltros()</code></li>
+        <li><code>TableroPanel.java</code> — alertas y próximas reservas</li>
+    </ul>
+</section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

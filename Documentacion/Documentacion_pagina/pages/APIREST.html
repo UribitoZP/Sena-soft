@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API REST | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.4.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html" class="active">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="apirest">
+                <h1>API REST</h1>
+                <p class="lead">Servidor HTTP integrado para la integración con el aplicativo móvil.</p>
+                <hr>
+
+                <h2>1. Servidor Embebido</h2>
+                <p>Al iniciar el aplicativo, se levanta automáticamente un servidor HTTP en el puerto <strong>8080</strong> usando la librería <code>com.sun.net.httpserver</code> incluida en el JDK (sin dependencias externas).</p>
+
+                <h2>2. Endpoints</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Endpoint</th>
+                                <th>Método</th>
+                                <th>Autenticación</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>/auth/login</code></td>
+                                <td>POST</td>
+                                <td>Público</td>
+                                <td>Recibe <code>{"usuario":"...","clave":"..."}</code>, retorna token de acceso</td>
+                            </tr>
+                            <tr>
+                                <td><code>/habitaciones</code></td>
+                                <td>GET</td>
+                                <td>Bearer token</td>
+                                <td>Retorna todas las habitaciones con id, numero, tipo, precio y estado</td>
+                            </tr>
+                            <tr>
+                                <td><code>/reservas</code></td>
+                                <td>GET</td>
+                                <td>Bearer token</td>
+                                <td>Retorna todas las reservas con datos del cliente y número de habitación</td>
+                            </tr>
+                            <tr>
+                                <td><code>/stats</code></td>
+                                <td>GET</td>
+                                <td>Bearer token</td>
+                                <td>Retorna conteos agrupados de habitaciones y reservas por estado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>3. Autenticación</h2>
+                <p>Todos los endpoints (excepto <code>/auth/login</code>) requieren el header <code>Authorization: Bearer &lt;token&gt;</code>. El token es un UUID generado por <code>TokenManager</code> al autenticarse exitosamente.</p>
+
+                <h3>Ejemplo de login</h3>
+                <div class="code-block">
+                    <pre><code>POST /auth/login
+Content-Type: application/json
+
+{"usuario":"admin","clave":"1234"}
+
+// Respuesta exitosa (200):
+{"token":"a1b2c3d4-...","usuario":"admin","rol":"Administrador"}
+
+// Error (401):
+{"error":"Credenciales inválidas"}</code></pre>
+                </div>
+
+                <h3>Ejemplo de consulta protegida</h3>
+                <div class="code-block">
+                    <pre><code>GET /habitaciones
+Authorization: Bearer a1b2c3d4-...
+
+// Respuesta (200):
+[{"id":1,"numero":"101","tipo":"Estandar","precio":80000,"estado":"Disponible"},...]
+
+// Token inválido (401):
+{"error":"Token inválido"}</code></pre>
+                </div>
+
+                <h2>4. Rate Limiting</h2>
+                <p><code>AuthHandler</code> implementa un contador de intentos por dirección IP:</p>
+                <ul>
+                    <li>Después de <strong>5 intentos fallidos</strong> consecutivos, la IP queda bloqueada.</li>
+                    <li>El bloqueo dura <strong>30 segundos</strong>.</li>
+                    <li>Los intentos fallidos se registran automáticamente en el historial del sistema.</li>
+                </ul>
+
+                <h2>5. CORS</h2>
+                <p>El servidor incluye la cabecera <code>Access-Control-Allow-Origin: *</code> para permitir conexiones desde el aplicativo móvil. Las peticiones <code>OPTIONS</code> (preflight) se manejan correctamente.</p>
+
+                <h2>6. Manejo de errores</h2>
+                <p>Si ocurre un error de base de datos, el servidor retorna <code>{"error":"Error interno del servidor"}</code> con código <strong>500</strong>, sin exponer detalles técnicos al cliente.</p>
+
+                <div class="callout info">
+                    <p><strong>Seguridad:</strong> El servidor solo escucha en la red local. Todos los endpoints protegidos requieren token válido.</p>
+                </div>
+
+                <div class="callout warning">
+                    <p><strong>Arquitectura actual — Modo de pruebas:</strong> Actualmente el servidor REST se ejecuta en el mismo PC que el aplicativo de escritorio. En una etapa próxima, el servidor será migrado a un equipo dedicado que estará encendido de forma permanente.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+</html>

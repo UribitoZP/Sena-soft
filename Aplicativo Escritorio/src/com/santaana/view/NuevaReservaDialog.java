@@ -18,6 +18,7 @@ import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
+import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
 
 public class NuevaReservaDialog extends JDialog {
@@ -1037,13 +1038,11 @@ public class NuevaReservaDialog extends JDialog {
     }
 
     private String formatearFecha(Date d) {
-        if (d == null)
-            return null;
-        return new SimpleDateFormat("yyyy-MM-dd").format(d);
+        return DateUtil.formatearFecha(d);
     }
 
     private String formatearHora(JSpinner spinner) {
-        return new SimpleDateFormat("HH:mm").format((Date) spinner.getValue());
+        return DateUtil.formatearHora((Date) spinner.getValue());
     }
 
     // Listener auxiliar para JSpinner
