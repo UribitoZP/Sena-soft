@@ -173,7 +173,7 @@ Authorization: Bearer a1b2c3d4-...
                 <ul>
                     <li>Después de <strong>5 intentos fallidos</strong> consecutivos, la IP queda bloqueada.</li>
                     <li>El bloqueo dura <strong>30 segundos</strong>.</li>
-                    <li>Los intentos fallidos se registran automáticamente en el historial del sistema.</li>
+                    <li>Cada intento fallido se registra en la tabla <code>historial</code> con tipo <strong>"Login"</strong> y el nombre de usuario utilizado. También se registran los intentos fallidos desde la UI de escritorio (<code>LoginController</code>).</li>
                 </ul>
 
                 <h2>5. CORS</h2>

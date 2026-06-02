@@ -175,6 +175,18 @@ public static String formatearHora(Date d) {
                     <li><code>HistorialPanel</code> — búsqueda en historial</li>
                     <li><code>ReportePanel</code> — reportes y cierre de mes</li>
                 </ul>
+
+                <h3>HistorialPanel — Actividades del Sistema</h3>
+                <p>El panel de Historial agrupa las actividades por fecha y tipo. Los tipos disponibles son:</p>
+                <ul>
+                    <li><strong>Reserva</strong> — <span style="color:#3498DB">azul</span></li>
+                    <li><strong>Checkout</strong> — <span style="color:#27AE60">verde</span></li>
+                    <li><strong>Cancelacion</strong> — <span style="color:#E74C3C">rojo</span></li>
+                    <li><strong>Habitacion</strong> — <span style="color:#F39C12">naranja</span></li>
+                    <li><strong>Login</strong> — <span style="color:#8E44AD">púrpura</span> (intentos fallidos de inicio de sesión, tanto desde la API REST como desde la UI de escritorio)</li>
+                    <li><strong>Sistema</strong> — <span style="color:#95A5A6">gris</span></li>
+                </ul>
+                <p>Los intentos fallidos registran el nombre de usuario utilizado, permitiendo identificar intentos de acceso no autorizados.</p>
             </section>
         </main>
     </div>

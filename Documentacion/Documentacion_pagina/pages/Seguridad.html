@@ -122,7 +122,7 @@ public static String hash(String password) {
                 <p>El servidor REST genera un token UUID tras un login exitoso. Todos los endpoints protegidos requieren el header <code>Authorization: Bearer &lt;token&gt;</code>. <code>TokenManager</code> almacena los tokens activos en memoria y los invalida al cerrar la aplicación.</p>
 
                 <h2>3. Rate Limiting</h2>
-                <p>5 intentos fallidos de login desde la misma IP producen un bloqueo de 30 segundos, evitando ataques de fuerza bruta.</p>
+                <p>5 intentos fallidos de login desde la misma IP producen un bloqueo de 30 segundos, evitando ataques de fuerza bruta. Cada intento fallido (tanto desde la API REST como desde la UI de escritorio) se persiste en la tabla <code>historial</code> con tipo <strong>"Login"</strong>, permitiendo su consulta posterior en el panel de Historial.</p>
 
                 <h2>4. Contraseñas en Memoria</h2>
                 <p>Los campos de contraseña en la interfaz gráfica se limpian explícitamente después de usar (<code>clearPassword()</code>). En el diálogo de edición de usuarios, el campo de contraseña no se pre-rellena, evitando que el hash quede visible o que se reenvíe accidentalmente.</p>
