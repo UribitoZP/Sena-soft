@@ -110,11 +110,7 @@ public class ProductoAgregarDialog extends JDialog {
         titulos.add(Box.createVerticalStrut(3));
         titulos.add(lblSub);
 
-        JButton btnX = botonCerrar();
-        btnX.addActionListener(e -> dispose());
-
         header.add(titulos, BorderLayout.CENTER);
-        header.add(btnX, BorderLayout.EAST);
 
         JTextField txtNombre = campo("Nombre del producto");
         JTextField txtStock = campo("Ej: 50");
@@ -276,30 +272,6 @@ public class ProductoAgregarDialog extends JDialog {
         root.add(botones, BorderLayout.SOUTH);
 
         setContentPane(root);
-    }
-
-    private JButton botonCerrar() {
-        JButton btn = new JButton("✕") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(
-                        RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0, 0, 0, 0));
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.dispose();
-                super.paintComponent(g);
-            }
-        };
-        btn.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        btn.setForeground(ThemeManager.getTextSecondary());
-        btn.setContentAreaFilled(false);
-        btn.setBorderPainted(false);
-        btn.setFocusPainted(false);
-        btn.setPreferredSize(new Dimension(28, 28));
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return btn;
     }
 
     private JTextField campo(String placeholder) {
