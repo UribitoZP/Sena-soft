@@ -339,7 +339,13 @@ public class GestHabitacionPanel extends JPanel {
     private void mostrarGestion(Habitacion h) {
         JComboBox<String> cmbTipo   = new JComboBox<>(new String[]{"Simple","Doble","Suite"});
         cmbTipo.setSelectedItem(h.getTipo());
-
+        if (h.getEstado().equals("Ocupada")) {
+            JOptionPane.showMessageDialog(this, 
+                "No se puede editar una habitación ocupada.\n\nEstado actual: " + h.getEstado(), 
+                "Habitación Ocupada", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         JComboBox<String> cmbEstado = new JComboBox<>(new String[]{"Disponible","Ocupada","Mantenimiento"});
         cmbEstado.setSelectedItem(h.getEstado());
 
