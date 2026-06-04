@@ -154,16 +154,14 @@ public class NuevaReservaDialog extends JDialog {
             public void removeUpdate(javax.swing.event.DocumentEvent e) { verificar(); }
             public void changedUpdate(javax.swing.event.DocumentEvent e) { verificar(); }
             private void verificar() {
-                SwingUtilities.invokeLater(() -> {
-                    String doc = campoDoc.getText().trim();
-                    if (doc.isEmpty()) {
-                        campoNombre.setText("");
-                        campoTelefono.setText("");
-                        campoCorreo.setText("");
-                    } else if (doc.length() >= 5) {
-                        autocompletarCliente();
-                    }
-                });
+               if (campoDoc.hasFocus()) {
+                    SwingUtilities.invokeLater(() -> {
+                        String doc = campoDoc.getText().trim();
+                        if (doc.length() >= 5) {
+                            autocompletarCliente();
+                        }
+                    });
+                }
             }
         });
 
@@ -191,12 +189,6 @@ public class NuevaReservaDialog extends JDialog {
                 campoNombre.setText(cliente.getNombre());
                 campoTelefono.setText(cliente.getTelefono());
                 campoCorreo.setText(cliente.getCorreo());
-            });
-        } else {
-            SwingUtilities.invokeLater(() -> {
-                campoNombre.setText("");
-                campoTelefono.setText("");
-                campoCorreo.setText("");
             });
         }
     }
