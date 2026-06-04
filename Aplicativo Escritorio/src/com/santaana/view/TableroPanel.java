@@ -538,7 +538,7 @@ public class TableroPanel extends JPanel {
         if (h.getEstado().equals("Disponible")) {
             if (proximaReserva != null) {
                 JButton btnCI = crearBoton("Check-in: " + proximaReserva.getClienteNombre(),
-                    new Color(0xE74C3C));
+                    new Color(0x27AE60));
                 btnCI.addActionListener(e -> {
                     habitacionDAO.actualizarEstado(h.getId(), "Ocupada");
                     HistorialDAO.registrar("Checkin", "Check-in realizado",
