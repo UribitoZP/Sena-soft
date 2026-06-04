@@ -43,6 +43,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private NotificacionPanel notifPanel;
     private ReportePanel      reportePanel;
     private ProductoPanel     productoPanel;
+    private GestHabitacionPanel gestHabitacionPanel;
     private String nombreUsuario;
     
     public MainFrame(String role, int idUsuario, String nombreUsuario) {
@@ -92,6 +93,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.add(reservaPanel, "Reserva");
         contentPanel.add(new GestHabitacionPanel(userRole), "Gestión de Habitaciones");
         notifPanel = new NotificacionPanel();
+        gestHabitacionPanel = new GestHabitacionPanel(userRole);
+        contentPanel.add(gestHabitacionPanel, "Gestión de Habitaciones");
         contentPanel.add(notifPanel, "Notificaciones");
         contentPanel.add(new HistorialPanel(userRole, ""), "Historial");
         contentPanel.add(new GestionUsuarioPanel(userRole), "Gestión de Usuarios");
@@ -412,6 +415,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     public void refrescarTodo() {
         if (tableroPanel  != null) tableroPanel.refreshUI();
         if (reservaPanel  != null) reservaPanel.refreshUI();
+        if (gestHabitacionPanel != null) gestHabitacionPanel.refreshUI();
     }
 
     @Override
