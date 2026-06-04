@@ -37,15 +37,9 @@ public class ProductoPanel extends JPanel {
         titulo.setFont(new Font("Segoe UI", Font.BOLD, 26));
         titulo.setForeground(ThemeManager.getTextPrimary());
         titulo.setAlignmentX(LEFT_ALIGNMENT);
-
-        JLabel subtitulo = new JLabel("Administra el inventario de productos del hotel");
-        subtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        subtitulo.setForeground(ThemeManager.getTextSecondary());
-        subtitulo.setAlignmentX(LEFT_ALIGNMENT);
-
+        
         header.add(titulo);
         header.add(Box.createVerticalStrut(4));
-        header.add(subtitulo);
         header.add(Box.createVerticalStrut(22));
         header.add(crearTarjetas());
 

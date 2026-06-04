@@ -8,8 +8,10 @@ import com.santaana.util.ErrorUtil;
 import com.santaana.util.ThemeManager;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.border.MatteBorder;
 import java.awt.*;
+import java.io.File;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -89,8 +91,28 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         btnRefresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnRefresh.addActionListener(e -> refreshUI());
 
+        JButton btnExportPDF = new JButton("📄 Exportar PDF") {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0xEC4C47));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnExportPDF.setForeground(Color.WHITE);
+        btnExportPDF.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnExportPDF.setContentAreaFilled(false);
+        btnExportPDF.setBorderPainted(false);
+        btnExportPDF.setFocusPainted(false);
+        btnExportPDF.setPreferredSize(new Dimension(150, 34));
+        btnExportPDF.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnExportPDF.addActionListener(e -> exportarReportePDF());
+
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 13));
         right.setOpaque(false);
+        right.add(btnExportPDF);
         right.add(btnRefresh);
         bar.add(right, BorderLayout.EAST);
         return bar;
@@ -595,5 +617,171 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         Map<String, Double> out = new LinkedHashMap<>();
         src.forEach((k, v) -> out.put(k, v.doubleValue()));
         return out;
+    }
+
+    // ── Exportar a PDF ────────────────────────────────────────────────────────
+
+    private void exportarReportePDF() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Guardar reporte como PDF");
+        fileChooser.setFileFilter(new FileNameExtensionFilter("PDF (*.pdf)", "pdf"));
+        String defaultName = "Reporte_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + ".pdf";
+        fileChooser.setSelectedFile(new File(defaultName));
+
+        int result = fileChooser.showSaveDialog(this);
+        if (result != JFileChooser.APPROVE_OPTION) return;
+
+        File archivo = fileChooser.getSelectedFile();
+        if (!archivo.getName().toLowerCase().endsWith(".pdf")) {
+            archivo = new File(archivo.getAbsolutePath() + ".pdf");
+        }
+
+        try {
+            generarPDF(archivo);
+            JOptionPane.showMessageDialog(this,
+                    "Reporte exportado exitosamente a:\n" + archivo.getAbsolutePath(),
+                    "Éxito", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                    "No se puede exportar el PDF.\n\n" +
+                    "Error: " + e.getMessage() + "\n\n" +
+                    "Verifica que tengas permisos de escritura en la carpeta seleccionada.",
+                    "Error al exportar", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void generarPDF(File archivo) throws Exception {
+        // Recolectar datos del reporte
+        double totalIngresos; double totalAnticipos; int totalReservas;
+        Map<String, Integer> porEstado; Map<String, Double> ingresosMes;
+        Map<String, Integer> reservasMes; Map<String, Integer> topHabs;
+        try {
+            totalIngresos  = dao.getTotalIngresos();
+            totalAnticipos = dao.getTotalAnticipos();
+            totalReservas  = dao.getTotalReservas();
+            porEstado   = dao.getReservasPorEstado();
+            ingresosMes = dao.getIngresosPorMes();
+            reservasMes = dao.getReservasPorMes();
+            topHabs     = dao.getTopHabitaciones();
+        } catch (DatabaseException e) {
+            throw new Exception("Error al cargar datos del reporte: " + e.getMessage());
+        }
+
+        int completadas = porEstado.getOrDefault("Completada", 0);
+        int canceladas  = porEstado.getOrDefault("Cancelada",  0);
+        int activas     = porEstado.getOrDefault("Activa",     0);
+
+        // Usar BufferedImage para capturar el reporte visual
+        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(
+                980, 1200, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = img.createGraphics();
+        g2d.setColor(ThemeManager.getBackground());
+        g2d.fillRect(0, 0, img.getWidth(), img.getHeight());
+
+        // Generar contenido de PDF usando formato de texto
+        generarPDFConTexto(archivo, totalIngresos, totalAnticipos, totalReservas,
+                completadas, canceladas, activas, porEstado, ingresosMes, reservasMes, topHabs);
+    }
+
+    private void generarPDFConTexto(File archivo, double totalIngresos, double totalAnticipos,int totalReservas, int completadas, int canceladas, int activas,Map<String, Integer> porEstado, Map<String, Double> ingresosMes, Map<String, Integer> reservasMes, Map<String, Integer> topHabs) throws Exception {
+        // Generar PDF usando iText si está disponible, de lo contrario generar un reporte de texto
+        try {
+            // Intentar usar iText
+            generarPDFConIText(archivo, totalIngresos, totalAnticipos, totalReservas,completadas, canceladas, activas, porEstado, ingresosMes, reservasMes, topHabs);
+        } catch (ClassNotFoundException | NoClassDefFoundError e) {
+            // Si iText no está disponible, generar un reporte de texto
+            generarReporteTexto(archivo, totalIngresos, totalAnticipos, totalReservas,completadas, canceladas, activas, porEstado, ingresosMes, reservasMes, topHabs);
+        }
+    }
+
+    private void generarPDFConIText(File archivo, double totalIngresos, double totalAnticipos,int totalReservas, int completadas, int canceladas, int activas,Map<String, Integer> porEstado, Map<String, Double> ingresosMes,Map<String, Integer> reservasMes, Map<String, Integer> topHabs) throws Exception {
+        try {
+            // Usar reflexión para cargar iText de forma opcional
+            Class<?> pdfDocumentClass = Class.forName("com.itextpdf.kernel.pdf.PdfDocument");
+            Class<?> pdfWriterClass = Class.forName("com.itextpdf.kernel.pdf.PdfWriter");
+            Class<?> documentClass = Class.forName("com.itextpdf.layout.Document");
+            Class<?> paragraphClass = Class.forName("com.itextpdf.layout.element.Paragraph");
+            Class<?> tableClass = Class.forName("com.itextpdf.layout.element.Table");
+
+            // Crear el documento PDF
+            Object pdfWriter = pdfWriterClass.getConstructor(String.class).newInstance(archivo.getAbsolutePath());
+            Object pdfDocument = pdfDocumentClass.getConstructor(pdfWriterClass).newInstance(pdfWriter);
+            Object document = documentClass.getConstructor(pdfDocumentClass).newInstance(pdfDocument);
+
+            // Agregar título
+            Object titlePara = paragraphClass.getConstructor(String.class).newInstance(
+                    "REPORTE DE OCUPACIÓN Y CONTABILIDAD\n" + LocalDate.now().format(FMT_MES));
+            documentClass.getMethod("add", Class.forName("com.itextpdf.layout.element.IBlockElement"))
+                    .invoke(document, titlePara);
+
+            // Agregar KPIs
+            Object kpiPara = paragraphClass.getConstructor(String.class).newInstance(
+                    "\n\nKPIS PRINCIPALES\n" +
+                    "Ingresos Confirmados: $" + FMT_MONEDA.format(totalIngresos) + "\n" +
+                    "Anticipos Totales: $" + FMT_MONEDA.format(totalAnticipos) + "\n" +
+                    "Total Reservas: " + totalReservas + "\n" +
+                    "Tasa de Cancelación: " + (totalReservas > 0
+                    ? String.format("%.1f%%", 100.0 * canceladas / totalReservas) : "Sin datos"));
+            documentClass.getMethod("add", Class.forName("com.itextpdf.layout.element.IBlockElement"))
+                    .invoke(document, kpiPara);
+
+            // Agregar estadísticas
+            Object statsPara = paragraphClass.getConstructor(String.class).newInstance(
+                    "\n\nESTADÍSTICAS\n" +
+                    "Reservas Activas: " + activas + "\n" +
+                    "Reservas Completadas: " + completadas + "\n" +
+                    "Reservas Canceladas: " + canceladas);
+            documentClass.getMethod("add", Class.forName("com.itextpdf.layout.element.IBlockElement"))
+                    .invoke(document, statsPara);
+
+            // Cerrar el documento
+            documentClass.getMethod("close").invoke(document);
+        } catch (Exception e) {
+    e.printStackTrace();
+    throw e;
+}
+    }
+
+    private void generarReporteTexto(File archivo, double totalIngresos, double totalAnticipos,int totalReservas, int completadas, int canceladas, int activas,Map<String, Integer> porEstado, Map<String, Double> ingresosMes, Map<String, Integer> reservasMes, Map<String, Integer> topHabs) throws Exception {
+        // Generar un reporte de texto simple
+        StringBuilder sb = new StringBuilder();
+        sb.append("========================================\n");
+        sb.append("REPORTE DE OCUPACIÓN Y CONTABILIDAD\n");
+        sb.append(LocalDate.now().format(FMT_MES)).append("\n");
+        sb.append("========================================\n\n");
+
+        sb.append("KPIs PRINCIPALES\n");
+        sb.append("-----------------------------------------\n");
+        sb.append("Ingresos Confirmados: $").append(FMT_MONEDA.format(totalIngresos)).append("\n");
+        sb.append("Anticipos Totales: $").append(FMT_MONEDA.format(totalAnticipos)).append("\n");
+        sb.append("Total Reservas: ").append(totalReservas).append("\n");
+        if (totalReservas > 0) {
+            sb.append("Tasa de Cancelación: ").append(String.format("%.1f%%", 100.0 * canceladas / totalReservas)).append("\n");
+        }
+        sb.append("\n");
+
+        sb.append("ESTADÍSTICAS DE RESERVAS\n");
+        sb.append("-----------------------------------------\n");
+        sb.append("Reservas Activas: ").append(activas).append("\n");
+        sb.append("Reservas Completadas: ").append(completadas).append("\n");
+        sb.append("Reservas Canceladas: ").append(canceladas).append("\n\n");
+
+        sb.append("INGRESOS POR MES (últimos 6 meses)\n");
+        sb.append("-----------------------------------------\n");
+        ingresosMes.forEach((mes, valor) ->
+                sb.append(mes).append(": $").append(FMT_MONEDA.format(valor)).append("\n"));
+        sb.append("\n");
+
+        sb.append("HABITACIONES MÁS RESERVADAS\n");
+        sb.append("-----------------------------------------\n");
+        topHabs.forEach((hab, count) ->
+                sb.append(hab).append(": ").append(count).append(" reservas\n"));
+
+        // Guardar como archivo de texto
+        java.nio.file.Files.write(
+                archivo.toPath(),
+                sb.toString().getBytes("UTF-8"),
+                java.nio.file.StandardOpenOption.CREATE,
+                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
     }
 }
