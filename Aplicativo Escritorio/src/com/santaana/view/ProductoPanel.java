@@ -2,9 +2,19 @@ package com.santaana.view;
 
 import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
 import javax.swing.table.*;
+import com.santaana.dao.HistorialDAO;
+import com.santaana.dao.ProductoDAO;
+import com.santaana.db.DatabaseException;
+import com.santaana.model.Producto;
+import com.santaana.util.ErrorUtil;
 import com.santaana.util.ThemeManager;
 
 public class ProductoPanel extends JPanel {
@@ -12,6 +22,13 @@ public class ProductoPanel extends JPanel {
     private JTable tabla;
     private DefaultTableModel model;
     private TableRowSorter<DefaultTableModel> sorter;
+    private final ProductoDAO productoDAO = new ProductoDAO();
+    private final List<Producto> productos = new ArrayList<>();
+    private boolean cargaInicial = true;
+    private boolean stockBajoNotificacionRegistrada = false;
+    private JLabel lblTotalProductos;
+    private JLabel lblStockBajo;
+    private JLabel lblValorInventario;
 
     public ProductoPanel() {
         setLayout(new BorderLayout());
@@ -58,14 +75,18 @@ public class ProductoPanel extends JPanel {
         cards.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
         cards.setAlignmentX(LEFT_ALIGNMENT);
 
-        cards.add(crearCard("📦", "Productos", "4", new Color(99, 102, 241)));
-        cards.add(crearCard("⚠️", "Stock Bajo", "1", new Color(245, 158, 11)));
-        cards.add(crearCard("💰", "Valor Inventario", "$12.000", new Color(16, 185, 129)));
+        lblTotalProductos = new JLabel("0");
+        lblStockBajo = new JLabel("0");
+        lblValorInventario = new JLabel("$0");
+
+        cards.add(crearCard("📦", "Productos", lblTotalProductos, new Color(99, 102, 241)));
+        cards.add(crearCard("⚠️", "Stock Bajo", lblStockBajo, new Color(245, 158, 11)));
+        cards.add(crearCard("💰", "Valor Inventario", lblValorInventario, new Color(16, 185, 129)));
 
         return cards;
     }
 
-    private JPanel crearCard(String icono, String titulo, String valor, Color accentColor) {
+    private JPanel crearCard(String icono, String titulo, JLabel lblValor, Color accentColor) {
         JPanel card = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -95,7 +116,6 @@ public class ProductoPanel extends JPanel {
         JLabel lblIcono = new JLabel(icono);
         lblIcono.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
 
-        JLabel lblValor = new JLabel(valor);
         lblValor.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblValor.setForeground(ThemeManager.getTextPrimary());
 
@@ -204,7 +224,9 @@ public class ProductoPanel extends JPanel {
             ProductoAgregarDialog dlg =
                     new ProductoAgregarDialog(
                             padre,
-                            model);
+                            productoDAO,
+                            model,
+                            this::cargarProductos);
 
             dlg.setVisible(true);
         });
@@ -265,21 +287,106 @@ public class ProductoPanel extends JPanel {
         
         sorter = new TableRowSorter<>(model);
         tabla.setRowSorter(sorter);
-        
-        Object[][] datos = {
-            {1, "Champú", 50, "$2.500", "$4.000"},
-            {2, "Acondicionador", 40, "$2.800", "$4.500"},
-            {3, "Jabón", 100, "$800", "$1.500"}
-        };
-        for (Object[] fila : datos) {
-            model.addRow(fila);
-        }
+        cargarProductos();
         
         JScrollPane scroll = new JScrollPane(tabla);
         scroll.setBorder(null);
         scroll.getViewport().setBackground(ThemeManager.getPanelBackground());
         scroll.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI());
         return scroll;
+    }
+
+    private void cargarProductos() {
+        productos.clear();
+        model.setRowCount(0);
+        try {
+            List<Producto> lista = productoDAO.listarTodos();
+            productos.addAll(lista);
+            for (Producto producto : lista) {
+                model.addRow(new Object[]{
+                        producto.getId(),
+                        producto.getNombre(),
+                        producto.getStock(),
+                        formatearMoneda(producto.getPrecioCompra()),
+                        formatearMoneda(producto.getPrecioVenta())
+                });
+            }
+        } catch (DatabaseException e) {
+            ErrorUtil.mostrarError(this, "cargar productos", e);
+        }
+        actualizarTarjetas();
+        if (!cargaInicial) {
+            registrarNotificacionStockBajo();
+        }
+        cargaInicial = false;
+    }
+
+    private void actualizarTarjetas() {
+        int total = productos.size();
+        long bajo = productos.stream().filter(p -> p.getStock() < 10).count();
+        double valorInventario = productos.stream()
+                .mapToDouble(p -> p.getStock() * p.getPrecioCompra())
+                .sum();
+
+        lblTotalProductos.setText(String.valueOf(total));
+        lblStockBajo.setText(String.valueOf(bajo));
+        lblValorInventario.setText(formatearMoneda(valorInventario));
+    }
+
+    private void registrarNotificacionStockBajo() {
+        List<Producto> productosBajoStock = productos.stream()
+                .filter(p -> p.getStock() < 10)
+                .collect(Collectors.toList());
+
+        if (productosBajoStock.isEmpty()) {
+            stockBajoNotificacionRegistrada = false;
+            return;
+        }
+
+        if (stockBajoNotificacionRegistrada) {
+            return;
+        }
+
+        String descripcion = productosBajoStock.stream()
+                .map(p -> p.getNombre() + " (" + p.getStock() + ")")
+                .collect(Collectors.joining(", "));
+
+        String mensaje = "Productos con stock bajo: " + descripcion;
+        try {
+            HistorialDAO.registrar("Sistema", "Stock bajo", mensaje);
+            stockBajoNotificacionRegistrada = true;
+        } catch (DatabaseException e) {
+            ErrorUtil.mostrarError(this, "registrar alerta de stock", e);
+        }
+    }
+
+    private String formatearMoneda(double valor) {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator('.');
+        symbols.setDecimalSeparator(',');
+        DecimalFormat formatter = new DecimalFormat("#,##0", symbols);
+        return "$" + formatter.format(Math.round(valor));
+    }
+
+    private Producto productoDesdeFila(int modelRow) {
+        int id = Integer.parseInt(model.getValueAt(modelRow, 0).toString());
+        String nombre = model.getValueAt(modelRow, 1).toString();
+        int stock = Integer.parseInt(model.getValueAt(modelRow, 2).toString());
+        double compra = parsePrecio(model.getValueAt(modelRow, 3).toString());
+        double venta = parsePrecio(model.getValueAt(modelRow, 4).toString());
+        return new Producto(id, nombre, stock, compra, venta);
+    }
+
+    private double parsePrecio(String texto) {
+        if (texto == null || texto.isEmpty()) {
+            return 0;
+        }
+        String limpio = texto.replaceAll("[^0-9.,-]", "").replace(',', '.');
+        try {
+            return Double.parseDouble(limpio);
+        } catch (NumberFormatException e) { 
+            return 0;
+        }
     }
 
     private JPanel crearPieBotones() {
@@ -308,13 +415,7 @@ public class ProductoPanel extends JPanel {
             int modelRow =
                     tabla.convertRowIndexToModel(fila);
 
-            Object[] datos = {
-                    model.getValueAt(modelRow, 0),
-                    model.getValueAt(modelRow, 1),
-                    model.getValueAt(modelRow, 2),
-                    model.getValueAt(modelRow, 3),
-                    model.getValueAt(modelRow, 4)
-            };
+            Producto producto = productoDesdeFila(modelRow);
 
             Window padre =
                     SwingUtilities.getWindowAncestor(this);
@@ -322,9 +423,11 @@ public class ProductoPanel extends JPanel {
             ProductoFormDialog dlg =
                     new ProductoFormDialog(
                         padre,
-                        datos,
+                        productoDAO,
+                        producto,
                         modelRow,
-                        model);
+                        model,
+                        this::cargarProductos);
 
             dlg.setVisible(true);
         });
@@ -342,6 +445,7 @@ public class ProductoPanel extends JPanel {
             int modelRow =
                     tabla.convertRowIndexToModel(fila);
 
+            int id = Integer.parseInt(model.getValueAt(modelRow, 0).toString());
             String nombreProducto =
                     model.getValueAt(modelRow, 1).toString();
 
@@ -352,7 +456,21 @@ public class ProductoPanel extends JPanel {
                     new ProductoEliminarDialog(
                             padre,
                             nombreProducto,
-                            () -> model.removeRow(modelRow));
+                            () -> {
+                                try {
+                                    if (productoDAO.eliminar(id)) {
+                                        cargarProductos();
+                                    } else {
+                                        JOptionPane.showMessageDialog(
+                                                this,
+                                                "No se pudo eliminar el producto.",
+                                                "Atención",
+                                                JOptionPane.INFORMATION_MESSAGE);
+                                    }
+                                } catch (DatabaseException ex) {
+                                    ErrorUtil.mostrarError(this, "eliminar producto", ex);
+                                }
+                            });
 
             dlg.setVisible(true);
         });

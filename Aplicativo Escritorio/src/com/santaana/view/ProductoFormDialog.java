@@ -6,15 +6,19 @@ import java.awt.geom.RoundRectangle2D;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+import com.santaana.dao.ProductoDAO;
+import com.santaana.model.Producto;
 import com.santaana.util.ThemeManager;
 
 public class ProductoFormDialog extends JDialog {
 
     public ProductoFormDialog(
             Window padre,
-            Object[] datos,
+            ProductoDAO productoDAO,
+            Producto producto,
             int modelRow,
-            DefaultTableModel model) {
+            DefaultTableModel model,
+            Runnable onSuccess) {
 
         super(
                 padre,
@@ -119,10 +123,10 @@ public class ProductoFormDialog extends JDialog {
         JTextField txtCompra = campo("Ej: $2.500");
         JTextField txtVenta = campo("Ej: $4.000");
 
-        txtNombre.setText(str(datos[1]));
-        txtStock.setText(str(datos[2]));
-        txtCompra.setText(str(datos[3]));
-        txtVenta.setText(str(datos[4]));
+        txtNombre.setText(producto.getNombre());
+        txtStock.setText(String.valueOf(producto.getStock()));
+        txtCompra.setText(formatearMoneda(producto.getPrecioCompra()));
+        txtVenta.setText(formatearMoneda(producto.getPrecioVenta()));
 
         JPanel form = new JPanel(new GridBagLayout());
         form.setOpaque(false);
@@ -236,10 +240,14 @@ public class ProductoFormDialog extends JDialog {
             }
 
             int stock;
+            double precioCompra;
+            double precioVenta;
 
             try {
                 stock = Integer.parseInt(
                         stockStr.replaceAll("[^0-9]", ""));
+                precioCompra = parsePrecio(compra);
+                precioVenta = parsePrecio(venta);
             } catch (NumberFormatException ex) {
 
                 JOptionPane.showMessageDialog(
@@ -251,13 +259,49 @@ public class ProductoFormDialog extends JDialog {
                 return;
             }
 
-            model.setValueAt(datos[0], modelRow, 0);
-            model.setValueAt(nombre, modelRow, 1);
-            model.setValueAt(stock, modelRow, 2);
-            model.setValueAt(compra, modelRow, 3);
-            model.setValueAt(venta, modelRow, 4);
+            if (precioCompra < 0 || precioVenta < 0) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "El precio debe ser un número válido.",
+                        "Atención",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
 
-            dispose();
+            producto.setNombre(nombre);
+            producto.setStock(stock);
+            producto.setPrecioCompra(precioCompra);
+            producto.setPrecioVenta(precioVenta);
+
+            boolean actualizado;
+            try {
+                actualizado = productoDAO.actualizar(producto);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Error al actualizar el producto. " + ex.getMessage(),
+                        "Atención",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (actualizado) {
+                model.setValueAt(producto.getId(), modelRow, 0);
+                model.setValueAt(nombre, modelRow, 1);
+                model.setValueAt(stock, modelRow, 2);
+                model.setValueAt(formatearMoneda(precioCompra), modelRow, 3);
+                model.setValueAt(formatearMoneda(precioVenta), modelRow, 4);
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "No se pudo actualizar el producto.",
+                        "Atención",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
         });
 
         botones.add(btnCancelar);
@@ -304,8 +348,40 @@ public class ProductoFormDialog extends JDialog {
         return tf;
     }
 
-    private String str(Object obj) {
-        return obj == null ? "" : obj.toString();
+    private double parsePrecio(String texto) {
+        if (texto == null || texto.isEmpty()) {
+            return 0;
+        }
+        String limpio = texto.trim().replaceAll("[^0-9.,-]", "");
+        if (limpio.isEmpty()) {
+            return -1;
+        }
+
+        int coma = limpio.indexOf(',');
+        if (coma >= 0) {
+            limpio = limpio.substring(0, coma);
+        }
+
+        if (limpio.contains(".")) {
+            String[] partes = limpio.split("\\.");
+            if (partes.length > 1 && partes[partes.length - 1].length() == 3) {
+                limpio = String.join("", partes);
+            }
+        }
+
+        try {
+            return Double.parseDouble(limpio);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private String formatearMoneda(double valor) {
+        if (Double.isNaN(valor) || Double.isInfinite(valor)) {
+            return "$0";
+        }
+        long entero = Math.round(valor);
+        return "$" + String.format("%,d", entero).replace(',', '.');
     }
 
     private JLabel label(String text) {

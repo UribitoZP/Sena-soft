@@ -85,6 +85,17 @@ public class SchemaManager {
                 ")"
             );
 
+            // v6c: tabla productos 
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS productos (" +
+                "  id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  nombre TEXT NOT NULL," +
+                "  stock INTEGER NOT NULL DEFAULT 0," +
+                "  precio_compra REAL NOT NULL DEFAULT 0," +
+                "  precio_venta REAL NOT NULL DEFAULT 0" +
+                ")"
+            );
+
             // v6d: migrar reservas del esquema antiguo (cliente_nombre/cliente_doc) al nuevo (id_cliente)
             boolean tieneClienteNombre = false;
             ResultSet crn = stmt.executeQuery("PRAGMA table_info(reservas)");
