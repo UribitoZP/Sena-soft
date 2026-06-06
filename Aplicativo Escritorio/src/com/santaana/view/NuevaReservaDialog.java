@@ -652,14 +652,7 @@ public class NuevaReservaDialog extends JDialog {
                 setSalidaEnabled(true);
                 break;
             }
-            case "Pasadia": {
-                fechaEntrada.setDate(hoy);
-                setHoraSpinner(horaEntrada, 12, 0);
-                fechaSalida.setDate(hoy);
-                setHoraSpinner(horaSalida, 22, 0);
-                setSalidaEnabled(true);
-                break;
-            }
+            
             case "Indefinido": {
                 fechaEntrada.setDate(hoy);
                 setHoraSpinner(horaEntrada, cal.get(Calendar.HOUR_OF_DAY), 0);
@@ -706,9 +699,6 @@ public class NuevaReservaDialog extends JDialog {
                 long noches = calcularNoches();
                 infoEstadia.setText("Entrada: " + ent + "  →  Salida: " + sal +
                         (noches > 0 ? "  (" + noches + " noche" + (noches > 1 ? "s" : "") + ")" : ""));
-                break;
-            case "Pasadia":
-                infoEstadia.setText("Entrada: " + ent + "  |  Solo día — sin noche");
                 break;
             case "Indefinido":
                 infoEstadia.setText("Entrada: " + ent + "  |  Salida sin determinar cobro por horas");
@@ -766,9 +756,6 @@ public class NuevaReservaDialog extends JDialog {
                 }
                 break;
             }
-            case "Pasadia":
-                lblTotal.setText("Tarifa pasadía");
-                break;
             case "Indefinido":
                 lblTotal.setText("Cobro por horas");
                 break;
