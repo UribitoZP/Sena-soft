@@ -265,15 +265,15 @@ public class NuevaReservaDialog extends JDialog {
         lbl.setForeground(ThemeManager.getTextSecondary());
         wrapper.add(lbl, BorderLayout.NORTH);
 
-        JPanel btns = new JPanel(new GridLayout(1, 3, 6, 0));
+        JPanel btns = new JPanel(new GridLayout(1, 2, 6, 0));
         btns.setOpaque(false);
 
-        String[] tipos = { "Noche", "Pasadia", "Indefinido" };
-        String[] labels = { "Una Noche", "Pasadía", "Indefinido" };
-        String[] subtitles = { "Entrada 12h → Salida 12h", "Solo día (sin noche)", "Salida sin determinar" };
+        String[] tipos = { "Noche", "Indefinido" };
+        String[] labels = { "Una Noche", "Indefinido" };
+        String[] subtitles = { "Entrada 12h → Salida 12h", "Salida sin determinar" };
 
-        botonesPreset = new JButton[3];
-        for (int i = 0; i < 3; i++) {
+        botonesPreset = new JButton[2];
+        for (int i = 0; i < 2; i++) {
             final String tipo = tipos[i];
             final String label = labels[i];
             final String sub = subtitles[i];
@@ -711,7 +711,7 @@ public class NuevaReservaDialog extends JDialog {
                 infoEstadia.setText("Entrada: " + ent + "  |  Solo día — sin noche");
                 break;
             case "Indefinido":
-                infoEstadia.setText("Entrada: " + ent + "  |  Salida sin determinar — cobro por horas al checkout");
+                infoEstadia.setText("Entrada: " + ent + "  |  Salida sin determinar cobro por horas");
                 break;
         }
     }
