@@ -6,13 +6,17 @@ import java.awt.geom.RoundRectangle2D;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+import com.santaana.dao.ProductoDAO;
+import com.santaana.model.Producto;
 import com.santaana.util.ThemeManager;
 
 public class ProductoAgregarDialog extends JDialog {
 
     public ProductoAgregarDialog(
             Window padre,
-            DefaultTableModel model) {
+            ProductoDAO productoDAO,
+            DefaultTableModel model,
+            Runnable onSuccess) {
 
         super(
                 padre,
@@ -230,10 +234,14 @@ public class ProductoAgregarDialog extends JDialog {
             }
 
             int stock;
+            double precioCompra;
+            double precioVenta;
 
             try {
                 stock = Integer.parseInt(
                         stockStr.replaceAll("[^0-9]", ""));
+                precioCompra = parsePrecio(compra);
+                precioVenta = parsePrecio(venta);
             } catch (NumberFormatException ex) {
 
                 JOptionPane.showMessageDialog(
@@ -245,23 +253,48 @@ public class ProductoAgregarDialog extends JDialog {
                 return;
             }
 
-            int nuevoId =
-                    model.getRowCount() > 0
-                            ? (int) model.getValueAt(
-                                    model.getRowCount() - 1,
-                                    0) + 1
-                            : 1;
+            if (precioCompra < 0 || precioVenta < 0) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "El precio debe ser un número válido.",
+                        "Atención",
+                        JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
 
-            model.addRow(
-                    new Object[]{
-                            nuevoId,
-                            nombre,
-                            stock,
-                            compra,
-                            venta
-                    });
+            Producto producto = new Producto(0, nombre, stock, precioCompra, precioVenta);
+            int nuevoId;
+            try {
+                nuevoId = productoDAO.crear(producto);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Error al guardar el producto. " + ex.getMessage(),
+                        "Atención",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
-            dispose();
+            if (nuevoId > 0) {
+                model.addRow(
+                        new Object[]{
+                                nuevoId,
+                                nombre,
+                                stock,
+                                formatearMoneda(precioCompra),
+                                formatearMoneda(precioVenta)
+                        });
+                if (onSuccess != null) {
+                    onSuccess.run();
+                }
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "No se pudo guardar el producto.",
+                        "Atención",
+                        JOptionPane.INFORMATION_MESSAGE);
+            }
         });
 
         botones.add(btnCancelar);
@@ -272,6 +305,42 @@ public class ProductoAgregarDialog extends JDialog {
         root.add(botones, BorderLayout.SOUTH);
 
         setContentPane(root);
+    }
+
+    private double parsePrecio(String texto) {
+        if (texto == null || texto.isEmpty()) {
+            return 0;
+        }
+        String limpio = texto.trim().replaceAll("[^0-9.,-]", "");
+        if (limpio.isEmpty()) {
+            return -1;
+        }
+
+        int coma = limpio.indexOf(',');
+        if (coma >= 0) {
+            limpio = limpio.substring(0, coma);
+        }
+
+        if (limpio.contains(".")) {
+            String[] partes = limpio.split("\\.");
+            if (partes.length > 1 && partes[partes.length - 1].length() == 3) {
+                limpio = String.join("", partes);
+            }
+        }
+
+        try {
+            return Double.parseDouble(limpio);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private String formatearMoneda(double valor) {
+        if (Double.isNaN(valor) || Double.isInfinite(valor)) {
+            return "$0";
+        }
+        long entero = Math.round(valor);
+        return "$" + String.format("%,d", entero).replace(',', '.');
     }
 
     private JTextField campo(String placeholder) {
