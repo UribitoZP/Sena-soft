@@ -467,8 +467,6 @@ public class TableroPanel extends JPanel {
                         totalStr = String.format("$%,.0f", total);
                         saldoStr = String.format("$%,.0f", saldo);
                     } catch (Exception ignored) {}
-                } else if ("Pasadia".equals(rActiva.getTipoEstadia())) {
-                    totalStr = "Tarifa pasadía";
                     saldoStr = rActiva.getAnticipo() > 0
                         ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "—";
                 } else {
