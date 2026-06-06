@@ -50,7 +50,8 @@ public class NuevaReservaDialog extends JDialog {
     private String metodoSeleccionado = "Efectivo";
 
     // Habitación seleccionada
-    private Habitacion habitacionSeleccionada;
+    private List<Habitacion> habitacionesSeleccionadas = new java.util.ArrayList<>();
+    private JPanel panelAcompanantes;
     private JPanel panelHabitaciones;
 
     private int idUsuario;
@@ -94,42 +95,62 @@ public class NuevaReservaDialog extends JDialog {
 
         JPanel fila1 = new JPanel(new GridBagLayout());
         fila1.setOpaque(false);
+
         GridBagConstraints g1 = new GridBagConstraints();
         g1.fill = GridBagConstraints.HORIZONTAL;
         g1.gridy = 0;
         g1.gridx = 0;
         g1.weightx = 0.35;
         g1.insets = new Insets(0, 0, 0, 20);
+
         fila1.add(crearPanelHuesped(), g1);
+
         g1.gridx = 1;
         g1.weightx = 0.65;
         g1.insets = new Insets(0, 0, 0, 0);
+
         fila1.add(crearPanelReserva(), g1);
 
         JPanel fila2 = new JPanel(new GridBagLayout());
         fila2.setOpaque(false);
+
         GridBagConstraints g2 = new GridBagConstraints();
         g2.fill = GridBagConstraints.BOTH;
         g2.gridy = 0;
         g2.gridx = 0;
         g2.weightx = 0.35;
         g2.insets = new Insets(0, 0, 0, 20);
+
         fila2.add(crearPanelPago(), g2);
+
         g2.gridx = 1;
         g2.weightx = 0.65;
         g2.insets = new Insets(0, 0, 0, 0);
+
         panelHabitaciones = crearPanelHabitaciones(null, null);
         fila2.add(panelHabitaciones, g2);
 
         cont.add(fila1);
         cont.add(Box.createVerticalStrut(20));
+
         cont.add(fila2);
+
+        // PANEL ACOMPAÑANTES
         cont.add(Box.createVerticalStrut(20));
+
+        panelAcompanantes = crearPanelAcompanantes();
+        panelAcompanantes.setVisible(false);
+
+        cont.add(panelAcompanantes);
+
+        cont.add(Box.createVerticalStrut(20));
+
         cont.add(crearPanelBotones());
 
         JScrollPane scroll = new JScrollPane(cont);
         scroll.setBorder(null);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
+
         return scroll;
     }
 
@@ -191,6 +212,20 @@ public class NuevaReservaDialog extends JDialog {
                 campoCorreo.setText(cliente.getCorreo());
             });
         }
+    }
+    private JPanel crearPanelAcompanantes() {
+        JPanel p = tarjeta();
+
+        p.add(titulo("Acompañante"));
+
+        JTextField campoNombreAcomp = textField("Nombre del acompañante");
+        JTextField campoDocAcomp = textField("Documento");
+
+        p.add(caja("Nombre completo", campoNombreAcomp));
+        p.add(Box.createVerticalStrut(12));
+        p.add(caja("Documento", campoDocAcomp));
+
+        return p;
     }
 
     // ── Panel reserva ────────────────────────────────────────────────────────
@@ -537,7 +572,7 @@ public class NuevaReservaDialog extends JDialog {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.setColor(getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
-                boolean sel = habitacionSeleccionada != null && habitacionSeleccionada.getId() == h.getId();
+                boolean sel = habitacionesSeleccionadas.stream().anyMatch(hab -> hab.getId() == h.getId());
                 g2.setColor(sel ? ThemeManager.getPrimary() : ThemeManager.getBorder());
                 g2.setStroke(new BasicStroke(sel ? 2f : 1f));
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
@@ -584,9 +619,25 @@ public class NuevaReservaDialog extends JDialog {
 
         c.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
-                habitacionSeleccionada = h;
+
+                boolean yaSeleccionada = habitacionesSeleccionadas.stream()
+                        .anyMatch(hab -> hab.getId() == h.getId());
+
+                if (yaSeleccionada) {
+
+                    habitacionesSeleccionadas.removeIf(hab -> hab.getId() == h.getId());
+
+                } else {
+
+                    habitacionesSeleccionadas.add(h);
+
+                }
+
                 actualizarTotal();
+                panelAcompanantes.setVisible(!habitacionesSeleccionadas.isEmpty());
                 contenedor.repaint();
+                panelAcompanantes.revalidate();
+                panelAcompanantes.repaint();
             }
             public void mouseEntered(MouseEvent e) {
                 c.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT
@@ -746,7 +797,7 @@ public class NuevaReservaDialog extends JDialog {
             return;
         GridBagConstraints gbc = ((GridBagLayout) parent.getLayout()).getConstraints(panelHabitaciones);
         parent.remove(panelHabitaciones);
-        habitacionSeleccionada = null;
+        habitacionesSeleccionadas.clear();
         panelHabitaciones = crearPanelHabitaciones(desdeDateTime, hastaDateTime);
         parent.add(panelHabitaciones, gbc);
         parent.revalidate();
@@ -755,18 +806,18 @@ public class NuevaReservaDialog extends JDialog {
     }
 
     private void actualizarTotal() {
-        if (habitacionSeleccionada == null) {
+        if (habitacionesSeleccionadas.isEmpty()) {
             lblTotal.setText("—");
             return;
         }
+        double total = 0;
         switch (tipoEstadiaSeleccionado) {
             case "Noche": {
                 long noches = calcularNoches();
-                if (noches > 0) {
-                    lblTotal.setText(String.format("$%,.0f", noches * habitacionSeleccionada.getPrecio()));
-                } else {
-                    lblTotal.setText(String.format("$%,.0f", habitacionSeleccionada.getPrecio()));
+                for (Habitacion h : habitacionesSeleccionadas) {
+                    total += (noches > 0 ? noches : 1) * h.getPrecio();
                 }
+                lblTotal.setText(String.format("$%,.0f", total));
                 break;
             }
             case "Pasadia":
@@ -859,16 +910,18 @@ public class NuevaReservaDialog extends JDialog {
             }
         }
 
-        if (habitacionSeleccionada == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione una habitación.",
-                    "Habitación requerida", JOptionPane.WARNING_MESSAGE);
+        if (habitacionesSeleccionadas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Seleccione al menos una habitación.",
+                "Habitación requerida", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         double totalEstimado = 0;
         if ("Noche".equals(tipoEstadiaSeleccionado)) {
             long noches = calcularNoches();
-            totalEstimado = (noches > 0 ? noches : 1) * habitacionSeleccionada.getPrecio();
+            for (Habitacion h : habitacionesSeleccionadas) {
+                totalEstimado += (noches > 0 ? noches : 1) * h.getPrecio();
+            }
         }
 
         double anticipoVal = 0;
@@ -893,16 +946,35 @@ public class NuevaReservaDialog extends JDialog {
             return;
         }
 
-        boolean ok = reservaDAO.crear(
-                habitacionSeleccionada.getId(), idUsuario, nombre, doc,
-                telefono, correo, desde, horaEnt, hasta, horaSal,
-                tipoEstadiaSeleccionado, anticipoVal);
+        boolean ok = true;
+        for (Habitacion habitacion : habitacionesSeleccionadas) {
+            boolean creada = reservaDAO.crear(
+                    habitacion.getId(),
+                    idUsuario,
+                    nombre,
+                    doc,
+                    telefono,
+                    correo,
+                    desde,
+                    horaEnt,
+                    hasta,
+                    horaSal,
+                    tipoEstadiaSeleccionado,
+                    anticipoVal
+            );
+            if (!creada) {
+                ok = false;
+                break;
+            }
+        }
 
         if (ok) {
             // Solo marcar Ocupada si el check-in es hoy
             String hoy = formatearFecha(new Date());
             if (desde.equals(hoy)) {
-                habitacionDAO.actualizarEstado(habitacionSeleccionada.getId(), "Ocupada");
+                for (Habitacion habitacion : habitacionesSeleccionadas) {
+                    habitacionDAO.actualizarEstado(habitacion.getId(), "Ocupada");
+                }
             }
             String msg = "Reserva creada correctamente.";
             if (!desde.equals(hoy)) {
@@ -983,8 +1055,8 @@ public class NuevaReservaDialog extends JDialog {
         dc.setForeground(ThemeManager.getTextPrimary());
         JTextField tf = (JTextField) dc.getDateEditor().getUiComponent();
         tf.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
-                BorderFactory.createEmptyBorder(0, 10, 0, 10)));
+            BorderFactory.createLineBorder(ThemeManager.getBorder(), 1, true),
+            BorderFactory.createEmptyBorder(0, 10, 0, 10)));
         tf.setBackground(ThemeManager.getPanelBackground());
         tf.setForeground(ThemeManager.getTextPrimary());
         return dc;
