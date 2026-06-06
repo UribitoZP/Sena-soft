@@ -207,9 +207,6 @@ public class NuevaReservaDialog extends JDialog {
         fechaEntrada.setMinSelectableDate(new Date());
         horaEntrada = timeSpinner(12, 0);
         fechaEntrada.addPropertyChangeListener("date", e -> {
-            if ("Pasadia".equals(tipoEstadiaSeleccionado)) {
-                fechaSalida.setDate(fechaEntrada.getDate());
-            }
             actualizarHabitaciones();
             actualizarTotal();
             actualizarInfoEstadia();
