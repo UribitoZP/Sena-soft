@@ -6,13 +6,13 @@ set "BIN_DIR=bin"
 set "LIB_DIR=lib"
 set "RESOURCES_DIR=resources"
 set "MAIN_CLASS=com.santaana.main.ApplicationMain"
-set "CLASSPATH=.;..\%LIB_DIR%\jcalendar-1.4.jar;..\%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;..\%LIB_DIR%\slf4j-api-1.7.36.jar;..\%LIB_DIR%\slf4j-nop-1.7.36.jar"
+set "CLASSPATH=.;..\%LIB_DIR%\jcalendar-1.4.jar;..\%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;..\%LIB_DIR%\slf4j-api-1.7.36.jar;..\%LIB_DIR%\slf4j-nop-1.7.36.jar;..\%LIB_DIR%\itextpdf-5.5.13.3.jar"
 
 echo [+] Creando directorio de binarios...
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
 
 echo [+] Compilando proyecto...
-javac -cp ".;%LIB_DIR%\jcalendar-1.4.jar;%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;%LIB_DIR%\slf4j-api-1.7.36.jar;%LIB_DIR%\slf4j-nop-1.7.36.jar" ^
+javac -cp ".;%LIB_DIR%\jcalendar-1.4.jar;%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;%LIB_DIR%\slf4j-api-1.7.36.jar;%LIB_DIR%\slf4j-nop-1.7.36.jar;%LIB_DIR%\itextpdf-5.5.13.3.jar" ^
     -d "%BIN_DIR%" ^
     -sourcepath "%SRC_DIR%" ^
     "%SRC_DIR%\com\santaana\main\ApplicationMain.java" ^
