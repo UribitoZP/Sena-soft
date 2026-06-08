@@ -30,7 +30,6 @@ public class ReservaDAO {
         }
         return lista;
     }
-
     public List<Reserva> listarActivas() {
         List<Reserva> lista = new ArrayList<>();
         String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
@@ -46,7 +45,6 @@ public class ReservaDAO {
         }
         return lista;
     }
-
     public boolean crear(int idHabitacion, int idUsuario, String clienteNombre,
                          String clienteDoc, String clienteTelefono, String clienteCorreo,
                          String fechaEntrada, String horaEntrada,
@@ -200,8 +198,8 @@ public class ReservaDAO {
             ORDER BY r.id DESC
         """;
         try (
-            Connection con = DatabaseConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement(sql);
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery()
         ) {
             while (rs.next()) {
