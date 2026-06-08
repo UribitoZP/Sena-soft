@@ -1,18 +1,22 @@
-package com.santaana.dao;
+    package com.santaana.dao;
 
-import com.santaana.db.DatabaseConnection;
-import com.santaana.db.DatabaseException;
-import com.santaana.model.Reserva;
-import com.santaana.model.Cliente;
+    import java.sql.Connection;
+    import java.sql.PreparedStatement;
+    import java.sql.ResultSet;
+    import java.sql.SQLException;
+    import java.sql.Statement;
+    import java.util.ArrayList;
+    import java.util.List;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+    import com.santaana.db.DatabaseConnection;
+    import com.santaana.db.DatabaseException;
+    import com.santaana.model.Cliente;
+    import com.santaana.model.Reserva;
 
 public class ReservaDAO {
 
     public List<Reserva> listarTodas() {
-        List<Reserva> lista = new ArrayList<>();
+        List<Reserva> lista = new ArrayList<>();    
         String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
                      "FROM reservas r " +
                      "LEFT JOIN clientes c ON r.id_cliente = c.id " +
@@ -26,7 +30,6 @@ public class ReservaDAO {
         }
         return lista;
     }
-
     public List<Reserva> listarActivas() {
         List<Reserva> lista = new ArrayList<>();
         String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
@@ -42,7 +45,6 @@ public class ReservaDAO {
         }
         return lista;
     }
-
     public boolean crear(int idHabitacion, int idUsuario, String clienteNombre,
                          String clienteDoc, String clienteTelefono, String clienteCorreo,
                          String fechaEntrada, String horaEntrada,
@@ -177,5 +179,46 @@ public class ReservaDAO {
             rs.getString("estado"),
             anticipo
         );
+    }
+   public List<Object[]> obtenerHistorialClientes() {
+        List<Object[]> lista = new ArrayList<>();
+        String sql = """
+            SELECT
+                c.nombre,
+                c.documento,
+                c.telefono,
+                c.correo,
+                r.id_habitacion,
+                r.fecha_entrada,
+                r.fecha_salida,
+                r.tipo_estadia
+            FROM reservas r
+            INNER JOIN clientes c
+                ON r.id_cliente = c.id
+            ORDER BY r.id DESC
+        """;
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()
+        ) {
+            while (rs.next()) {
+                Object[] fila = new Object[] {
+                    rs.getString(1),
+                    rs.getString(2),
+                    rs.getString(3),
+                    rs.getString(4),
+                    rs.getInt(5),
+                    rs.getString(6),
+                    rs.getString(7),
+                    rs.getString(8)
+                };
+                lista.add(fila);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            }
+        return lista;
     }
 }
