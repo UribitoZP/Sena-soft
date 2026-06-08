@@ -152,7 +152,7 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
                 contenedorLista.add(Box.createVerticalStrut(10));
             }
         }
-        // ===== HISTORIAL CLIENTES =====
+        // === HISTORIAL CLIENTES ===
         contenedorLista.add(Box.createVerticalStrut(25));
 
         JLabel tituloClientes = new JLabel("Historial de clientes");
