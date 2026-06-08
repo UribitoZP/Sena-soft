@@ -44,6 +44,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private ReportePanel      reportePanel;
     private ProductoPanel     productoPanel;
     private GestHabitacionPanel gestHabitacionPanel;
+    private GestionUsuarioPanel gestionUsuarioPanel;
     private String nombreUsuario;
     
     public MainFrame(String role, int idUsuario, String nombreUsuario) {
@@ -97,7 +98,8 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         contentPanel.add(gestHabitacionPanel, "Gestión de Habitaciones");
         contentPanel.add(notifPanel, "Notificaciones");
         contentPanel.add(new HistorialPanel(userRole, ""), "Historial");
-        contentPanel.add(new GestionUsuarioPanel(userRole), "Gestión de Usuarios");
+        gestionUsuarioPanel = new GestionUsuarioPanel(userRole);
+        contentPanel.add(gestionUsuarioPanel, "Gestión de Usuarios/Clientes");
         reportePanel = new ReportePanel(userRole, idUsuario);
         contentPanel.add(reportePanel, "Reporte");
 
@@ -272,9 +274,9 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         side.add(Box.createVerticalStrut(30));
 
 
-        String[] items = { "Tablero", "Producto", "Gestión de Habitaciones","Gestión de Usuarios", "Reserva", "Historial", "Reporte" };
+        String[] items = { "Tablero", "Producto", "Gestión de Habitaciones","Gestión de Usuarios/Clientes", "Reserva", "Historial", "Reporte" };
         for (String item : items) {
-            if(userRole.equalsIgnoreCase("Recepcionista") && (item.equals("Gestión de Habitaciones") || item.equals("Gestión de Usuarios"))) {
+            if(userRole.equalsIgnoreCase("Recepcionista") && (item.equals("Gestión de Habitaciones") || item.equals("Gestión de Usuarios/Clientes"))) {
                 continue;
             }
             side.add(crearBotonSidebar(item));
@@ -342,7 +344,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                 
                 // Solo cambiar si la vista existe
                 if (text.equals("Tablero") || text.equals("Producto") || text.equals("Reserva") || text.equals("Gestión de Habitaciones")
-                        || text.equals("Gestión de Usuarios") || text.equals("Notificaciones")
+                        || text.equals("Gestión de Usuarios/Clientes") || text.equals("Notificaciones")
                         || text.equals("Historial") || text.equals("Reporte")) {
                     currentView = text;
                     if (text.equals("Reporte") && reportePanel != null) reportePanel.refreshUI();
@@ -388,7 +390,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         sidebarPanel.add(logoBrand);
         sidebarPanel.add(Box.createVerticalStrut(30));
 
-        String[] items = { "Tablero","Producto", "Gestión de Habitaciones", "Gestión de Usuarios", "Reserva", "Historial", "Reporte" };
+        String[] items = { "Tablero","Producto", "Gestión de Habitaciones", "Gestión de Usuarios/Clientes", "Reserva", "Historial", "Reporte" };
         for (String item : items) {
             if(userRole.equalsIgnoreCase("Recepcionista") && (item.equals("Gestión de Habitaciones") || item.equals("Gestión de Usuarios"))) {
                 continue;
@@ -409,13 +411,22 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private void abrirNuevaReserva() {
         NuevaReservaDialog dialog = new NuevaReservaDialog(this, idUsuario);
         dialog.setVisible(true);
+
         refrescarTodo();
+
+        currentView = "Tablero";
+        cardLayout.show(contentPanel, "Tablero");
+        refreshSidebar();
     }
 
     public void refrescarTodo() {
-        if (tableroPanel  != null) tableroPanel.refreshUI();
-        if (reservaPanel  != null) reservaPanel.refreshUI();
-        if (gestHabitacionPanel != null) gestHabitacionPanel.refreshUI();
+        if (tableroPanel != null) tableroPanel.refreshUI();
+        if (reservaPanel != null)
+            reservaPanel.refreshUI();
+        if (gestHabitacionPanel != null)
+            gestHabitacionPanel.refreshUI();
+        if (gestionUsuarioPanel != null)
+            gestionUsuarioPanel.refreshUI();
     }
 
     @Override
