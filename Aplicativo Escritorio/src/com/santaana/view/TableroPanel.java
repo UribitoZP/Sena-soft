@@ -461,8 +461,6 @@ public class TableroPanel extends JPanel {
                         totalStr = String.format("$%,.0f", total);
                         saldoStr = String.format("$%,.0f", saldo);
                     } catch (Exception ignored) {}
-                } else if ("Pasadia".equals(rActiva.getTipoEstadia())) {
-                    totalStr = "Tarifa pasadía";
                     saldoStr = rActiva.getAnticipo() > 0
                         ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "—";
                 } else {
@@ -532,7 +530,7 @@ public class TableroPanel extends JPanel {
         if (h.getEstado().equals("Disponible")) {
             if (proximaReserva != null) {
                 JButton btnCI = crearBoton("Check-in: " + proximaReserva.getClienteNombre(),
-                    new Color(0xE74C3C));
+                    new Color(0x27AE60));
                 btnCI.addActionListener(e -> {
                     habitacionDAO.actualizarEstado(h.getId(), "Ocupada");
                     HistorialDAO.registrar("Checkin", "Check-in realizado",

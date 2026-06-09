@@ -1,10 +1,28 @@
 package com.santaana.view;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.MatteBorder;
 
+import com.santaana.dao.ReservaDAO;
 import com.santaana.dao.UsuarioDAO;
 import com.santaana.db.DatabaseException;
 import com.santaana.model.Usuario;
@@ -15,7 +33,9 @@ import com.santaana.util.ThemeManager;
 public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeListener {
 
     private final UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private final ReservaDAO reservaDAO = new ReservaDAO();
     private JPanel contenedorLista;
+    private JPanel contenedorHistorial;
     private String role;
 
     private Color getPrimario() { return ThemeManager.getPrimary(); }
@@ -32,7 +52,7 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         refreshUI();
     }
 
-    private void refreshUI() {
+    public void refreshUI() {
         removeAll();
         setBackground(getFondo());
         add(crearNavbar(), BorderLayout.NORTH);
@@ -52,7 +72,7 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         navbar.setPreferredSize(new Dimension(0, 60));
         navbar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
 
-        JLabel title = new JLabel("  GESTIÓN DE USUARIOS");
+        JLabel title = new JLabel("  GESTIÓN DE USUARIOS Y CLIENTES");
         title.setFont(new Font("Segoe UI", Font.BOLD, 14));
         title.setForeground(getTextCol());
 
@@ -99,10 +119,9 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         contenedorLista = new JPanel();
         contenedorLista.setLayout(new BoxLayout(contenedorLista, BoxLayout.Y_AXIS));
         contenedorLista.setOpaque(false);
-        contenedorLista.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
+        contenedorLista.setBorder(
+            BorderFactory.createEmptyBorder(20, 20, 20, 20));
         cargarUsuarios();
-
         JScrollPane scroll = new JScrollPane(contenedorLista);
         scroll.setBorder(null);
         scroll.getViewport().setOpaque(false);
@@ -121,6 +140,7 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
             contenedorLista.repaint();
             return;
         }
+        // ===== USUARIOS =====
         if (usuarios.isEmpty()) {
             JLabel vacio = new JLabel("No hay usuarios registrados.", SwingConstants.CENTER);
             vacio.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -129,6 +149,35 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         } else {
             for (Usuario u : usuarios) {
                 contenedorLista.add(userCard(u));
+                contenedorLista.add(Box.createVerticalStrut(10));
+            }
+        }
+        // === HISTORIAL CLIENTES ===
+        contenedorLista.add(Box.createVerticalStrut(25));
+
+        JLabel tituloClientes = new JLabel("Historial de clientes");
+        tituloClientes.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        tituloClientes.setForeground(getPrimario());
+        tituloClientes.setHorizontalAlignment(SwingConstants.CENTER);
+        tituloClientes.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        contenedorLista.add(tituloClientes);
+        contenedorLista.add(Box.createVerticalStrut(15));
+
+        List<Object[]> clientes = reservaDAO.obtenerHistorialClientes();
+
+        if (clientes.isEmpty()) {
+
+            JLabel vacioClientes = new JLabel("No hay historial de clientes.");
+            vacioClientes.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            vacioClientes.setForeground(getLabelCol());
+
+            contenedorLista.add(vacioClientes);
+
+        } else {
+            for (Object[] datos : clientes) {
+
+                contenedorLista.add(clienteCard(datos));
                 contenedorLista.add(Box.createVerticalStrut(10));
             }
         }
@@ -333,5 +382,50 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         b.setBorderPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setPreferredSize(new Dimension(110, 32));
+    }
+    private JPanel clienteCard(Object[] datos) {
+        JPanel card = new JPanel(new BorderLayout(10, 10));
+        card.setBackground(getPanelCol());
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
+        card.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(getBorde(), 1, true),
+                BorderFactory.createEmptyBorder(12, 15, 12, 15)));
+        JPanel info = new JPanel();
+        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+        info.setOpaque(false);
+        JLabel lblNombre = new JLabel(datos[0].toString());
+        lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblNombre.setForeground(getTextCol());
+        JLabel lblDoc = new JLabel("Doc: " + datos[1]);
+        lblDoc.setForeground(getLabelCol());
+        JLabel lblTelefono = new JLabel("Tel: " + datos[2]);
+        lblTelefono.setForeground(getLabelCol());
+        JLabel lblCorreo = new JLabel("Correo: " + datos[3]);
+        lblCorreo.setForeground(getLabelCol());
+        info.add(lblNombre);
+        info.add(Box.createVerticalStrut(4));
+        info.add(lblDoc);
+        info.add(lblTelefono);
+        info.add(lblCorreo);
+        JPanel derecha = new JPanel();
+        derecha.setLayout(new BoxLayout(derecha, BoxLayout.Y_AXIS));
+        derecha.setOpaque(false);
+        JLabel hab = new JLabel("Habitación: " + datos[4]);
+        hab.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        hab.setForeground(getPrimario());
+        JLabel fechas = new JLabel(datos[5] + " → " + datos[6]);
+        fechas.setForeground(getLabelCol());
+        JLabel tipo = new JLabel(datos[7].toString());
+        tipo.setForeground(getTextCol());
+        
+        derecha.add(hab);
+        derecha.add(Box.createVerticalStrut(4));
+        derecha.add(fechas);
+        derecha.add(Box.createVerticalStrut(4));
+        derecha.add(tipo);
+        card.add(info, BorderLayout.WEST);
+        card.add(derecha, BorderLayout.EAST);
+
+        return card;
     }
 }

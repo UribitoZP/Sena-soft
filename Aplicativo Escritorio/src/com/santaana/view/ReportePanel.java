@@ -5,6 +5,7 @@ import com.santaana.dao.ReporteDAO;
 import com.santaana.db.DatabaseException;
 import com.santaana.model.CierreMes;
 import com.santaana.util.ErrorUtil;
+import com.santaana.util.ExportadorPDF;
 import com.santaana.util.ThemeManager;
 
 import javax.swing.*;
@@ -70,6 +71,36 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         title.setForeground(ThemeManager.getTextPrimary());
         bar.add(title, BorderLayout.WEST);
 
+        JButton btnExportar = new JButton("⬇ Exportar PDF") {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0xC9, 0xA8, 0x4C));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnExportar.setForeground(Color.WHITE);
+        btnExportar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnExportar.setContentAreaFilled(false);
+        btnExportar.setBorderPainted(false);
+        btnExportar.setFocusPainted(false);
+        btnExportar.setPreferredSize(new Dimension(155, 34));
+        btnExportar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnExportar.addActionListener(e -> {
+            String mes = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            java.io.File pdf = ExportadorPDF.exportar(mes, idUsuario, userRole, null);
+            if (pdf != null) {
+                JOptionPane.showMessageDialog(
+                    ReportePanel.this,
+                    "PDF generado correctamente:\n" + pdf.getAbsolutePath(),
+                    "Exportación exitosa",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            }
+        });
+
         JButton btnRefresh = new JButton("↺ Actualizar") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -91,6 +122,7 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 16, 13));
         right.setOpaque(false);
+        right.add(btnExportar);
         right.add(btnRefresh);
         bar.add(right, BorderLayout.EAST);
         return bar;
