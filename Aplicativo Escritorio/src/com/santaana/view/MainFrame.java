@@ -46,7 +46,6 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
     private ProductoPanel     productoPanel;
     private GestHabitacionPanel gestHabitacionPanel;
     private GestionUsuarioPanel gestionUsuarioPanel;
-    private String nombreUsuario;
     
     public MainFrame(String role, int idUsuario, String nombreUsuario) {
         this.userRole  = role;

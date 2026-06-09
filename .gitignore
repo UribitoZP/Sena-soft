@@ -6,6 +6,7 @@ santaana.db
 *.log
 *.db
 bin/
+ssl/
 out/
 build/
 .metadata/
