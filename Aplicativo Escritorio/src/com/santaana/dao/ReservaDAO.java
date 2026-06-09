@@ -82,6 +82,26 @@ public class ReservaDAO {
         }
     }
 
+    public boolean actualizar(int id, String fechaEntrada, String horaEntrada,
+                              String fechaSalida, String horaSalida,
+                              String estado, double anticipo) {
+        String sql = "UPDATE reservas SET fecha_entrada=?, hora_entrada=?, fecha_salida=?, " +
+                     "hora_salida=?, estado=?, anticipo=? WHERE id=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, fechaEntrada);
+            ps.setString(2, horaEntrada);
+            ps.setString(3, fechaSalida);
+            ps.setString(4, horaSalida);
+            ps.setString(5, estado);
+            ps.setDouble(6, anticipo);
+            ps.setInt(7, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new DatabaseException("actualizar reserva", e);
+        }
+    }
+
     public boolean actualizarAnticipo(int id, double nuevoAnticipo) {
         String sql = "UPDATE reservas SET anticipo = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();

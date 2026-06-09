@@ -14,9 +14,12 @@ import java.util.Locale;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.MatteBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
+import com.santaana.model.Habitacion;
 import com.santaana.util.ThemeManager;
 
 public class ReservaPanel extends JPanel {
@@ -26,6 +29,12 @@ public class ReservaPanel extends JPanel {
     private JPanel calendarGrid;
     private JLabel lblMesAnio;
     private Runnable onEstadoCambiado;
+    private CardLayout cardLayout;
+    private JPanel cardPanel;
+    private JButton btnVistaCalendario;
+    private JButton btnVistaLista;
+    private JTable tablaReservas;
+    private DefaultTableModel modelo;
 
     private final ReservaDAO reservaDAO = new ReservaDAO();
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
@@ -102,7 +111,12 @@ public class ReservaPanel extends JPanel {
         removeAll();
         cargarDatosEjemplo();
         add(crearNavbar(),    BorderLayout.NORTH);
-        add(crearCuerpo(),    BorderLayout.CENTER);
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+        cardPanel.setOpaque(false);
+        cardPanel.add(crearCuerpo(), "Calendario");
+        cardPanel.add(crearVistaLista(), "Lista");
+        add(cardPanel, BorderLayout.CENTER);
         revalidate();
         repaint();
     }
@@ -114,10 +128,18 @@ public class ReservaPanel extends JPanel {
         bar.setPreferredSize(new Dimension(0, 52));
         bar.setBorder(new MatteBorder(0, 0, 1, 0, ThemeManager.getBorder()));
 
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 10));
+        left.setOpaque(false);
         JLabel title = new JLabel("  GESTIONAR RESERVAS");
         title.setFont(new Font("Segoe UI", Font.BOLD, 14));
         title.setForeground(ThemeManager.getTextPrimary());
-        bar.add(title, BorderLayout.WEST);
+        left.add(title);
+        left.add(Box.createHorizontalStrut(8));
+        btnVistaCalendario = crearBotonVista("Calendario", true);
+        btnVistaLista = crearBotonVista("Listado", false);
+        left.add(btnVistaCalendario);
+        left.add(btnVistaLista);
+        bar.add(left, BorderLayout.WEST);
 
         // Navegación mes
         JPanel navMes = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 10));
@@ -147,14 +169,42 @@ public class ReservaPanel extends JPanel {
         // Leyenda de estados
         JPanel leyenda = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 14));
         leyenda.setOpaque(false);
-        leyenda.add(puntito(new Color(0x27AE60), "Confirmada"));
-        leyenda.add(puntito(new Color(0xE67E22), "Pendiente"));
-        leyenda.add(puntito(new Color(0x3A7BD5), "Check-in"));
-        leyenda.add(puntito(new Color(0x8E44AD), "Check-out"));
+        leyenda.add(puntito(new Color(0x27AE60), "Activa"));
+        leyenda.add(puntito(new Color(0x8E44AD), "Completada"));
         leyenda.add(puntito(new Color(0xE74C3C), "Cancelada"));
         bar.add(leyenda, BorderLayout.EAST);
 
         return bar;
+    }
+
+    private JButton crearBotonVista(String texto, boolean activo) {
+        JButton b = new JButton(texto) {
+            @Override protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                boolean isDark = ThemeManager.getCurrentTheme() == ThemeManager.Theme.DARK;
+                g2.setColor(isDark ? new Color(0x334155) : new Color(0xE8F1FD));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 6, 6);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        b.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        b.setForeground(ThemeManager.getPrimary());
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setFocusPainted(false);
+        b.setPreferredSize(new Dimension(90, 26));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.addActionListener(e -> {
+            if (texto.equals("Calendario")) {
+                cardLayout.show(cardPanel, "Calendario");
+            } else {
+                cargarTabla();
+                cardLayout.show(cardPanel, "Lista");
+            }
+        });
+        return b;
     }
 
     private JButton btnNavMes(String txt) {
@@ -463,12 +513,14 @@ public class ReservaPanel extends JPanel {
             + "</html>";
 
         if (r.estado.equals("Activa")) {
-            Object[] opciones = {"Hacer Checkout", "Cancelar Reserva", "Cerrar"};
+            Object[] opciones = {"Actualizar Reserva", "Hacer Checkout", "Cancelar Reserva", "Cerrar"};
             int op = JOptionPane.showOptionDialog(this, msg, "Detalle de reserva",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
-                null, opciones, opciones[2]);
+                null, opciones, opciones[3]);
 
             if (op == 0) {
+                abrirDialogoEdicion(r);
+            } else if (op == 1) {
                 int confirm = JOptionPane.showConfirmDialog(this,
                     "<html>¿Confirmar checkout de <b>" + r.huesped + "</b>?<br>"
                     + "La habitación " + r.habitacion + " quedará disponible.</html>",
@@ -490,6 +542,166 @@ public class ReservaPanel extends JPanel {
             }
         } else {
             JOptionPane.showMessageDialog(this, msg, "Detalle de reserva", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    // ── Vista de listado en tabla ────────────────────────────────────────────
+    private JPanel crearVistaLista() {
+        JPanel panel = new JPanel(new BorderLayout(0, 0));
+        panel.setBackground(ThemeManager.getBackground());
+        panel.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
+
+        String[] columnas = {"ID", "Cliente", "Documento", "Habitación", "Entrada", "Salida", "Estado"};
+        modelo = new DefaultTableModel(columnas, 0) {
+            @Override public boolean isCellEditable(int row, int col) { return false; }
+        };
+        tablaReservas = new JTable(modelo);
+        tablaReservas.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        tablaReservas.setRowHeight(30);
+        tablaReservas.setBackground(ThemeManager.getPanelBackground());
+        tablaReservas.setForeground(ThemeManager.getTextPrimary());
+        tablaReservas.setSelectionBackground(new Color(ThemeManager.getPrimary().getRed(),
+            ThemeManager.getPrimary().getGreen(), ThemeManager.getPrimary().getBlue(), 60));
+        tablaReservas.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 11));
+        tablaReservas.getTableHeader().setBackground(new Color(0x1F2937));
+        tablaReservas.getTableHeader().setForeground(Color.WHITE);
+        tablaReservas.setShowGrid(true);
+        tablaReservas.setGridColor(ThemeManager.getBorder());
+        tablaReservas.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(modelo);
+        tablaReservas.setRowSorter(sorter);
+
+        // Campo de búsqueda
+        JPanel topPanel = new JPanel(new BorderLayout(8, 0));
+        topPanel.setOpaque(false);
+        JTextField txtBuscar = new JTextField(20);
+        txtBuscar.putClientProperty("JTextField.placeholderText", "Buscar por cliente o documento...");
+        txtBuscar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent e) {
+                String texto = txtBuscar.getText().trim();
+                if (texto.isEmpty()) {
+                    sorter.setRowFilter(null);
+                } else {
+                    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(texto)));
+                }
+            }
+        });
+        topPanel.add(new JLabel("Buscar: "), BorderLayout.WEST);
+        topPanel.add(txtBuscar, BorderLayout.CENTER);
+
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(new JScrollPane(tablaReservas), BorderLayout.CENTER);
+
+        // Panel inferior con botones
+        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
+        bottom.setOpaque(false);
+        JButton btnActualizar = new JButton("Actualizar Seleccionada");
+        btnActualizar.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnActualizar.setBackground(ThemeManager.getPrimary());
+        btnActualizar.setForeground(Color.WHITE);
+        btnActualizar.setFocusPainted(false);
+        btnActualizar.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnActualizar.addActionListener(e -> abrirEdicionSeleccionada());
+        bottom.add(btnActualizar);
+        panel.add(bottom, BorderLayout.SOUTH);
+
+        // Doble click en fila abre detalle
+        tablaReservas.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    abrirEdicionSeleccionada();
+                }
+            }
+        });
+
+        return panel;
+    }
+
+    private void cargarTabla() {
+        modelo.setRowCount(0);
+        Map<Integer, String> numHab = new HashMap<>();
+        for (com.santaana.model.Habitacion h : habitacionDAO.listarTodas()) {
+            numHab.put(h.getId(), String.valueOf(h.getNumero()));
+        }
+        for (com.santaana.model.Reserva r : reservaDAO.listarTodas()) {
+            String hab = numHab.getOrDefault(r.getIdHabitacion(), "?");
+            modelo.addRow(new Object[]{
+                r.getId(),
+                r.getClienteNombre(),
+                r.getClienteDoc(),
+                "Hab " + hab,
+                r.getFechaEntrada(),
+                r.getFechaSalida(),
+                r.getEstado()
+            });
+        }
+    }
+
+    private void abrirEdicionSeleccionada() {
+        int fila = tablaReservas.getSelectedRow();
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione una reserva de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+            }
+        int modeloFila = tablaReservas.convertRowIndexToModel(fila);
+        int id = (int) modelo.getValueAt(modeloFila, 0);
+        // Buscar la reserva en la lista del calendario para tener datos completos
+        for (Reserva r : reservas) {
+            if (r.id.equals(String.valueOf(id))) {
+                mostrarDetalleReserva(r);
+                return;
+            }
+        }
+        // Fallback: mostrar solo el ID
+        JOptionPane.showMessageDialog(this, "Reserva #" + id, "Detalle", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void abrirDialogoEdicion(Reserva r) {
+        JTextField txtHuesped = new JTextField(r.huesped, 20);
+        JTextField txtEntrada = new JTextField(r.inicio.toString(), 15);
+        JTextField txtSalida  = new JTextField(r.fin.toString(), 15);
+        JTextField txtHoraEnt = new JTextField("12:00", 8);
+        JTextField txtHoraSal = new JTextField("12:00", 8);
+        JTextField txtAnticipo = new JTextField("0", 10);
+        JComboBox<String> cbEstado = new JComboBox<>(new String[]{"Activa", "Completada", "Cancelada"});
+        cbEstado.setSelectedItem(r.estado);
+
+        Object[] fields = {
+            "Huésped:", txtHuesped,
+            "Fecha Entrada (yyyy-MM-dd):", txtEntrada,
+            "Fecha Salida (yyyy-MM-dd):", txtSalida,
+            "Hora Entrada:", txtHoraEnt,
+            "Hora Salida:", txtHoraSal,
+            "Anticipo:", txtAnticipo,
+            "Estado:", cbEstado
+        };
+
+        int result = JOptionPane.showConfirmDialog(this, fields, "Actualizar Reserva #" + r.id,
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            int idReserva = Integer.parseInt(r.id);
+            String fechaEnt = txtEntrada.getText().trim();
+            String fechaSal = txtSalida.getText().trim();
+            try {
+                LocalDate.parse(fechaEnt);
+                LocalDate.parse(fechaSal);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Use yyyy-MM-dd.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            reservaDAO.actualizar(idReserva, fechaEnt, txtHoraEnt.getText().trim(),
+                fechaSal, txtHoraSal.getText().trim(),
+                (String) cbEstado.getSelectedItem(),
+                Double.parseDouble(txtAnticipo.getText().trim()));
+
+            HistorialDAO.registrar("Actualizacion", "Reserva actualizada",
+                "Reserva #" + r.id + " de " + r.huesped + " fue actualizada");
+
+            JOptionPane.showMessageDialog(this, "Reserva actualizada correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            refreshUI();
+            if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
         }
     }
 

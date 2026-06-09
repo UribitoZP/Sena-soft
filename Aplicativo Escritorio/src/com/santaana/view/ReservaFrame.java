@@ -28,6 +28,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -35,10 +36,19 @@ import javax.swing.JTextField;
 import javax.swing.border.MatteBorder;
 
 import com.toedter.calendar.JDateChooser;
+import com.santaana.dao.ReservaDAO;
 import com.santaana.util.ThemeManager;
 
 public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private String role;
+    private int idUsuario;
+    // Form fields
+    private JTextField txtNombre, txtApellido, txtIdentificacion, txtCorreo, txtTelefono;
+    private JDateChooser dcFechaEntrada, dcFechaSalida;
+    private JComboBox<String> cmbHoraEntrada, cmbHoraSalida, cmbTipoEstadia;
+    private JTextField txtAnticipo;
+    private String habitacionSeleccionada;
+    private JLabel lblTotalValor;
     private Color getPrimario() { return ThemeManager.getPrimary(); }
     private Color getFondo() { return ThemeManager.getBackground(); }
     private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
@@ -46,8 +56,9 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private Color getTextCol() { return ThemeManager.getTextPrimary(); }
     private Color getLabelCol() { return ThemeManager.getTextSecondary(); }
 
-    public ReservaFrame(String role, String welcomeMessage) {
+    public ReservaFrame(int idUsuario, String role, String welcomeMessage) {
         this.role = role;
+        this.idUsuario = idUsuario;
 
         setTitle("Hotel Santa Ana — Reservas");
         setSize(1280, 800);
@@ -266,15 +277,20 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel crearPanelHuesped() {
         JPanel p = tarjeta();
         p.add(titulo("Datos de huésped"));
-        p.add(campo("Nombre", "Ej: Juan"));
+        txtNombre = new JTextField(); txtNombre.setPreferredSize(new Dimension(0, 36));
+        p.add(campoConField("Nombre", txtNombre, "Ej: Juan"));
         p.add(Box.createVerticalStrut(12));
-        p.add(campo("Apellido", "Ej: Pérez"));
+        txtApellido = new JTextField(); txtApellido.setPreferredSize(new Dimension(0, 36));
+        p.add(campoConField("Apellido", txtApellido, "Ej: Pérez"));
         p.add(Box.createVerticalStrut(12));
-        p.add(campo("Identificación", "Cédula o Pasaporte"));
+        txtIdentificacion = new JTextField(); txtIdentificacion.setPreferredSize(new Dimension(0, 36));
+        p.add(campoConField("Identificación", txtIdentificacion, "Cédula o Pasaporte"));
         p.add(Box.createVerticalStrut(12));
-        p.add(campo("Correo", "correo@ejemplo.com"));
+        txtCorreo = new JTextField(); txtCorreo.setPreferredSize(new Dimension(0, 36));
+        p.add(campoConField("Correo", txtCorreo, "correo@ejemplo.com"));
         p.add(Box.createVerticalStrut(12));
-        p.add(campo("Teléfono", "Ej: +57 ..."));
+        txtTelefono = new JTextField(); txtTelefono.setPreferredSize(new Dimension(0, 36));
+        p.add(campoConField("Teléfono", txtTelefono, "Ej: +57 ..."));
         return p;
     }
 
@@ -283,23 +299,26 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         p.add(titulo("Datos de reserva"));
         JPanel grid = new JPanel(new GridLayout(0, 2, 15, 12));
         grid.setOpaque(false);
-        grid.add(crearCajaFecha("Fecha de Entrada"));
-        grid.add(crearCajaCombo("Hora de Entrada", new String[] { "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00" }));
-        grid.add(crearCajaFecha("Fecha de Salida"));
-        grid.add(crearCajaCombo("Hora de Salida", new String[] { "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00" }));
-        grid.add(crearCajaCombo("Tipo de estadía", new String[] { "Por horas", "Media noche", "Noche completa", "Día completo" }));
+        dcFechaEntrada = new JDateChooser(); dcFechaEntrada.setDateFormatString("dd/MM/yyyy");
+        grid.add(crearCajaFecha("Fecha de Entrada", dcFechaEntrada));
+        cmbHoraEntrada = new JComboBox<>(new String[] { "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00" });
+        grid.add(crearCajaCombo("Hora de Entrada", cmbHoraEntrada));
+        dcFechaSalida = new JDateChooser(); dcFechaSalida.setDateFormatString("dd/MM/yyyy");
+        grid.add(crearCajaFecha("Fecha de Salida", dcFechaSalida));
+        cmbHoraSalida = new JComboBox<>(new String[] { "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00" });
+        grid.add(crearCajaCombo("Hora de Salida", cmbHoraSalida));
+        cmbTipoEstadia = new JComboBox<>(new String[] { "Por horas", "Media noche", "Noche completa", "Día completo" });
+        grid.add(crearCajaCombo("Tipo de estadía", cmbTipoEstadia));
         p.add(grid);
         return p;
     }
 
-    private JPanel crearCajaFecha(String label) {
+    private JPanel crearCajaFecha(String label, JDateChooser dc) {
         JPanel wrapper = new JPanel(new BorderLayout(0, 5));
         wrapper.setOpaque(false);
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lbl.setForeground(getLabelCol());
-        JDateChooser dc = new JDateChooser();
-        dc.setDateFormatString("dd/MM/yyyy");
         dc.setPreferredSize(new Dimension(0, 36));
         dc.setBackground(getPanelCol());
         JTextField tf = (JTextField) dc.getDateEditor().getUiComponent();
@@ -311,13 +330,12 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         return wrapper;
     }
 
-    private JPanel crearCajaCombo(String label, String[] items) {
+    private JPanel crearCajaCombo(String label, JComboBox<String> combo) {
         JPanel wrapper = new JPanel(new BorderLayout(0, 5));
         wrapper.setOpaque(false);
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lbl.setForeground(getLabelCol());
-        JComboBox<String> combo = new JComboBox<>(items);
         combo.setPreferredSize(new Dimension(0, 36));
         combo.setBackground(getPanelCol());
         combo.setForeground(getTextCol());
@@ -330,20 +348,21 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
     private JPanel crearPanelPago() {
         JPanel panel = tarjeta();
         panel.add(titulo("Pago"));
-        panel.add(crearCajaCombo("Límite de hospedaje", new String[] { "1 hora", "2 horas", "6 horas", "12 horas", "1 noche" }));
+        panel.add(crearCajaCombo("Límite de hospedaje", new JComboBox<>(new String[] { "1 hora", "2 horas", "6 horas", "12 horas", "1 noche" })));
         panel.add(Box.createVerticalStrut(15));
-        panel.add(campo("Anticipo", "$0"));
+        txtAnticipo = new JTextField("0"); txtAnticipo.setPreferredSize(new Dimension(0, 36));
+        panel.add(campoConField("Anticipo", txtAnticipo, "$0"));
         panel.add(Box.createVerticalStrut(15));
         JPanel totalRow = new JPanel(new BorderLayout());
         totalRow.setOpaque(false);
         JLabel lblTotal = new JLabel("Total a pagar");
         lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblTotal.setForeground(getTextCol());
-        JLabel valTotal = new JLabel("$0");
-        valTotal.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        valTotal.setForeground(getPrimario());
+        lblTotalValor = new JLabel("$0");
+        lblTotalValor.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblTotalValor.setForeground(getPrimario());
         totalRow.add(lblTotal, BorderLayout.WEST);
-        totalRow.add(valTotal, BorderLayout.EAST);
+        totalRow.add(lblTotalValor, BorderLayout.EAST);
         panel.add(totalRow);
         panel.add(Box.createVerticalStrut(15));
         JPanel mtdPago = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -380,9 +399,16 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getBackground());
+                boolean selected = num.equals(habitacionSeleccionada);
+                g2.setColor(selected ? getPrimario() : getBackground());
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 16, 16);
-                g2.setColor(getBorde());
+                if (selected) {
+                    g2.setColor(getPrimario());
+                    g2.setStroke(new BasicStroke(3));
+                } else {
+                    g2.setColor(getBorde());
+                    g2.setStroke(new BasicStroke(1));
+                }
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
                 g2.dispose();
             }
@@ -406,8 +432,13 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         info.setAlignmentX(0.5f);
         c.add(n); c.add(Box.createVerticalStrut(5)); c.add(disp); c.add(Box.createVerticalStrut(5)); c.add(info);
         c.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                habitacionSeleccionada = num;
+                refreshUI();
+            }
             public void mouseEntered(MouseEvent e) {
-                c.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xF1F5F9) : new Color(0x334155));
+                if (!num.equals(habitacionSeleccionada))
+                    c.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT ? new Color(0xF1F5F9) : new Color(0x334155));
                 c.repaint();
             }
             public void mouseExited(MouseEvent e) {
@@ -427,6 +458,7 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         btnCancela.setContentAreaFilled(false);
         btnCancela.setBorder(BorderFactory.createLineBorder(getBorde(), 1, true));
         btnCancela.setPreferredSize(new Dimension(120, 38));
+        btnCancela.addActionListener(e -> dispose());
         JButton btnReserva = new JButton("Confirmar Reserva") {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -444,18 +476,80 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         btnReserva.setBorderPainted(false);
         btnReserva.setPreferredSize(new Dimension(180, 38));
         btnReserva.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnReserva.addActionListener(e -> confirmarReserva());
         p.add(btnCancela);
         p.add(btnReserva);
         return p;
     }
 
-    private JPanel campo(String label, String placeholder) {
+    private void confirmarReserva() {
+        String nom = txtNombre.getText().trim();
+        String ape = txtApellido.getText().trim();
+        String doc = txtIdentificacion.getText().trim();
+        String correo = txtCorreo.getText().trim();
+        String tel = txtTelefono.getText().trim();
+        if (nom.isEmpty() || doc.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nombre e Identificación son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        if (habitacionSeleccionada == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione una habitación.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        java.util.Date fe = dcFechaEntrada.getDate();
+        java.util.Date fs = dcFechaSalida.getDate();
+        if (fe == null || fs == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione fechas de entrada y salida.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        String fechaEnt = new java.text.SimpleDateFormat("yyyy-MM-dd").format(fe);
+        String fechaSal = new java.text.SimpleDateFormat("yyyy-MM-dd").format(fs);
+        String horaEnt = (String) cmbHoraEntrada.getSelectedItem();
+        String horaSal = (String) cmbHoraSalida.getSelectedItem();
+        String tipo = (String) cmbTipoEstadia.getSelectedItem();
+        double anticipo;
+        try {
+            anticipo = Double.parseDouble(txtAnticipo.getText().trim().replace("$", "").replace(",", ""));
+        } catch (NumberFormatException ex) {
+            anticipo = 0;
+        }
+
+        // Mapear habitación seleccionada a ID real
+        com.santaana.dao.HabitacionDAO hdao = new com.santaana.dao.HabitacionDAO();
+        int idHab = -1;
+        for (com.santaana.model.Habitacion h : hdao.listarTodas()) {
+            if (String.valueOf(h.getNumero()).equals(habitacionSeleccionada)) {
+                idHab = h.getId();
+                break;
+            }
+        }
+        if (idHab == -1) {
+            JOptionPane.showMessageDialog(this, "Habitación no encontrada en BD.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        ReservaDAO rdao = new ReservaDAO();
+        boolean ok = rdao.crear(idHab, idUsuario,
+            nom + " " + ape, doc, tel, correo,
+            fechaEnt, horaEnt, fechaSal, horaSal, tipo, anticipo);
+
+        if (ok) {
+            JOptionPane.showMessageDialog(this, "Reserva creada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            com.santaana.dao.HistorialDAO.registrar("Reserva", "Nueva reserva creada",
+                "Reserva para " + nom + " " + ape + " en Hab " + habitacionSeleccionada);
+            new com.santaana.view.MainFrame(role, idUsuario, nom + " " + ape).setVisible(true);
+            dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, "Error al crear la reserva.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private JPanel campoConField(String label, JTextField tf, String placeholder) {
         JPanel wrapper = new JPanel(new BorderLayout(0, 5));
         wrapper.setOpaque(false);
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lbl.setForeground(getLabelCol());
-        JTextField tf = new JTextField();
         tf.setPreferredSize(new Dimension(0, 36));
         tf.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         tf.setBackground(getPanelCol());
