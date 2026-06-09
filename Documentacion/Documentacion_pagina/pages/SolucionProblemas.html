@@ -124,7 +124,17 @@
                             <tr>
                                 <td>Puerto 8080 ocupado</td>
                                 <td>Otro proceso usa el puerto 8080</td>
-                                <td>Ejecutar <code>netstat -ano | findstr :8080</code> para identificar el proceso y cerrarlo</td>
+                                <td>El servidor ahora usa HTTPS en puerto <strong>8443</strong>. Si el error persiste, ejecutar <code>netstat -ano | findstr :8443</code> y cerrar el proceso.</td>
+                            </tr>
+                            <tr>
+                                <td><code>SSLHandshakeException</code> en el móvil</td>
+                                <td>Certificado autofirmado no aceptado</td>
+                                <td>En Android, agregar la excepción de seguridad en el cliente HTTP o instalar el certificado como CA de confianza. Consultar la documentación del aplicativo móvil.</td>
+                            </tr>
+                            <tr>
+                                <td><code>Keystore was tampered with</code></td>
+                                <td>Contraseña del keystore incorrecta o archivo corrupto</td>
+                                <td>Regenerar el keystore con <code>keytool -genkeypair -alias santaana -keyalg RSA -keysize 2048 -keystore ssl/keystore.p12 -storetype PKCS12 -storepass sant@an@ -validity 365 -dname "CN=Hotel Santa Ana, OU=TI, O=Santa Ana, L=Bogota, C=CO"</code></td>
                             </tr>
                             <tr>
                                 <td>Datos no se actualizan en pantalla</td>

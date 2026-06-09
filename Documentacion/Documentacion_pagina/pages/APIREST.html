@@ -97,7 +97,7 @@
                 <hr>
 
                 <h2>1. Servidor Embebido</h2>
-                <p>Al iniciar el aplicativo, se levanta automáticamente un servidor HTTP en el puerto <strong>8080</strong> usando la librería <code>com.sun.net.httpserver</code> incluida en el JDK (sin dependencias externas).</p>
+                <p>Al iniciar el aplicativo, se levanta automáticamente un servidor <strong>HTTPS</strong> en el puerto <strong>8443</strong> usando <code>com.sun.net.httpserver.HttpsServer</code> incluida en el JDK (sin dependencias externas). El cifrado se realiza mediante un keystore autofirmado (<code>ssl/keystore.p12</code>) generado con <code>keytool</code>.</p>
 
                 <h2>2. Endpoints</h2>
                 <div class="table-container">
@@ -144,7 +144,7 @@
 
                 <h3>Ejemplo de login</h3>
                 <div class="code-block">
-                    <pre><code>POST /auth/login
+                    <pre><code>POST https://&lt;IP&gt;:8443/auth/login
 Content-Type: application/json
 
 {"usuario":"admin","clave":"1234"}
@@ -158,7 +158,7 @@ Content-Type: application/json
 
                 <h3>Ejemplo de consulta protegida</h3>
                 <div class="code-block">
-                    <pre><code>GET /habitaciones
+                    <pre><code>GET https://&lt;IP&gt;:8443/habitaciones
 Authorization: Bearer a1b2c3d4-...
 
 // Respuesta (200):
@@ -183,11 +183,11 @@ Authorization: Bearer a1b2c3d4-...
                 <p>Si ocurre un error de base de datos, el servidor retorna <code>{"error":"Error interno del servidor"}</code> con código <strong>500</strong>, sin exponer detalles técnicos al cliente.</p>
 
                 <div class="callout info">
-                    <p><strong>Seguridad:</strong> El servidor solo escucha en la red local. Todos los endpoints protegidos requieren token válido.</p>
+                    <p><strong>Seguridad:</strong> El servidor solo escucha en la red local. Todos los endpoints protegidos requieren token válido. La comunicación está cifrada mediante TLS/SSL con certificado autofirmado.</p>
                 </div>
 
                 <div class="callout warning">
-                    <p><strong>Arquitectura actual — Modo de pruebas:</strong> Actualmente el servidor REST se ejecuta en el mismo PC que el aplicativo de escritorio. En una etapa próxima, el servidor será migrado a un equipo dedicado que estará encendido de forma permanente.</p>
+                    <p><strong>Certificado autofirmado:</strong> El keystore (<code>ssl/keystore.p12</code>) se genera durante el desarrollo con <code>keytool</code>. Para producción, reemplázalo por un certificado firmado por una CA de confianza. El aplicativo móvil debe aceptar el certificado o instalar la CA.</p>
                 </div>
             </section>
         </main>

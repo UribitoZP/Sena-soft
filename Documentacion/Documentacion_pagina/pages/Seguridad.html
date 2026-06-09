@@ -130,9 +130,17 @@ public static String hash(String password) {
                 <h2>5. Base de datos excluida de Git</h2>
                 <p>El archivo <code>santaana.db</code> fue eliminado del repositorio y agregado a <code>.gitignore</code> mediante los patrones <code>bin/</code> y <code>*.db</code>. Esto evita que datos de prueba o reales queden expuestos en el control de versiones.</p>
 
-                <h2>6. Pendientes</h2>
+                <h2>6. TLS/SSL</h2>
+                <p>El servidor REST embebido utiliza <code>HttpsServer</code> con cifrado TLS. El keystore autofirmado (<code>ssl/keystore.p12</code>) se carga mediante <code>ProtectionDomain</code> para localizar la ruta absoluta, y se configura un <code>SSLContext</code> con algoritmo <strong>TLS</strong> y <code>KeyManagerFactory</code> <strong>SunX509</strong>.</p>
                 <ul>
-                    <li><strong>TLS/SSL:</strong> El servidor HTTP actual no tiene cifrado. Se requiere un keystore y configuración de <code>HttpsServer</code> para entornos productivos.</li>
+                    <li>Puerto: <strong>8443</strong></li>
+                    <li>Keystore: <code>ssl/keystore.p12</code> (PKCS12)</li>
+                    <li>Algoritmo: RSA 2048 bits con firma SHA384</li>
+                    <li>Validez: 365 días</li>
+                </ul>
+
+                <h2>7. Pendientes</h2>
+                <ul>
                     <li><strong>Parser JSON:</strong> <code>AuthHandler.extraer()</code> usa un parser manual. Se recomienda migrar a <code>org.json</code> o Gson.</li>
                 </ul>
             </section>
