@@ -37,7 +37,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v2.4.0</span>
+            <span class="version-tag">v2.5.0</span>
         </div>
     </header>
     <div class="container">
@@ -123,8 +123,23 @@
                                     <br><strong>Robustez:</strong> Ruta de base de datos calculada automáticamente desde la ubicación de la aplicación (<code>ProtectionDomain</code>), no depende del directorio de trabajo.
                                     <br><strong>Manejo de errores:</strong> Nueva clase <code>DatabaseException</code> (RuntimeException) envuelve <code>SQLException</code>. <code>ErrorUtil</code> muestra JOptionPane con errores de BD en toda la UI.
                                     <br><strong>Formato de fechas:</strong> <code>DateUtil</code> con <code>DateTimeFormatter</code> estricto (ISO <code>yyyy-MM-dd HH:mm</code>) reemplaza <code>SimpleDateFormat</code> en la capa de UI, garantizando consistencia con las consultas SQL.
+                                    <br><strong>TLS/SSL:</strong> Servidor REST migrado de HTTP (puerto 8080) a HTTPS (puerto 8443) con keystore autofirmado PKCS12.
+                                    <br><strong>Historial de login:</strong> Intentos fallidos registrados en <code>historial</code> con tipo "Login" desde API REST y UI de escritorio.
+                                    <br><strong>Sidebar scroll:</strong> Posición de scroll preservada al navegar entre páginas de documentación.
                                 </td>
                                 <td>Seguridad / Backend</td>
+                            </tr>
+                            <tr>
+                                <td><strong>v2.5.0</strong></td>
+                                <td>09/06/2026</td>
+                                <td>
+                                    <strong>CRUD completo de reservas:</strong>
+                                    <br><strong>Vista tabla:</strong> Nuevo modo "Listado" en <code>ReservaPanel</code> con <code>JTable</code> de todas las reservas, buscador por cliente/documento y doble clic para detalle/edición.
+                                    <br><strong>Confirmar reserva:</strong> Botón "Confirmar Reserva" en <code>ReservaFrame</code> conectado a <code>ReservaDAO.crear()</code> con creación automática de cliente y registro en historial.
+                                    <br><strong>Actualizar reserva:</strong> Nuevo método <code>actualizar()</code> en <code>ReservaDAO</code> que modifica fechas, horas, estado y anticipo. Botón "Actualizar Reserva" en el diálogo de detalle con formulario pre-rellenado.
+                                    <br><strong>Selección visual de habitación:</strong> Tarjetas de habitación en <code>ReservaFrame</code> con borde resaltado al seleccionar.
+                                </td>
+                                <td>Desarrollo UI / DB</td>
                             </tr>
                             <tr>
                                 <td><strong>v2.3.0</strong></td>
@@ -208,3 +223,4 @@
 </body>
 
 </html>
+

@@ -29,7 +29,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v2.4.0</span>
+            <span class="version-tag">v2.5.0</span>
         </div>
     </header>
     <div class="container">
@@ -152,6 +152,34 @@ public static String formatearHora(Date d) {
                     <li>Filtro de habitaciones por tipo.</li>
                 </ul>
 
+                <h3>ReservaPanel — Vista Calendario y Listado</h3>
+                <p><code>ReservaPanel</code> ahora ofrece dos modos de visualización intercambiables mediante botones en la barra superior:</p>
+                <ul>
+                    <li><strong>Calendario:</strong> Vista mensual con bloques de color por estado (Activa=verde, Completada=púrpura, Cancelada=rojo). Cada bloque muestra el nombre del huésped y la habitación. Click para ver detalle.</li>
+                    <li><strong>Listado:</strong> Tabla (<code>JTable</code>) con columnas ID, Cliente, Documento, Habitación, Entrada, Salida, Estado. Incluye buscador en tiempo real y doble click para abrir detalle/edición.</li>
+                </ul>
+
+                <h3>ReservaFrame — Formulario Completo de Reserva</h3>
+                <p><code>ReservaFrame</code> es un formulario independiente con todos los datos de huésped, fechas, pago y selección de habitación. El botón <strong>"Confirmar Reserva"</strong> ahora:</p>
+                <ul>
+                    <li>Valida campos obligatorios (nombre, identificación, habitación, fechas).</li>
+                    <li>Busca o crea automáticamente el cliente por documento (relación cliente-habitación).</li>
+                    <li>Llama a <code>ReservaDAO.crear()</code> para guardar en BD.</li>
+                    <li>Registra la actividad en el historial como tipo "Reserva".</li>
+                    <li>Navega al dashboard principal al completarse.</li>
+                </ul>
+                <p>Las tarjetas de habitación tienen selección visual con borde resaltado en color primario.</p>
+
+                <h3>Actualizar Reserva</h3>
+                <p>Las reservas activas se pueden modificar desde el diálogo de detalle:</p>
+                <ul>
+                    <li>Nuevo botón <strong>"Actualizar Reserva"</strong> en el diálogo de detalle de reservas activas.</li>
+                    <li>Formulario pre-rellenado con campos editables: huésped, fechas, horas, anticipo y estado.</li>
+                    <li>Llama a <code>ReservaDAO.actualizar()</code> que actualiza fechas, horas, estado y anticipo en BD.</li>
+                    <li>Registra la actualización en el historial como tipo "Actualizacion".</li>
+                    <li>Refresca automáticamente el panel de reservas y notifica cambios al dashboard.</li>
+                </ul>
+
                 <h3>Gestión de Usuarios (GestionUsuarioPanel + UsuarioDialog)</h3>
                 <ul>
                     <li>CRUD completo con restricciones por rol: máximo 2 Administradores y 3 Recepcionistas.</li>
@@ -194,3 +222,4 @@ public static String formatearHora(Date d) {
     <script src="../js/main.js"></script>
 </body>
 </html>
+

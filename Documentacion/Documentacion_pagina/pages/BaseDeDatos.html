@@ -29,7 +29,7 @@
                 <span class="icon-sun">☀️</span>
                 <span class="icon-moon">🌙</span>
             </button>
-            <span class="version-tag">v2.4.0</span>
+            <span class="version-tag">v2.5.0</span>
         </div>
     </header>
     <div class="container">
@@ -195,7 +195,17 @@ CREATE TABLE cierres_mes (
                     </table>
                 </div>
 
-                <h2>4. Datos Iniciales (SeedData)</h2>
+                <h2>4. DAOs y Operaciones</h2>
+                <p>Los objetos de acceso a datos (DAOs) encapsulan todas las consultas SQL. En la versión v2.5.0 se completó el CRUD de reservas:</p>
+                <ul>
+                    <li><strong>ReservaDAO.listarTodas():</strong> JOIN con <code>clientes</code> para obtener nombre y documento del cliente.</li>
+                    <li><strong>ReservaDAO.crear():</strong> Busca o crea el cliente por documento antes de insertar la reserva.</li>
+                    <li><strong>ReservaDAO.actualizar():</strong> Actualiza fechas, horas, estado y anticipo de una reserva existente.</li>
+                    <li><strong>ReservaDAO.actualizarEstado():</strong> Cambia estado (Activa → Completada/Cancelada) para checkout y cancelaciones.</li>
+                    <li><strong>ReservaDAO.actualizarAnticipo():</strong> Modifica solo el anticipo de una reserva.</li>
+                </ul>
+
+                <h2>5. Datos Iniciales (SeedData)</h2>
                 <p>Al iniciar con la base de datos vacía, <code>SeedData</code> inserta:</p>
                 <ul>
                     <li><strong>2 usuarios:</strong> <code>admin</code> y <code>recepcion</code> con contraseñas hasheadas con PBKDF2.</li>
@@ -208,3 +218,4 @@ CREATE TABLE cierres_mes (
     <script src="../js/main.js"></script>
 </body>
 </html>
+
