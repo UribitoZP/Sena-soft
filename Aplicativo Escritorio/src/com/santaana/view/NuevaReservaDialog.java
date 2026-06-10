@@ -194,7 +194,7 @@ public class NuevaReservaDialog extends JDialog {
         p.add(Box.createVerticalStrut(12));
         p.add(caja("Nombre completo *", campoNombre));
         p.add(Box.createVerticalStrut(12));
-        p.add(caja("Correo (opcional)", campoCorreo));
+        p.add(caja("Correo *", campoCorreo));
         p.add(Box.createVerticalStrut(12));
         p.add(caja("Teléfono *", campoTelefono));
         return p;
@@ -829,9 +829,11 @@ public class NuevaReservaDialog extends JDialog {
         String telefono = campoTelefono.getText().trim();
         String correo = campoCorreo.getText().trim();
 
-        if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Identificación, nombre y teléfono son obligatorios.",
-                    "Campos requeridos", JOptionPane.WARNING_MESSAGE);
+        if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+            "Identificación, nombre, teléfono y correo son obligatorios.",
+            "Campos requeridos",
+            JOptionPane.WARNING_MESSAGE);
             return;
         }
 

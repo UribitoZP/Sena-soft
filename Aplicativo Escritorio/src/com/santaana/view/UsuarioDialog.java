@@ -148,12 +148,18 @@ public class UsuarioDialog extends JDialog {
         boolean editando = getTitle().equals("Editar usuario");
         if (editando && clave.isEmpty()) {
             // En edición la contraseña es opcional (se conserva la actual)
-        } else if (nombre.isEmpty() || usuario.isEmpty() || clave.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Nombre, usuario y contraseña son obligatorios.",
-                    "Campos requeridos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        } else if (nombre.isEmpty()
+        || usuario.isEmpty()
+        || clave.isEmpty()
+        || campoCorreo.getText().trim().isEmpty()) {
+
+    JOptionPane.showMessageDialog(this,
+            "Nombre, usuario, contraseña y correo son obligatorios.",
+            "Campos requeridos",
+            JOptionPane.WARNING_MESSAGE);
+
+    return;
+}
         acepto = true;
         dispose();
     }
