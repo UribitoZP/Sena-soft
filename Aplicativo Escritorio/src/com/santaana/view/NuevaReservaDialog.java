@@ -20,6 +20,7 @@ import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
+import com.santaana.util.EmailService;
 
 public class NuevaReservaDialog extends JDialog {
 
@@ -194,7 +195,7 @@ public class NuevaReservaDialog extends JDialog {
         p.add(Box.createVerticalStrut(12));
         p.add(caja("Nombre completo *", campoNombre));
         p.add(Box.createVerticalStrut(12));
-        p.add(caja("Correo *", campoCorreo));
+        p.add(caja("Correo (opcional)", campoCorreo));
         p.add(Box.createVerticalStrut(12));
         p.add(caja("Teléfono *", campoTelefono));
         return p;
@@ -829,9 +830,9 @@ public class NuevaReservaDialog extends JDialog {
         String telefono = campoTelefono.getText().trim();
         String correo = campoCorreo.getText().trim();
 
-        if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
+       if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty()) {
             JOptionPane.showMessageDialog(this,
-            "Identificación, nombre, teléfono y correo son obligatorios.",
+            "Identificación, nombre y teléfono son obligatorios.",
             "Campos requeridos",
             JOptionPane.WARNING_MESSAGE);
             return;
@@ -955,6 +956,17 @@ public class NuevaReservaDialog extends JDialog {
         }
 
         if (ok) {
+
+            if (!correo.isEmpty()) {
+                EmailService.enviarReserva(
+                        correo,
+                        nombre,
+                        doc,
+                        telefono,
+                        desde,
+                        horaEnt
+                    );
+                }
             // Solo marcar Ocupada si el check-in es hoy
             String hoy = formatearFecha(new Date());
             if (desde.equals(hoy)) {
