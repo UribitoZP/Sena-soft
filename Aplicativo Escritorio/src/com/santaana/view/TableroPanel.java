@@ -89,12 +89,6 @@ public class TableroPanel extends JPanel {
         title.setForeground(getTextCol());
         navbar.add(title, BorderLayout.WEST);
 
-        JLabel welcome = new JLabel("Bienvenido " + nombreUsuario, JLabel.CENTER);
-        welcome.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        welcome.setForeground(getLabel());
-        navbar.add(welcome, BorderLayout.CENTER);
-
-
         return navbar;
     }
 
