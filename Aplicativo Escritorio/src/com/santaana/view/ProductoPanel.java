@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.*;
 import javax.swing.border.AbstractBorder;
+import javax.swing.border.MatteBorder;
 import javax.swing.table.*;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ProductoDAO;
@@ -29,6 +30,9 @@ public class ProductoPanel extends JPanel {
     private JLabel lblTotalProductos;
     private JLabel lblStockBajo;
     private JLabel lblValorInventario;
+    private Color getPanelCol() { return ThemeManager.getPanelBackground(); }
+    private Color getBorde()    { return ThemeManager.getBorder(); }
+    private Color getTextCol()  { return ThemeManager.getTextPrimary(); }
 
     public ProductoPanel() {
         setLayout(new BorderLayout());
@@ -39,33 +43,36 @@ public class ProductoPanel extends JPanel {
     private JPanel crearContenido() {
         JPanel root = new JPanel(new BorderLayout(0, 24));
         root.setOpaque(false);
-        root.setBorder(BorderFactory.createEmptyBorder(28, 28, 28, 28));
-        root.add(crearHeader(), BorderLayout.NORTH);
-        root.add(crearCentro(), BorderLayout.CENTER);
+        
+        JPanel inner = new JPanel(new BorderLayout(0, 24));
+        inner.setOpaque(false);
+        inner.setBorder(BorderFactory.createEmptyBorder(28, 28, 28, 28));
+        inner.add(crearHeader(), BorderLayout.NORTH);
+        inner.add(crearCentro(), BorderLayout.CENTER);
+
+        root.add(crearNavbar(), BorderLayout.NORTH);
+        root.add(inner, BorderLayout.CENTER);
         return root;
     }
+    private JPanel crearNavbar() {
+    JPanel navbar = new JPanel(new BorderLayout());
+    navbar.setBackground(getPanelCol());
+    navbar.setPreferredSize(new Dimension(0, 50));
+    navbar.setBorder(new MatteBorder(0, 0, 1, 0, getBorde()));
+
+    JLabel title = new JLabel("  GESTIÓN DE PRODUCTOS");
+    title.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    title.setForeground(getTextCol());
+    navbar.add(title, BorderLayout.WEST);
+
+    return navbar;
+}
 
     private JPanel crearHeader() {
-        JPanel header = new JPanel();
+    JPanel header = new JPanel();
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
-
-        JLabel titulo = new JLabel("Gestión de Productos");
-        titulo.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        titulo.setForeground(ThemeManager.getTextPrimary());
-        titulo.setAlignmentX(LEFT_ALIGNMENT);
-
-        JLabel subtitulo = new JLabel("Administra el inventario de productos del hotel");
-        subtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        subtitulo.setForeground(ThemeManager.getTextSecondary());
-        subtitulo.setAlignmentX(LEFT_ALIGNMENT);
-
-        header.add(titulo);
-        header.add(Box.createVerticalStrut(4));
-        header.add(subtitulo);
-        header.add(Box.createVerticalStrut(22));
         header.add(crearTarjetas());
-
         return header;
     }
 
@@ -261,7 +268,7 @@ public class ProductoPanel extends JPanel {
     }
 
     private JScrollPane crearTabla() {
-        String[] columnas = {"ID", "Nombre", "Stock", "Precio Compra", "Precio Venta"};
+        String[] columnas = {"ID", "Nombre", "Stock", "Precio Compra (UD)", "Precio Venta (UD)"};
         model = new DefaultTableModel(null, columnas) {
             @Override
             public boolean isCellEditable(int row, int column) {
