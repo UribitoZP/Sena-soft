@@ -164,7 +164,7 @@ public class ProductoFormDialog extends JDialog {
         colCompra.setOpaque(false);
 
         colCompra.add(
-                label("Precio Compra"),
+                label("Precio de compra por unidad"),
                 BorderLayout.NORTH);
 
         colCompra.add(
@@ -177,7 +177,7 @@ public class ProductoFormDialog extends JDialog {
         colVenta.setOpaque(false);
 
         colVenta.add(
-                label("Precio Venta"),
+                label("Precio de venta por unidad"),
                 BorderLayout.NORTH);
 
         colVenta.add(
