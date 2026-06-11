@@ -30,6 +30,34 @@ public class ReservaDAO {
         }
         return lista;
     }
+    public List<String[]> listarReservasActivas() {
+        List<String[]> lista = new ArrayList<>();
+        String sql = """
+            SELECT
+                r.id,
+                h.numero,
+                c.nombre
+            FROM reservas r
+            JOIN habitaciones h ON r.id_habitacion = h.id
+            JOIN clientes c ON r.id_cliente = c.id
+            WHERE r.estado = 'ACTIVA'
+        """;
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    lista.add(new String[] {
+                        rs.getString("id"),
+                        rs.getString("numero"),
+                        rs.getString("nombre")
+                    });
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
+                }
+                return lista;
+    }
+
     public List<Reserva> listarActivas() {
         List<Reserva> lista = new ArrayList<>();
         String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
