@@ -1,15 +1,16 @@
 package com.santaana.db;
 
-import com.santaana.util.PasswordUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.santaana.util.PasswordUtil;
+
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 7;
+    private static final int SCHEMA_VERSION = 8;
 
     public static void inicializar() {
         Connection conn = null;
@@ -93,6 +94,16 @@ public class SchemaManager {
                 "  stock INTEGER NOT NULL DEFAULT 0," +
                 "  precio_compra REAL NOT NULL DEFAULT 0," +
                 "  precio_venta REAL NOT NULL DEFAULT 0" +
+                ")"
+            );
+            // v8: tabla reserva_productos
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS reserva_productos (" +
+                "  id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  id_reserva INTEGER NOT NULL REFERENCES reservas(id)," +
+                "  id_producto INTEGER NOT NULL REFERENCES productos(id)," +
+                "  cantidad INTEGER NOT NULL DEFAULT 1," +
+                "  precio REAL NOT NULL" +
                 ")"
             );
 
