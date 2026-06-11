@@ -10,23 +10,21 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
+import java.awt.Window;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.Window;
 
-import javax.swing.SwingUtilities;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.MatteBorder;
 
 import com.santaana.dao.HabitacionDAO;
@@ -35,7 +33,6 @@ import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
-import com.santaana.dao.UsuarioDAO;
 
 
 public class TableroPanel extends JPanel {
@@ -506,11 +503,26 @@ public class TableroPanel extends JPanel {
                 acciones.add(sep);
                 acciones.add(Box.createVerticalStrut(10));
             }
-
             if (rActiva != null) {
                 JButton btnPago = crearBoton("Registrar Pago / Abono", new Color(0x27AE60));
-                btnPago.addActionListener(e -> { dialog.dispose(); mostrarDialogoPago(h, rActiva); });
+                btnPago.addActionListener(e -> {
+                    dialog.dispose();
+                    mostrarDialogoPago(h, rActiva);
+                });
+
                 acciones.add(btnPago);
+                acciones.add(Box.createVerticalStrut(8));
+
+                JButton btnPedido = crearBoton(
+                    "Pedir Productos",
+                    new Color(0x3B82F6)
+                );
+                btnPedido.addActionListener(e -> {
+
+                    PedidoHabitacionDialog pedidoDialog = new PedidoHabitacionDialog(dialog, rActiva);
+                    pedidoDialog.setVisible(true);
+                });
+                acciones.add(btnPedido);
                 acciones.add(Box.createVerticalStrut(8));
             }
 
