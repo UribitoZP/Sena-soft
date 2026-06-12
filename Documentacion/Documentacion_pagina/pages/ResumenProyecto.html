@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen del Proyecto | Documentación del Sistema</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script>
+        (function () {
+            const theme = localStorage.getItem("theme");
+            if (theme === "dark") {
+                document.documentElement.setAttribute("data-theme", "dark");
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/codigo.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <header class="main-header">
+        <div class="logo">
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">☰</button>
+            <span class="logo-icon">◈</span>
+            <h1>Sistema<span>_</span>hotelero<span>Doc</span></h1>
+        </div>
+        <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Cambiar tema">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+            </button>
+            <span class="version-tag">v2.5.0</span>
+        </div>
+    </header>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="barra-busqueda">
+                <span class="icono">🔍</span>
+                <input type="text" id="buscador" placeholder="Buscar en el menú...">
+            </div>
+            <nav class="side-nav">
+                <div class="nav-group">
+                    <h3>Introducción</h3>
+                    <ul>
+                        <li><a href="../index.html">Bienvenida</a></li>
+                        <li><a href="DescripcionSistema.html">Descripción del sistema</a></li>
+                        <li><a href="EquipoTrabajo.html">Equipo de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Documentación</h3>
+                    <ul>
+                        <li><a href="SRS.html">SRS</a></li>
+                        <li><a href="CasoUso.html">Caso de uso</a></li>
+                        <li><a href="ErMer.html">ER / MER</a></li>
+                        <li><a href="ActaTrabajo.html">Actas de trabajo</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Galería</h3>
+                    <ul>
+                        <li><a href="ResumenProyecto.html" class="active">Resumen del Proyecto</a></li>
+                        <li><a href="Instalacion.html">Instalación</a></li>
+                        <li><a href="Arquitectura.html">Arquitectura</a></li>
+                        <li><a href="BaseDeDatos.html">Base de Datos</a></li>
+                        <li><a href="APIREST.html">API REST</a></li>
+                        <li><a href="Seguridad.html">Seguridad</a></li>
+                        <li><a href="Concurrencia.html">Concurrencia</a></li>
+                        <li><a href="UI.html">UI / Componentes</a></li>
+                        <li><a href="SolucionProblemas.html">Solución de Problemas</a></li>
+                        <li><a href="AplicativoMovil.html">Aplicativo móvil</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Desarrollo</h3>
+                    <ul>
+                        <li><a href="Codigo_DatabaseConnection.html">DatabaseConnection</a></li>
+                        <li><a href="Codigo_PasswordUtil.html">PasswordUtil</a></li>
+                        <li><a href="Codigo_TokenManager.html">TokenManager</a></li>
+                        <li><a href="Codigo_AuthHandler.html">AuthHandler</a></li>
+                        <li><a href="Codigo_DateUtil.html">DateUtil</a></li>
+                        <li><a href="Codigo_ErrorUtil.html">ErrorUtil / DatabaseException</a></li>
+                        <li><a href="Codigo_SchemaManager.html">SchemaManager</a></li>
+                    </ul>
+                </div>
+                <div class="nav-group">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="Glosario.html">Glosario</a></li>
+                        <li><a href="Versiones.html">Versiones</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="content">
+            <section id="resumen-proyecto">
+                <h1>Resumen del Proyecto</h1>
+                <p class="lead">Información general del sistema HotelSoft: contexto, solución técnica, requerimientos, tecnologías y modelo de datos.</p>
+                <hr>
+
+                <h2>1. Información del Proyecto</h2>
+                <div class="table-container">
+                    <table>
+                        <tbody>
+                            <tr><td><strong>Nombre del proyecto</strong></td><td>HotelSoft — Sistema de Gestión Hotelera</td></tr>
+                            <tr><td><strong>Cliente</strong></td><td>Hotel Santa Ana</td></tr>
+                            <tr><td><strong>Institución</strong></td><td>SENA — CENTRO INDUSTRIAL Y DE AVIACION</td></tr>
+                            <tr><td><strong>Programa</strong></td><td>Análisis y Desarrollo de Software (Ficha: nose)</td></tr>
+                            <tr><td><strong>Equipo</strong></td><td>Grupo 2 — 6 Integrantes</td></tr>
+                            <tr><td><strong>Versión actual</strong></td><td>v2.5.0</td></tr>
+                            <tr><td><strong>Fecha de inicio</strong></td><td>28/02/2026</td></tr>
+                            <tr><td><strong>Estado</strong></td><td>En desarrollo activo</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>2. Problema del Hotel</h2>
+                <p>El Hotel Santa Ana operaba sus procesos de forma completamente manual:</p>
+                <ul>
+                    <li>Las reservas se registraban en <strong>cuadernos físicos</strong>, propensos a pérdidas y errores de tachadura.</li>
+                    <li>El estado de cada habitación (<em>disponible, ocupada, en limpieza, mantenimiento</em>) se controlaba con <strong>notas adhesivas y pizarras</strong>, sin trazabilidad.</li>
+                    <li>Los datos de los huéspedes (nombre, documento, teléfono) se <strong>volvían a escribir en cada visita</strong>, aunque fueran clientes frecuentes.</li>
+                    <li>El <strong>check-in y check-out</strong> dependían de la memoria del recepcionista para calcular horas extras y cobros.</li>
+                    <li>No existía un <strong>historial de actividades</strong>: no se podía saber quién hizo qué ni cuándo.</li>
+                    <li>La generación de <strong>reportes financieros</strong> requería sumar a mano decenas de páginas de cuaderno cada fin de mes.</li>
+                    <li>El dueño no tenía forma de consultar el estado del hotel <strong>sin estar físicamente presente</strong> en la recepción.</li>
+                </ul>
+                <p>Como resultado, el hotel sufría pérdidas por <strong>habitaciones que quedaban vacías por errores de agenda</strong>, clientes insatisfechos por demoras en el check-in, e <strong>imposibilidad de tomar decisiones informadas</strong> por falta de datos históricos confiables.</p>
+
+                <h2>3. Solución Propuesta</h2>
+                <p>Se diseñó e implementó <strong>HotelSoft</strong>, una plataforma integral compuesta por dos módulos:</p>
+
+                <h3>Módulo de Escritorio (Java Swing)</h3>
+                <ul>
+                    <li><strong>Gestión de reservas:</strong> Creación, consulta (calendario y tabla), actualización y cancelación con búsqueda automática de clientes por documento.</li>
+                    <li><strong>Check-in y Check-out:</strong> Flujo completo con cambio automático de estado de habitación (<em>Ocupada → Limpieza → Disponible</em>) y registro en historial.</li>
+                    <li><strong>Gestión de habitaciones:</strong> CRUD completo con control de estados y precios.</li>
+                    <li><strong>Gestión de usuarios:</strong> CRUD con restricciones por rol (máximo 2 administradores, 3 recepcionistas).</li>
+                    <li><strong>Reportes y cierre de mes:</strong> Generación de reportes contables con totales de ingresos, reservas completadas y canceladas.</li>
+                    <li><strong>Historial de actividades:</strong> Registro automático de cada operación con tipo, descripción y fecha/hora.</li>
+                    <li><strong>Modo oscuro:</strong> Interfaz con tema claro/oscuro "Dark Blue" intercambiable en tiempo real.</li>
+                </ul>
+
+                <h3>Módulo Móvil (Flutter)</h3>
+                <ul>
+                    <li><strong>Dashboard administrativo:</strong> Visualización de ocupación, ingresos del día, reservas activas y próximos check-outs.</li>
+                    <li><strong>Métricas en tiempo real:</strong> Datos consumidos desde la API REST del servidor embebido en el escritorio.</li>
+                    <li><strong>Restricción de acceso:</strong> Solo administradores pueden iniciar sesión en la app móvil.</li>
+                </ul>
+
+                <h3>Comunicación Escritorio ↔ Móvil</h3>
+                <ul>
+                    <li><strong>Servidor REST embebido:</strong> El aplicativo de escritorio levanta un servidor HTTPS en el puerto 8443.</li>
+                    <li><strong>Autenticación por token:</strong> El móvil se autentica contra <code>/auth/login</code> y recibe un token UUID para las siguientes peticiones.</li>
+                    <li><strong>Endpoints:</strong> <code>/habitaciones</code>, <code>/reservas</code>, <code>/stats</code>, <code>/reportes</code>.</li>
+                </ul>
+
+                <h2>4. Requerimientos Funcionales</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Código</th><th>Requerimiento</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>RF-001</td><td>Gestión de usuarios: crear, editar, eliminar y listar (solo administrador)</td></tr>
+                            <tr><td>RF-002</td><td>Autenticación con hash de contraseñas (PBKDF2) y roles (Administrador / Recepcionista)</td></tr>
+                            <tr><td>RF-003</td><td>Gestión de habitaciones: CRUD con estados (Disponible, Ocupada, Limpieza, Mantenimiento)</td></tr>
+                            <tr><td>RF-004</td><td>Registro de check-in: asignar huésped a habitación</td></tr>
+                            <tr><td>RF-005</td><td>Registro de check-out: liberar habitación, pasar a Limpieza, generar registro</td></tr>
+                            <tr><td>RF-006</td><td>Gestión de reservas: crear, listar (calendario + tabla), actualizar y cancelar</td></tr>
+                            <tr><td>RF-007</td><td>Búsqueda automática de cliente por documento al crear reserva</td></tr>
+                            <tr><td>RF-008</td><td>Historial de actividades con tipos (Reserva, Checkout, Cancelación, Habitación, Login, Sistema, Actualización)</td></tr>
+                            <tr><td>RF-009</td><td>Pagos y registro de anticipos por reserva</td></tr>
+                            <tr><td>RF-010</td><td>Reportes contables y cierre de mes con totales</td></tr>
+                            <tr><td>RF-011</td><td>Dashboard móvil con métricas en tiempo real (ocupación, ingresos, reservas)</td></tr>
+                            <tr><td>RF-012</td><td>API REST segura con autenticación por token y rate limiting</td></tr>
+                            <tr><td>RF-013</td><td>Servidor HTTPS con certificado autofirmado (puerto 8443)</td></tr>
+                            <tr><td>RF-014</td><td>Registro de intentos fallidos de inicio de sesión (tipo "Login")</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h2>5. Lenguajes, Frameworks y Herramientas</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Componente</th><th>Tecnología</th><th>Versión</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Lenguaje (Escritorio)</td><td>Java</td><td>17</td></tr>
+                            <tr><td>GUI (Escritorio)</td><td>Swing (javax.swing)</td><td>—</td></tr>
+                            <tr><td>Servidor REST</td><td>com.sun.net.httpserver.HttpsServer (JDK nativo)</td><td>—</td></tr>
+                            <tr><td>Hash de contraseñas</td><td>PBKDF2WithHmacSHA256 (javax.crypto)</td><td>600k iteraciones</td></tr>
+                            <tr><td>Lenguaje (Móvil)</td><td>Dart</td><td>3.x</td></tr>
+                            <tr><td>Framework (Móvil)</td><td>Flutter</td><td>3.x</td></tr>
+                            <tr><td>Base de datos</td><td>SQLite (org.sqlite.JDBC)</td><td>3.45.1.0</td></tr>
+                            <tr><td>Selector de fechas</td><td>JCalendar (toedter)</td><td>1.4</td></tr>
+                            <tr><td>Generación PDF</td><td>iTextPDF</td><td>5.5.13.3</td></tr>
+                            <tr><td>Logging</td><td>SLF4J + SLF4J-nop</td><td>1.7.36</td></tr>
+                            <tr><td>Compilación</td><td>javac (sin Maven/Gradle)</td><td>—</td></tr>
+                            <tr><td>Control de versiones</td><td>Git + GitHub</td><td>—</td></tr>
+                            <tr><td>IDE</td><td>VS Code / Nvim</td><td>—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Dependencias (archivos JAR en <code>lib/</code>)</h3>
+                <ul>
+                    <li><code>sqlite-jdbc-3.45.1.0.jar</code> — Conector SQLite para JDBC</li>
+                    <li><code>jcalendar-1.4.jar</code> — Selector gráfico de fechas (JDateChooser)</li>
+                    <li><code>slf4j-api-1.7.36.jar</code> + <code>slf4j-nop-1.7.36.jar</code> — Logging</li>
+                    <li><code>itextpdf-5.5.13.3.jar</code> — Generación de reportes PDF</li>
+                </ul>
+
+                <h2>6. Base de Datos y Relaciones</h2>
+
+                <h3>Esquema SQL</h3>
+                <div class="code-block">
+                    <pre><code>-- Tabla usuarios: almacena las credenciales y roles del personal
+CREATE TABLE usuarios (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre   TEXT NOT NULL,
+    usuario  TEXT NOT NULL UNIQUE,
+    clave    TEXT NOT NULL,              -- hash PBKDF2 (desde v7)
+    rol      TEXT NOT NULL CHECK(rol IN ('Administrador','Recepcionista')),
+    telefono TEXT,
+    correo   TEXT
+);
+
+-- Tabla habitaciones: catálogo de habitaciones con precio y estado
+CREATE TABLE habitaciones (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    numero  TEXT NOT NULL UNIQUE,
+    tipo    TEXT NOT NULL,
+    precio  REAL NOT NULL,
+    estado  TEXT NOT NULL CHECK(estado IN ('Disponible','Ocupada','Limpieza','Mantenimiento'))
+);
+
+-- Tabla clientes: información de huéspedes (normalizada en 3NF desde v6)
+CREATE TABLE clientes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre      TEXT NOT NULL,
+    documento   TEXT UNIQUE NOT NULL,
+    telefono    TEXT,
+    correo      TEXT
+);
+
+-- Tabla reservas: vincula huésped, habitación y usuario que registró
+CREATE TABLE reservas (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id),
+    id_usuario      INTEGER NOT NULL REFERENCES usuarios(id),
+    id_cliente      INTEGER NOT NULL REFERENCES clientes(id),
+    fecha_entrada   TEXT NOT NULL,
+    hora_entrada    TEXT DEFAULT '12:00',
+    fecha_salida    TEXT NOT NULL,
+    hora_salida     TEXT DEFAULT '12:00',
+    tipo_estadia    TEXT DEFAULT 'Noche',
+    anticipo        REAL DEFAULT 0,
+    estado          TEXT NOT NULL CHECK(estado IN ('Activa','Completada','Cancelada'))
+);
+
+-- Tabla historial: auditoría de todas las operaciones del sistema
+CREATE TABLE historial (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    tipo        TEXT NOT NULL,
+    titulo      TEXT NOT NULL,
+    descripcion TEXT NOT NULL,
+    fecha_hora  TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    id_usuario  INTEGER DEFAULT 0
+);
+
+-- Tabla cierres_mes: reportes financieros mensuales
+CREATE TABLE cierres_mes (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    mes              TEXT NOT NULL UNIQUE,
+    id_usuario       INTEGER NOT NULL REFERENCES usuarios(id),
+    fecha_cierre     TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    total_ingresos   REAL NOT NULL DEFAULT 0,
+    total_reservas   INTEGER NOT NULL DEFAULT 0,
+    total_completadas INTEGER NOT NULL DEFAULT 0,
+    total_canceladas INTEGER NOT NULL DEFAULT 0,
+    notas            TEXT DEFAULT ''
+);</code></pre>
+                </div>
+
+                <h3>Diagrama de Relaciones</h3>
+                <div class="callout info">
+                    <p><strong>Convención:</strong> (1) — uno &nbsp;|&nbsp; (N) — muchos</p>
+                </div>
+                <pre style="font-family:'Fira Code', monospace; font-size:0.85em; line-height:1.6; background:var(--code-bg); padding:1em; border-radius:6px;">
+  ┌─────────────┐       ┌──────────────┐
+  │  usuarios   │       │  clientes    │
+  ├─────────────┤       ├──────────────┤
+  │ id (PK)     │(1)    │ id (PK)      │(1)
+  │ nombre      │  └────┘ documento   │
+  │ usuario     │       │ nombre       │
+  │ clave (hash)│       │ telefono     │
+  │ rol         │       │ correo       │
+  │ telefono    │       └──────┬───────┘
+  │ correo      │              │
+  └──────┬──────┘              │ (1)
+         │                     │
+         │ (1)                 │
+         │   ┌─────────────────┘
+         │   │
+         │   │   ┌──────────────┐
+         │   │   │  reservas    │
+         │   │   ├──────────────┤
+         │   └──→│ id_cliente   │
+         └──────→│ id_usuario   │
+                 │ id_habitacion│
+                 ├──────────────┤
+                 │ fecha_entrada│
+                 │ hora_entrada │
+                 │ fecha_salida │
+                 │ hora_salida  │
+                 │ tipo_estadia │
+                 │ anticipo     │
+                 │ estado       │
+                 └──────┬───────┘
+                        │
+           ┌────────────┘
+           │
+  ┌────────┴───────┐
+  │  habitaciones  │
+  ├────────────────┤
+  │ id (PK)        │(1)
+  │ numero         │
+  │ tipo           │
+  │ precio         │
+  │ estado         │
+  └────────────────┘
+
+  ┌──────────────┐    ┌────────────────┐
+  │  historial   │    │  cierres_mes   │
+  ├──────────────┤    ├────────────────┤
+  │ id (PK)      │    │ id (PK)        │
+  │ tipo         │    │ mes (UNIQUE)   │
+  │ titulo       │    │ id_usuario     │──→ usuarios
+  │ descripcion  │    │ fecha_cierre   │
+  │ fecha_hora   │    │ total_ingresos │
+  │ id_usuario   │──→ │ total_reservas │
+  └──────────────┘    │ completadas    │
+                      │ canceladas     │
+                      │ notas          │
+                      └────────────────┘</pre>
+
+                <h3>Resumen de Relaciones</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Entidad A</th><th>Relación</th><th>Entidad B</th><th>Descripción</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td><code>usuarios</code></td><td>1 → N</td><td><code>reservas</code></td><td>Un usuario registra muchas reservas</td></tr>
+                            <tr><td><code>habitaciones</code></td><td>1 → N</td><td><code>reservas</code></td><td>Una habitación puede tener muchas reservas (en distintas fechas)</td></tr>
+                            <tr><td><code>clientes</code></td><td>1 → N</td><td><code>reservas</code></td><td>Un cliente puede tener muchas reservas (cliente frecuente)</td></tr>
+                            <tr><td><code>usuarios</code></td><td>1 → N</td><td><code>historial</code></td><td>Un usuario genera muchas actividades en el historial</td></tr>
+                            <tr><td><code>usuarios</code></td><td>1 → N</td><td><code>cierres_mes</code></td><td>Un usuario realiza muchos cierres de mes</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>Normalización</h3>
+                <p>La base de datos está en <strong>Tercera Forma Normal (3NF)</strong>:</p>
+                <ul>
+                    <li><strong>1NF:</strong> Todos los atributos son atómicos (no hay listas ni grupos repetitivos).</li>
+                    <li><strong>2NF:</strong> No hay dependencias parciales; cada tabla tiene una clave primaria simple y todos los atributos dependen de ella.</li>
+                    <li><strong>3NF:</strong> No hay dependencias transitivas. Los datos del cliente se movieron de <code>reservas</code> a la tabla <code>clientes</code> (migración v6), eliminando la redundancia de nombre, documento, teléfono y correo en cada reserva.</li>
+                </ul>
+                <p>Las relaciones se mantienen mediante <strong>claves foráneas</strong> (<code>id_cliente</code>, <code>id_usuario</code>, <code>id_habitacion</code>) que referencian las tablas padre.</p>
+
+                <h3>Migraciones (SchemaManager)</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr><th>Versión</th><th>Cambio</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>v1</td><td>Esquema inicial: <code>usuarios</code>, <code>habitaciones</code>, <code>reservas</code>, <code>historial</code></td></tr>
+                            <tr><td>v2</td><td>Columna <code>correo</code> en <code>usuarios</code></td></tr>
+                            <tr><td>v3</td><td>Columna <code>id_cliente</code> en <code>reservas</code></td></tr>
+                            <tr><td>v4</td><td>Columnas <code>hora</code> y <code>tipo_estadia</code> en <code>reservas</code></td></tr>
+                            <tr><td>v5</td><td>Columna <code>anticipo</code> en <code>reservas</code></td></tr>
+                            <tr><td>v6</td><td>Tabla <code>clientes</code> creada, <code>reservas</code> normalizada (3NF)</td></tr>
+                            <tr><td>v7</td><td>Migración de contraseñas planas a hash PBKDF2</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+    <script src="../js/main.js"></script>
+</body>
+
+</html>
