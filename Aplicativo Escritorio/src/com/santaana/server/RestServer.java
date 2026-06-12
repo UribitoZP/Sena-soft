@@ -64,9 +64,34 @@ public class RestServer {
             }
         } catch (Exception ignored) {}
 
-        // Fallback
         File ks = new File("ssl/keystore.p12");
-        return ks.exists() ? ks.getAbsolutePath() : null;
+        if (ks.exists()) return ks.getAbsolutePath();
+
+        if (generarKeystore(ks)) {
+            System.out.println("Keystore generado automaticamente en " + ks.getAbsolutePath());
+            return ks.getAbsolutePath();
+        }
+        return null;
+    }
+
+    private static boolean generarKeystore(File destino) {
+        try {
+            destino.getParentFile().mkdirs();
+            ProcessBuilder pb = new ProcessBuilder(
+                "keytool", "-genkeypair",
+                "-alias", "santaana",
+                "-keyalg", "RSA",
+                "-keysize", "2048",
+                "-keystore", destino.getAbsolutePath(),
+                "-storetype", "PKCS12",
+                "-storepass", "sant@an@",
+                "-dname", "CN=Hotel Santa Ana, OU=TI, O=Santa Ana, L=Bogota, C=CO",
+                "-validity", "365"
+            );
+            return pb.start().waitFor() == 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public static void detener() {
