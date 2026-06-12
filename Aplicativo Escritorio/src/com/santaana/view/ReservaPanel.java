@@ -528,14 +528,16 @@ public class ReservaPanel extends JPanel {
                 if (confirm == JOptionPane.YES_OPTION) {
                     realizarCheckout(r);
                 }
-            } else if (op == 1) {
+            } else if (op == 2) {
                 int confirm = JOptionPane.showConfirmDialog(this,
                     "¿Cancelar la reserva de " + r.huesped + "?",
                     "Cancelar Reserva", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
-                    reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Cancelada");
+                    int idRes = Integer.parseInt(r.id);
+                    reservaDAO.actualizarEstado(idRes, "Cancelada");
                     HistorialDAO.registrar("Cancelacion", "Reserva cancelada",
-                        "Reserva #" + r.id + " de " + r.huesped + " en " + r.habitacion + " fue cancelada");
+                        "Reserva #" + r.id + " de " + r.huesped + " en " + r.habitacion + " fue cancelada",
+                        0, idRes, null, null);
                     refreshUI();
                     if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
                 }
@@ -697,7 +699,8 @@ public class ReservaPanel extends JPanel {
                 Double.parseDouble(txtAnticipo.getText().trim()));
 
             HistorialDAO.registrar("Actualizacion", "Reserva actualizada",
-                "Reserva #" + r.id + " de " + r.huesped + " fue actualizada");
+                "Reserva #" + r.id + " de " + r.huesped + " fue actualizada",
+                0, idReserva, null, null);
 
             JOptionPane.showMessageDialog(this, "Reserva actualizada correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             refreshUI();
@@ -716,7 +719,8 @@ public class ReservaPanel extends JPanel {
         }
 
         HistorialDAO.registrar("Checkout", "Check-out completado",
-            r.huesped + " realizó check-out de " + r.habitacion);
+            r.huesped + " realizó check-out de " + r.habitacion,
+            0, Integer.parseInt(r.id), null, null);
 
         JOptionPane.showMessageDialog(this,
             "<html>Checkout realizado.<br><b>" + r.huesped + "</b> ha salido.<br>"

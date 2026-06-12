@@ -536,7 +536,8 @@ public class ReservaFrame extends JFrame implements ThemeManager.ThemeListener {
         if (ok) {
             JOptionPane.showMessageDialog(this, "Reserva creada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             com.santaana.dao.HistorialDAO.registrar("Reserva", "Nueva reserva creada",
-                "Reserva para " + nom + " " + ape + " en Hab " + habitacionSeleccionada);
+                "Reserva para " + nom + " " + ape + " en Hab " + habitacionSeleccionada,
+                idUsuario, null, idHab, null);
             new com.santaana.view.MainFrame(role, idUsuario, nom + " " + ape).setVisible(true);
             dispose();
         } else {
