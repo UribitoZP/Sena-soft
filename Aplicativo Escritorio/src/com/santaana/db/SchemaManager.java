@@ -9,7 +9,7 @@ import java.sql.Statement;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 7;
+    private static final int SCHEMA_VERSION = 8;
 
     public static void inicializar() {
         Connection conn = null;
@@ -39,16 +39,6 @@ public class SchemaManager {
                 ")"
             );
 
-            // v5: anticipo en reservas (idempotente)
-            boolean tieneAnticipo = false;
-            ResultSet ca = stmt.executeQuery("PRAGMA table_info(reservas)");
-            while (ca.next()) if ("anticipo".equals(ca.getString("name"))) tieneAnticipo = true;
-            ca.close();
-            if (!tieneAnticipo) {
-                stmt.executeUpdate("ALTER TABLE reservas ADD COLUMN anticipo REAL DEFAULT 0");
-                System.out.println("Migración v5: columna anticipo añadida a reservas.");
-            }
-
             // v6a: id_usuario en historial (idempotente)
             boolean tieneIdUsuario = false;
             ResultSet ch = stmt.executeQuery("PRAGMA table_info(historial)");
@@ -57,6 +47,18 @@ public class SchemaManager {
             if (!tieneIdUsuario) {
                 stmt.executeUpdate("ALTER TABLE historial ADD COLUMN id_usuario INTEGER DEFAULT 0");
                 System.out.println("Migración v6a: columna id_usuario añadida a historial.");
+            }
+
+            // v8: columnas de relación en historial (FK a reservas, habitaciones, productos)
+            boolean tieneIdReserva = false;
+            ResultSet c8 = stmt.executeQuery("PRAGMA table_info(historial)");
+            while (c8.next()) if ("id_reserva".equals(c8.getString("name"))) tieneIdReserva = true;
+            c8.close();
+            if (!tieneIdReserva) {
+                stmt.executeUpdate("ALTER TABLE historial ADD COLUMN id_reserva   INTEGER DEFAULT NULL REFERENCES reservas(id)");
+                stmt.executeUpdate("ALTER TABLE historial ADD COLUMN id_habitacion INTEGER DEFAULT NULL REFERENCES habitaciones(id)");
+                stmt.executeUpdate("ALTER TABLE historial ADD COLUMN id_producto   INTEGER DEFAULT NULL REFERENCES productos(id)");
+                System.out.println("Migración v8: columnas de relación añadidas a historial.");
             }
 
             // v6b: tabla cierres_mes

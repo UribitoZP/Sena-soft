@@ -26,6 +26,7 @@ javac -cp ".;%LIB_DIR%\jcalendar-1.4.jar;%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;%LIB
     "%SRC_DIR%\com\santaana\model\Reserva.java" ^
     "%SRC_DIR%\com\santaana\model\Actividad.java" ^
     "%SRC_DIR%\com\santaana\model\Cliente.java" ^
+    "%SRC_DIR%\com\santaana\model\Producto.java" ^
     "%SRC_DIR%\com\santaana\dao\UsuarioDAO.java" ^
     "%SRC_DIR%\com\santaana\dao\HabitacionDAO.java" ^
     "%SRC_DIR%\com\santaana\dao\ReservaDAO.java" ^
