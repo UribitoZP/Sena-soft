@@ -154,6 +154,34 @@ public class ReservaDAO {
         }
     }
 
+    public boolean finalizar(int id, double totalPagar) {
+        String sql = "UPDATE reservas SET estado = 'Finalizada', total_pagar = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, totalPagar);
+            ps.setInt(2, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new DatabaseException("finalizar reserva", e);
+        }
+    }
+
+    public Reserva buscarPorId(int id) {
+        String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
+                     "FROM reservas r " +
+                     "LEFT JOIN clientes c ON r.id_cliente = c.id " +
+                     "WHERE r.id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapear(rs);
+        } catch (SQLException e) {
+            throw new DatabaseException("buscar reserva por id", e);
+        }
+        return null;
+    }
+
     public Reserva buscarActivaPorHabitacion(int idHabitacion) {
         String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
                      "FROM reservas r " +
@@ -208,11 +236,12 @@ public class ReservaDAO {
 
     private Reserva mapear(ResultSet rs) throws SQLException {
         String horaEnt = "12:00", horaSal = "12:00", tipo = "Noche";
-        double anticipo = 0;
+        double anticipo = 0, totalPagar = 0;
         try { String v = rs.getString("hora_entrada"); if (v != null) horaEnt = v; } catch (SQLException ignored) {}
         try { String v = rs.getString("hora_salida");  if (v != null) horaSal = v; } catch (SQLException ignored) {}
         try { String v = rs.getString("tipo_estadia"); if (v != null) tipo    = v; } catch (SQLException ignored) {}
         try { anticipo = rs.getDouble("anticipo"); } catch (SQLException ignored) {}
+        try { totalPagar = rs.getDouble("total_pagar"); } catch (SQLException ignored) {}
         return new Reserva(
             rs.getInt("id"),
             rs.getInt("id_habitacion"),
@@ -225,7 +254,8 @@ public class ReservaDAO {
             horaSal,
             tipo,
             rs.getString("estado"),
-            anticipo
+            anticipo,
+            totalPagar
         );
     }
    public List<Object[]> obtenerHistorialClientes() {

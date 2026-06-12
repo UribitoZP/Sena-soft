@@ -953,17 +953,7 @@ public class NuevaReservaDialog extends JDialog {
         }
 
         if (ok) {
-            // Solo marcar Ocupada si el check-in es hoy
-            String hoy = formatearFecha(new Date());
-            if (desde.equals(hoy)) {
-                for (Habitacion habitacion : habitacionesSeleccionadas) {
-                    habitacionDAO.actualizarEstado(habitacion.getId(), "Ocupada");
-                }
-            }
-            String msg = "Reserva creada correctamente.";
-            if (!desde.equals(hoy)) {
-                msg += "\nLa habitación se marcará Ocupada al hacer Check-in el " + desde + ".";
-            }
+            String msg = "Reserva creada correctamente.\nLa habitación se marcará Ocupada al hacer Check-in.";
             JOptionPane.showMessageDialog(this, msg, "Reserva confirmada", JOptionPane.INFORMATION_MESSAGE);
             dispose();
         } else {

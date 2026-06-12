@@ -20,6 +20,7 @@ import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
+import com.santaana.service.CobroService;
 import com.santaana.util.ThemeManager;
 
 public class ReservaPanel extends JPanel {
@@ -513,14 +514,22 @@ public class ReservaPanel extends JPanel {
             + "</html>";
 
         if (r.estado.equals("Activa")) {
-            Object[] opciones = {"Actualizar Reserva", "Hacer Checkout", "Cancelar Reserva", "Cerrar"};
+            boolean yaIngreso = !r.inicio.isAfter(LocalDate.now());
+            java.util.List<String> opcionesList = new java.util.ArrayList<>();
+            opcionesList.add("Actualizar Reserva");
+            if (yaIngreso) {
+                opcionesList.add("Hacer Checkout");
+            }
+            opcionesList.add("Cancelar Reserva");
+            opcionesList.add("Cerrar");
+            Object[] opciones = opcionesList.toArray();
             int op = JOptionPane.showOptionDialog(this, msg, "Detalle de reserva",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE,
-                null, opciones, opciones[3]);
+                null, opciones, opciones[opciones.length - 1]);
 
             if (op == 0) {
                 abrirDialogoEdicion(r);
-            } else if (op == 1) {
+            } else if (yaIngreso && op == 1) {
                 int confirm = JOptionPane.showConfirmDialog(this,
                     "<html>¿Confirmar checkout de <b>" + r.huesped + "</b>?<br>"
                     + "La habitación " + r.habitacion + " quedará disponible.</html>",
@@ -528,7 +537,7 @@ public class ReservaPanel extends JPanel {
                 if (confirm == JOptionPane.YES_OPTION) {
                     realizarCheckout(r);
                 }
-            } else if (op == 2) {
+            } else if ((yaIngreso && op == 2) || (!yaIngreso && op == 1)) {
                 int confirm = JOptionPane.showConfirmDialog(this,
                     "¿Cancelar la reserva de " + r.huesped + "?",
                     "Cancelar Reserva", JOptionPane.YES_NO_OPTION);
@@ -709,7 +718,18 @@ public class ReservaPanel extends JPanel {
     }
 
     private void realizarCheckout(Reserva r) {
-        reservaDAO.actualizarEstado(Integer.parseInt(r.id), "Completada");
+        // Validar que la reserva ya haya iniciado
+        if (r.inicio.isAfter(LocalDate.now())) {
+            JOptionPane.showMessageDialog(this,
+                "La reserva aun no ha iniciado.\nEl check-in es el " + r.inicio + ".",
+                "Reserva futura", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int idReserva = Integer.parseInt(r.id);
+
+        // Finalizar: calcula total con CobroService y persiste en BD
+        CobroService.finalizarReserva(idReserva);
 
         for (com.santaana.model.Habitacion h : habitacionDAO.listarTodas()) {
             if (("Hab " + h.getNumero()).equals(r.habitacion)) {
@@ -720,7 +740,7 @@ public class ReservaPanel extends JPanel {
 
         HistorialDAO.registrar("Checkout", "Check-out completado",
             r.huesped + " realizó check-out de " + r.habitacion,
-            0, Integer.parseInt(r.id), null, null);
+            0, idReserva, null, null);
 
         JOptionPane.showMessageDialog(this,
             "<html>Checkout realizado.<br><b>" + r.huesped + "</b> ha salido.<br>"

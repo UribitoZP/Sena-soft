@@ -10,7 +10,7 @@ import java.util.Map;
 public class ReporteDAO {
 
     public double getTotalIngresos() {
-        String sql = "SELECT COALESCE(SUM(anticipo), 0) FROM reservas WHERE estado = 'Completada'";
+        String sql = "SELECT COALESCE(SUM(total_pagar), 0) FROM reservas WHERE estado = 'Finalizada'";
         try (Connection c = DatabaseConnection.getConnection();
              Statement s  = c.createStatement();
              ResultSet rs = s.executeQuery(sql)) {
@@ -48,7 +48,7 @@ public class ReporteDAO {
     public Map<String, Integer> getReservasPorEstado() {
         Map<String, Integer> map = new LinkedHashMap<>();
         map.put("Activa", 0);
-        map.put("Completada", 0);
+        map.put("Finalizada", 0);
         map.put("Cancelada", 0);
         String sql = "SELECT estado, COUNT(*) FROM reservas GROUP BY estado";
         try (Connection c = DatabaseConnection.getConnection();
@@ -64,9 +64,9 @@ public class ReporteDAO {
     public Map<String, Double> getIngresosPorMes() {
         Map<String, Double> map = new LinkedHashMap<>();
         String sql =
-            "SELECT strftime('%Y-%m', fecha_entrada) AS mes, COALESCE(SUM(anticipo), 0) AS total " +
+            "SELECT strftime('%Y-%m', fecha_entrada) AS mes, COALESCE(SUM(total_pagar), 0) AS total " +
             "FROM reservas " +
-            "WHERE fecha_entrada >= date('now', '-5 months', 'start of month') " +
+            "WHERE estado = 'Finalizada' AND fecha_entrada >= date('now', '-5 months', 'start of month') " +
             "GROUP BY mes ORDER BY mes ASC";
         try (Connection c = DatabaseConnection.getConnection();
              Statement s  = c.createStatement();

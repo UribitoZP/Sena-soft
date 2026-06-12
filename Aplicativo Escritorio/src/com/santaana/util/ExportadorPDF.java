@@ -108,7 +108,7 @@ public class ExportadorPDF {
             return null;
         }
 
-        int completadas = porEstado.getOrDefault("Completada", 0);
+        int completadas = porEstado.getOrDefault("Finalizada", 0);
         int canceladas  = porEstado.getOrDefault("Cancelada",  0);
         int activas     = porEstado.getOrDefault("Activa",     0);
 
@@ -249,7 +249,7 @@ public class ExportadorPDF {
         // KPI 1 — Ingresos
         table.addCell(kpiCell("INGRESOS CONFIRMADOS",
             "$ " + FMT_COP.format(totalIngresos),
-            "De reservas completadas", C_GREEN));
+            "De reservas finalizadas", C_GREEN));
 
         // KPI 2 — Anticipos
         table.addCell(kpiCell("ANTICIPOS TOTALES",
@@ -460,7 +460,7 @@ public class ExportadorPDF {
 
         Map<String, BaseColor> colores = new java.util.HashMap<>();
         colores.put("Activa",     C_BLUE);
-        colores.put("Completada", C_GREEN);
+        colores.put("Finalizada", C_GREEN);
         colores.put("Cancelada",  C_RED);
 
         int row = 0;

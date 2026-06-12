@@ -74,21 +74,31 @@ public class GestHabitacionPanel extends JPanel {
         JTextField numero = new JTextField();
         JComboBox<String> tipo = new JComboBox<>(new String[]{"Simple", "Doble", "Suite"});
         JTextField precio = new JTextField();
+        JTextField precioBloque = new JTextField();
+        precio.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent e) {
+                try {
+                    double p = Double.parseDouble(precio.getText().trim());
+                    precioBloque.setText(String.valueOf((int) Math.round(p / 8.0)));
+                } catch (NumberFormatException ignored) {}
+            }
+        });
 
-        Object[] campos = {"Número:", numero, "Tipo:", tipo, "Precio/noche:", precio};
+        Object[] campos = {"Número:", numero, "Tipo:", tipo, "Precio/noche ($):", precio, "Precio/bloque 3h ($):", precioBloque};
         int res = JOptionPane.showConfirmDialog(this, campos, "Nueva Habitación", JOptionPane.OK_CANCEL_OPTION);
 
         if (res == JOptionPane.OK_OPTION) {
             try {
                 double p = Double.parseDouble(precio.getText().trim());
+                double pb = Double.parseDouble(precioBloque.getText().trim());
                 String numStr  = numero.getText().trim();
                 String tipoStr = (String) tipo.getSelectedItem();
                 try {
-                    boolean ok = habitacionDAO.agregar(numStr, tipoStr, p);
+                    boolean ok = habitacionDAO.agregar(numStr, tipoStr, p, pb);
                     if (ok) {
                         HistorialDAO.registrar("Habitacion", "Habitación registrada",
                             "Nueva habitación " + numStr + " tipo " + tipoStr
-                            + " a $" + (int) p + "/noche agregada");
+                            + " a $" + (int) p + "/noche, $" + (int) pb + "/bloque agregada");
                         JOptionPane.showMessageDialog(this, "Habitación agregada.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                         refreshUI();
                     } else {
@@ -349,14 +359,16 @@ public class GestHabitacionPanel extends JPanel {
         JComboBox<String> cmbEstado = new JComboBox<>(new String[]{"Disponible","Ocupada","Mantenimiento"});
         cmbEstado.setSelectedItem(h.getEstado());
 
-        JTextField tfPrecio = new JTextField(String.valueOf((int) h.getPrecio()));
+        JTextField tfPrecio      = new JTextField(String.valueOf((int) h.getPrecio()));
+        JTextField tfPrecioBloque = new JTextField(String.valueOf((int) h.getPrecioBloque()));
 
         Object[] campos = {
             "Habitación N°: " + h.getNumero(),
             " ",
             "Tipo:",    cmbTipo,
             "Estado:",  cmbEstado,
-            "Precio / noche ($):", tfPrecio
+            "Precio/noche ($):",      tfPrecio,
+            "Precio/bloque 3h ($):",  tfPrecioBloque
         };
 
         int res = JOptionPane.showConfirmDialog(this, campos,
@@ -366,11 +378,12 @@ public class GestHabitacionPanel extends JPanel {
         if (res != JOptionPane.OK_OPTION) return;
 
         try {
-            double nuevoPrecio = Double.parseDouble(tfPrecio.getText().trim());
+            double nuevoPrecio      = Double.parseDouble(tfPrecio.getText().trim());
+            double nuevoPrecioBloque = Double.parseDouble(tfPrecioBloque.getText().trim());
             String nuevoTipo   = (String) cmbTipo.getSelectedItem();
             String nuevoEstado = (String) cmbEstado.getSelectedItem();
 
-            habitacionDAO.actualizarDatos(h.getId(), nuevoTipo, nuevoPrecio);
+            habitacionDAO.actualizarDatos(h.getId(), nuevoTipo, nuevoPrecio, nuevoPrecioBloque);
             if (!nuevoEstado.equals(h.getEstado())) {
                 habitacionDAO.actualizarEstado(h.getId(), nuevoEstado);
                 HistorialDAO.registrar("Habitacion", "Estado de habitación cambiado",

@@ -58,6 +58,7 @@ javac -cp ".;%LIB_DIR%\jcalendar-1.4.jar;%LIB_DIR%\sqlite-jdbc-3.45.1.0.jar;%LIB
     "%SRC_DIR%\com\santaana\server\ReservasHandler.java" ^
     "%SRC_DIR%\com\santaana\server\StatsHandler.java" ^
     "%SRC_DIR%\com\santaana\server\ReportesHandler.java" ^
+    "%SRC_DIR%\com\santaana\service\CobroService.java" ^
     "%SRC_DIR%\com\santaana\server\RestServer.java"
 
 if %errorlevel% neq 0 (
