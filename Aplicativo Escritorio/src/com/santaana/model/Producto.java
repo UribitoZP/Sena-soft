@@ -54,4 +54,8 @@ public class Producto {
     public void setPrecioVenta(double precioVenta) {
         this.precioVenta = precioVenta;
     }
+    @Override
+    public String toString() {
+        return nombre + " - $" + precioVenta;
+    }
 }
