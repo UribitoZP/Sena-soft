@@ -477,7 +477,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
 
         JPanel c = new JPanel(new BorderLayout(10, 0));
         c.setBackground(getPanelCol());
-        c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
+        c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
         c.setAlignmentX(Component.LEFT_ALIGNMENT);
         c.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(getBorde(), 1, true),
