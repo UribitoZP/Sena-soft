@@ -753,7 +753,7 @@ public class NuevaReservaDialog extends JDialog {
                         (noches > 0 ? "  (" + noches + " noche" + (noches > 1 ? "s" : "") + ")" : ""));
                 break;
             case "Indefinido":
-                infoEstadia.setText("Entrada: " + ent + "  |  Salida sin determinar cobro por horas");
+                infoEstadia.setText("Entrada: " + ent + "  |  Salida sin determinar cobro al salir");
                 break;
         }
     }
@@ -809,7 +809,7 @@ public class NuevaReservaDialog extends JDialog {
                 break;
             }
             case "Indefinido":
-                lblTotal.setText("Cobro por horas");
+                lblTotal.setText("Cobro al salir");
                 break;
         }
     }
@@ -972,6 +972,8 @@ public class NuevaReservaDialog extends JDialog {
             if (desde.equals(hoy)) {
                 for (Habitacion habitacion : habitacionesSeleccionadas) {
                     habitacionDAO.actualizarEstado(habitacion.getId(), "Ocupada");
+                    HistorialDAO.registrar("Checkin", "Check-in realizado",
+                        nombre + " realizó check-in en Hab. " + habitacion.getNumero());
                 }
             }
             String msg = "Reserva creada correctamente.";
