@@ -39,10 +39,13 @@ public class CobroService {
 
         LocalDateTime entrada = parseDateTime(reserva.getFechaEntrada(), reserva.getHoraEntrada());
 
+        boolean esIndefinido = "Indefinido".equals(reserva.getTipoEstadia());
         String fechaSalidaStr = reserva.getFechaSalida();
         String horaSalidaStr = reserva.getHoraSalida();
         LocalDateTime salida;
-        if (fechaSalidaStr == null || fechaSalidaStr.isEmpty()) {
+        if (esIndefinido) {
+            salida = LocalDateTime.now();
+        } else if (fechaSalidaStr == null || fechaSalidaStr.isEmpty()) {
             salida = LocalDateTime.now();
         } else {
             salida = parseDateTime(fechaSalidaStr, horaSalidaStr);
