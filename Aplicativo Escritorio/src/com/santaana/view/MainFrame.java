@@ -427,6 +427,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
             gestHabitacionPanel.refreshUI();
         if (gestionUsuarioPanel != null)
             gestionUsuarioPanel.refreshUI();
+        if (notifPanel != null) notifPanel.refreshUI();
     }
 
     @Override
