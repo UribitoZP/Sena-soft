@@ -175,14 +175,27 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
             contenedorLista.add(vacioClientes);
 
         } else {
+
+            JPanel gridClientes = new JPanel();
+
+            gridClientes.setOpaque(false);
+
+            gridClientes.setLayout(
+                new java.awt.GridLayout(
+                    0,
+                    3,
+                    15,
+                    15
+                )
+            );
+
             for (Object[] datos : clientes) {
 
-                contenedorLista.add(clienteCard(datos));
-                contenedorLista.add(Box.createVerticalStrut(10));
+                gridClientes.add(clienteCard(datos));
             }
+
+            contenedorLista.add(gridClientes);
         }
-        contenedorLista.revalidate();
-        contenedorLista.repaint();
     }
 
     private JPanel userCard(Usuario u) {
@@ -384,48 +397,138 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         b.setPreferredSize(new Dimension(110, 32));
     }
     private JPanel clienteCard(Object[] datos) {
-        JPanel card = new JPanel(new BorderLayout(10, 10));
+
+        JPanel card = new JPanel(new BorderLayout());
         card.setBackground(getPanelCol());
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
+
+        card.setPreferredSize(new Dimension(320, 220));
+
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(getBorde(), 1, true),
-                BorderFactory.createEmptyBorder(12, 15, 12, 15)));
-        JPanel info = new JPanel();
-        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
-        info.setOpaque(false);
+            BorderFactory.createLineBorder(
+                new Color(0, 0, 0, 25),
+                1,
+                true
+            ),
+            BorderFactory.createEmptyBorder(18, 18, 18, 18)
+        ));
+
+        // =========================
+        // HEADER
+        // =========================
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+
         JLabel lblNombre = new JLabel(datos[0].toString());
-        lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        lblNombre.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblNombre.setForeground(getTextCol());
-        JLabel lblDoc = new JLabel("Doc: " + datos[1]);
-        lblDoc.setForeground(getLabelCol());
-        JLabel lblTelefono = new JLabel("Tel: " + datos[2]);
-        lblTelefono.setForeground(getLabelCol());
-        JLabel lblCorreo = new JLabel("Correo: " + datos[3]);
-        lblCorreo.setForeground(getLabelCol());
-        info.add(lblNombre);
-        info.add(Box.createVerticalStrut(4));
-        info.add(lblDoc);
-        info.add(lblTelefono);
-        info.add(lblCorreo);
-        JPanel derecha = new JPanel();
-        derecha.setLayout(new BoxLayout(derecha, BoxLayout.Y_AXIS));
-        derecha.setOpaque(false);
-        JLabel hab = new JLabel("Habitación: " + datos[4]);
-        hab.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        hab.setForeground(getPrimario());
-        JLabel fechas = new JLabel(datos[5] + " → " + datos[6]);
-        fechas.setForeground(getLabelCol());
+
         JLabel tipo = new JLabel(datos[7].toString());
-        tipo.setForeground(getTextCol());
-        
-        derecha.add(hab);
-        derecha.add(Box.createVerticalStrut(4));
-        derecha.add(fechas);
-        derecha.add(Box.createVerticalStrut(4));
-        derecha.add(tipo);
-        card.add(info, BorderLayout.WEST);
-        card.add(derecha, BorderLayout.EAST);
+
+        tipo.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        tipo.setOpaque(true);
+
+        tipo.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+
+        if (datos[7].toString().equalsIgnoreCase("Acompañante")) {
+
+            tipo.setBackground(new Color(255, 193, 7));
+            tipo.setForeground(Color.BLACK);
+
+        } else {
+
+            tipo.setBackground(getPrimario());
+            tipo.setForeground(Color.WHITE);
+        }
+
+        header.add(lblNombre, BorderLayout.WEST);
+        header.add(tipo, BorderLayout.EAST);
+
+        // =========================
+        // SEPARADOR
+        // =========================
+
+        JPanel linea = new JPanel();
+        linea.setBackground(getBorde());
+        linea.setPreferredSize(new Dimension(0, 1));
+
+        // =========================
+        // INFO
+        // =========================
+
+        JPanel info = new JPanel();
+        info.setOpaque(false);
+
+        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+
+        JLabel lblDoc = crearInfo("Documento", datos[1].toString());
+        JLabel lblTelefono = crearInfo("Teléfono", datos[2].toString());
+        JLabel lblCorreo = crearInfo("Correo", datos[3].toString());
+
+        JLabel hab = new JLabel("Habitación " + datos[4]);
+
+        hab.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        hab.setForeground(getPrimario());
+
+        JLabel fechas = new JLabel(
+            "Estadía: " + datos[5] + " → " + datos[6]
+        );
+
+        fechas.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        fechas.setForeground(getLabelCol());
+
+        JLabel estado = new JLabel("● Historial registrado");
+
+        estado.setForeground(new Color(0x27AE60));
+        estado.setFont(new Font("Segoe UI", Font.BOLD, 11));
+
+        // =========================
+        // AGREGAR INFO
+        // =========================
+
+        info.add(Box.createVerticalStrut(12));
+
+        info.add(lblDoc);
+        info.add(Box.createVerticalStrut(6));
+
+        info.add(lblTelefono);
+        info.add(Box.createVerticalStrut(6));
+
+        info.add(lblCorreo);
+        info.add(Box.createVerticalStrut(14));
+
+        info.add(hab);
+        info.add(Box.createVerticalStrut(8));
+
+        info.add(fechas);
+        info.add(Box.createVerticalGlue());
+
+        info.add(Box.createVerticalStrut(14));
+        info.add(estado);
+
+        // =========================
+        // ENSAMBLAR
+        // =========================
+
+        JPanel center = new JPanel(new BorderLayout());
+        center.setOpaque(false);
+
+        center.add(linea, BorderLayout.NORTH);
+        center.add(info, BorderLayout.CENTER);
+
+        card.add(header, BorderLayout.NORTH);
+        card.add(center, BorderLayout.CENTER);
 
         return card;
+    }
+    private JLabel crearInfo(String titulo, String valor) {
+        JLabel lbl = new JLabel(
+            "<html><b>" + titulo + ":</b> " + valor + "</html>"
+        );
+        lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lbl.setForeground(getLabelCol());
+
+        return lbl;
     }
 }
