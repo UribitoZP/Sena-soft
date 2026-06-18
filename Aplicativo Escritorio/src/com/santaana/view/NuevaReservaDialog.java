@@ -190,7 +190,7 @@ public class NuevaReservaDialog extends JDialog {
         return scroll;
     }
 
-    // ── Panel huésped ────────────────────────────────────────────────────────
+    // ── Panel huésped ───────────────────────────────────────────────────
     private JPanel crearPanelHuesped() {
         JPanel p = tarjeta();
         p.add(titulo("Datos del huésped"));
