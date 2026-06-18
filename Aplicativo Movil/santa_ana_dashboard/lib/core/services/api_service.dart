@@ -1,81 +1,106 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   static const Duration _timeout = Duration(seconds: 10);
+  static const String _ipKey = 'server_ip';
+  static const String _tokenKey = 'auth_token';
 
-  /// IP del servidor. Se actualiza desde la pantalla de login.
   static String serverIp = '10.0.2.2';
+  static String? _token;
 
-  static String get _baseUrl => 'http://$serverIp:8080';
-
-  // ── Auth ────────────────────────────────────────────────────
-
-  Future<Map<String, dynamic>> login(String usuario, String clave) async {
-    final response = await http
-        .post(
-          Uri.parse('$_baseUrl/auth/login'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'usuario': usuario, 'clave': clave, 'rol': ''}),
-        )
-        .timeout(_timeout);
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
+  static Future<void> loadSavedIp() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_ipKey);
+    if (saved != null && saved.isNotEmpty) {
+      serverIp = saved;
     }
-    throw Exception('Credenciales incorrectas');
   }
 
-  // ── Habitaciones ─────────────────────────────────────────────
-
-  Future<List<Map<String, dynamic>>> getHabitaciones() async {
-    final response = await http
-        .get(Uri.parse('$_baseUrl/habitaciones'))
-        .timeout(_timeout);
-
-    if (response.statusCode == 200) {
-      final list = jsonDecode(response.body) as List;
-      return list.cast<Map<String, dynamic>>();
-    }
-    throw Exception('Error al cargar habitaciones');
+  static Future<void> saveIp(String ip) async {
+    serverIp = ip;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_ipKey, ip);
   }
 
-  // ── Reservas ─────────────────────────────────────────────────
-
-  Future<List<Map<String, dynamic>>> getReservas() async {
-    final response = await http
-        .get(Uri.parse('$_baseUrl/reservas'))
-        .timeout(_timeout);
-
-    if (response.statusCode == 200) {
-      final list = jsonDecode(response.body) as List;
-      return list.cast<Map<String, dynamic>>();
-    }
-    throw Exception('Error al cargar reservas');
+  static void setToken(String token) {
+    _token = token;
   }
 
-  // ── Stats ─────────────────────────────────────────────────────
+  static String get _baseUrl => 'https://$serverIp:8443';
 
-  Future<Map<String, dynamic>> getStats() async {
-    final response = await http
-        .get(Uri.parse('$_baseUrl/stats'))
-        .timeout(_timeout);
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    }
-    throw Exception('Error al cargar estadísticas');
+  HttpClient _createClient() {
+    return HttpClient()
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
   }
 
-  // ── reportes ─────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> getReportes() async {
-    final response = await http
-        .get(Uri.parse('$_baseUrl/reportes'))
-        .timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> _request(
+    String method, String path, {Object? body}) async {
+    final client = _createClient();
+    try {
+      final uri = Uri.parse('$_baseUrl$path');
+      final request = await client.openUrl(method, uri);
+      request.headers.contentType = ContentType.json;
+      if (_token != null) {
+        request.headers.set('Authorization', 'Bearer $_token');
+      }
+      if (body != null) {
+        request.write(jsonEncode(body));
+      }
+      final response = await request.close().timeout(_timeout);
+      final bodyStr = await response.transform(utf8.decoder).join();
+      if (response.statusCode == 200) {
+        return jsonDecode(bodyStr) as Map<String, dynamic>;
+      }
+      if (response.statusCode == 401) {
+        throw Exception('Token expirado');
+      }
+      throw Exception('Error: ${response.statusCode}');
+    } finally {
+      client.close();
     }
-    throw Exception('Error al obtener reportes: ${response.statusCode}');
   }
+
+  Future<List<Map<String, dynamic>>> _requestList(String path) async {
+    final client = _createClient();
+    try {
+      final uri = Uri.parse('$_baseUrl$path');
+      final request = await client.getUrl(uri);
+      request.headers.contentType = ContentType.json;
+      if (_token != null) {
+        request.headers.set('Authorization', 'Bearer $_token');
+      }
+      final response = await request.close().timeout(_timeout);
+      final body = await response.transform(utf8.decoder).join();
+      if (response.statusCode == 200) {
+        final list = jsonDecode(body) as List;
+        return list.cast<Map<String, dynamic>>();
+      }
+      throw Exception('Error: ${response.statusCode}');
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<Map<String, dynamic>> login(
+      String usuario, String clave) async {
+    final result = await _request('POST', '/auth/login',
+        body: {'usuario': usuario, 'clave': clave, 'rol': ''});
+    if (result.containsKey('token')) {
+      setToken(result['token'] as String);
+    }
+    return result;
+  }
+
+  Future<List<Map<String, dynamic>>> getHabitaciones() =>
+      _requestList('/habitaciones');
+
+  Future<List<Map<String, dynamic>>> getReservas() =>
+      _requestList('/reservas');
+
+  Future<Map<String, dynamic>> getStats() => _request('GET', '/stats');
+
+  Future<Map<String, dynamic>> getReportes() => _request('GET', '/reportes');
 }
-

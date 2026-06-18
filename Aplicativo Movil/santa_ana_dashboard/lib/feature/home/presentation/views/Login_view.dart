@@ -18,20 +18,23 @@ class InitialView extends StatefulWidget {
 class _InitialViewState extends State<InitialView> {
   final _usuarioCtrl    = TextEditingController();
   final _passwordCtrl   = TextEditingController();
-  final _ipCtrl         = TextEditingController(text: ApiService.serverIp);
+  final _ipCtrl         = TextEditingController();
   bool _obscurePassword = true;
   bool _showIp          = false;
   String _appVersion    = '';
+  bool _loaded          = false;
 
   @override
   void initState() {
     super.initState();
-    _loadVersion();
+    _init();
   }
 
-  Future<void> _loadVersion() async {
+  Future<void> _init() async {
+    await ApiService.loadSavedIp();
+    _ipCtrl.text = ApiService.serverIp;
     final info = await PackageInfo.fromPlatform();
-    setState(() => _appVersion = 'v${info.version}');
+    if (mounted) setState(() { _appVersion = 'v${info.version}'; _loaded = true; });
   }
 
   @override
@@ -44,7 +47,7 @@ class _InitialViewState extends State<InitialView> {
 
   void _login() {
     final ip = _ipCtrl.text.trim();
-    if (ip.isNotEmpty) ApiService.serverIp = ip;
+    if (ip.isNotEmpty) ApiService.saveIp(ip);
 
     context.read<AppBloc>().add(
       LoginRequested(

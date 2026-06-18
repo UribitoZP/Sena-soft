@@ -71,6 +71,28 @@ echo [+] Copiando recursos...
 xcopy /s /e /y "%RESOURCES_DIR%" "%BIN_DIR%\resources\" >nul 2>&1
 xcopy /s /e /y "%SRC_DIR%\main\resources\resources\*" "%BIN_DIR%\resources\" >nul 2>&1
 
+echo [+] Verificando keystore SSL...
+if not exist "%BIN_DIR%\ssl\keystore.p12" (
+    if not exist "%BIN_DIR%\ssl" mkdir "%BIN_DIR%\ssl"
+    set "KEYTOOL="
+    for /f "tokens=*" %%i in ('where java 2^>nul') do set "KEYTOOL=%%~dpi"
+    if defined KEYTOOL (
+        "%KEYTOOL%keytool" -genkeypair -alias santaana -keyalg RSA -keysize 2048 ^
+            -keystore "%BIN_DIR%\ssl\keystore.p12" -storetype PKCS12 ^
+            -storepass sant@an@ -dname "CN=Hotel Santa Ana, OU=TI, O=Santa Ana, L=Bogota, C=CO" ^
+            -validity 365 >nul 2>&1
+    )
+    if exist "%BIN_DIR%\ssl\keystore.p12" (
+        echo [+] Keystore generado.
+    ) else (
+        echo [!] No se pudo generar el keystore SSL.
+        echo     El servidor HTTPS podria no iniciar.
+    )
+)
+
+echo [+] Abriendo puerto 8443 en firewall...
+netsh advfirewall firewall add rule name="SantaAna-API" dir=in action=allow protocol=TCP localport=8443 >nul 2>&1
+
 echo [+] Iniciando aplicacion...
 cd "%BIN_DIR%"
 java -cp "%CLASSPATH%" "%MAIN_CLASS%"
