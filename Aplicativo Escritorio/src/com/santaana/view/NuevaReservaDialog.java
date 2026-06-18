@@ -780,12 +780,19 @@ public class NuevaReservaDialog extends JDialog {
         if (desdeDateTime.compareTo(hastaDateTime) >= 0 && !"Indefinido".equals(tipoEstadiaSeleccionado))
             return;
 
+        // Preservar selecciones que sigan disponibles en el nuevo rango
+        List<Habitacion> nuevasDisponibles = (desdeDateTime != null && hastaDateTime != null)
+                ? habitacionDAO.listarDisponiblesEnFechas(desdeDateTime, hastaDateTime)
+                : habitacionDAO.listarDisponibles();
+        java.util.Set<Integer> nuevosIds = new java.util.HashSet<>();
+        for (Habitacion h : nuevasDisponibles) nuevosIds.add(h.getId());
+        habitacionesSeleccionadas.removeIf(h -> !nuevosIds.contains(h.getId()));
+
         Container parent = panelHabitaciones.getParent();
         if (parent == null)
             return;
         GridBagConstraints gbc = ((GridBagLayout) parent.getLayout()).getConstraints(panelHabitaciones);
         parent.remove(panelHabitaciones);
-        habitacionesSeleccionadas.clear();
         panelHabitaciones = crearPanelHabitaciones(desdeDateTime, hastaDateTime);
         parent.add(panelHabitaciones, gbc);
         parent.revalidate();
@@ -956,7 +963,6 @@ public class NuevaReservaDialog extends JDialog {
         }
 
         if (ok) {
-
             if (!correo.isEmpty()) {
                 EmailService.enviarReserva(
                         correo,

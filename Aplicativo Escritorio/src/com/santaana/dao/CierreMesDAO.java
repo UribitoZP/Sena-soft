@@ -85,8 +85,8 @@ public class CierreMesDAO {
 
     private double calcularIngresos(String mes) {
         String sql =
-            "SELECT COALESCE(SUM(anticipo), 0) FROM reservas " +
-            "WHERE strftime('%Y-%m', fecha_entrada) = ? AND estado = 'Completada'";
+            "SELECT COALESCE(SUM(total_pagar), 0) FROM reservas " +
+            "WHERE strftime('%Y-%m', fecha_entrada) = ? AND estado = 'Finalizada'";
         try (Connection c = DatabaseConnection.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, mes);
@@ -102,7 +102,7 @@ public class CierreMesDAO {
         int[] r = {0, 0, 0};
         String sql =
             "SELECT COUNT(*), " +
-            "SUM(CASE WHEN estado='Completada' THEN 1 ELSE 0 END), " +
+            "SUM(CASE WHEN estado='Finalizada' THEN 1 ELSE 0 END), " +
             "SUM(CASE WHEN estado='Cancelada'  THEN 1 ELSE 0 END) " +
             "FROM reservas WHERE strftime('%Y-%m', fecha_entrada) = ?";
         try (Connection c = DatabaseConnection.getConnection();

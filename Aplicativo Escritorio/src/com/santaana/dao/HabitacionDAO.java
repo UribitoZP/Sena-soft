@@ -23,6 +23,19 @@ public class HabitacionDAO {
         return lista;
     }
 
+    public Habitacion buscarPorId(int id) {
+        String sql = "SELECT * FROM habitaciones WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapear(rs);
+        } catch (SQLException e) {
+            throw new DatabaseException("buscar habitación por id", e);
+        }
+        return null;
+    }
+
     public List<Habitacion> listarDisponibles() {
         List<Habitacion> lista = new ArrayList<>();
         String sql = "SELECT * FROM habitaciones WHERE estado = 'Disponible' ORDER BY numero";
@@ -68,26 +81,28 @@ public class HabitacionDAO {
         }
     }
 
-    public boolean agregar(String numero, String tipo, double precio) {
-        String sql = "INSERT INTO habitaciones (numero, tipo, precio) VALUES (?, ?, ?)";
+    public boolean agregar(String numero, String tipo, double precio, double precioBloque) {
+        String sql = "INSERT INTO habitaciones (numero, tipo, precio, precio_bloque) VALUES (?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, numero);
             ps.setString(2, tipo);
             ps.setDouble(3, precio);
+            ps.setDouble(4, precioBloque);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new DatabaseException("agregar habitación", e);
         }
     }
 
-    public boolean actualizarDatos(int id, String tipo, double precio) {
-        String sql = "UPDATE habitaciones SET tipo = ?, precio = ? WHERE id = ?";
+    public boolean actualizarDatos(int id, String tipo, double precio, double precioBloque) {
+        String sql = "UPDATE habitaciones SET tipo = ?, precio = ?, precio_bloque = ? WHERE id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tipo);
             ps.setDouble(2, precio);
-            ps.setInt(3, id);
+            ps.setDouble(3, precioBloque);
+            ps.setInt(4, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new DatabaseException("actualizar datos de habitación", e);
@@ -106,11 +121,14 @@ public class HabitacionDAO {
     }
 
     private Habitacion mapear(ResultSet rs) throws SQLException {
+        double pb = 0;
+        try { pb = rs.getDouble("precio_bloque"); } catch (SQLException ignored) {}
         return new Habitacion(
             rs.getInt("id"),
             rs.getString("numero"),
             rs.getString("tipo"),
             rs.getDouble("precio"),
+            pb,
             rs.getString("estado")
         );
     }

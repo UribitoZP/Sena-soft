@@ -52,7 +52,7 @@ public class StatsHandler implements HttpHandler {
 
         List<Reserva> reservas = reservaDAO.listarTodas();
         long activas     = reservas.stream().filter(r -> r.getEstado().equals("Activa")).count();
-        long completadas = reservas.stream().filter(r -> r.getEstado().equals("Completada")).count();
+        long completadas = reservas.stream().filter(r -> r.getEstado().equals("Finalizada")).count();
         long canceladas  = reservas.stream().filter(r -> r.getEstado().equals("Cancelada")).count();
 
         String hoy = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -65,32 +65,41 @@ public class StatsHandler implements HttpHandler {
         for (Reserva r : reservas) {
             if (r.getEstado().equals("Cancelada")) continue;
 
-            double precioNoche = preciosPorId.getOrDefault(r.getIdHabitacion(), 0.0);
-            double ingreso     = 0;
+            double ingreso = 0;
 
-            try {
-                LocalDate entrada = LocalDate.parse(r.getFechaEntrada());
-                LocalDate salida  = LocalDate.parse(r.getFechaSalida());
-                long noches = ChronoUnit.DAYS.between(entrada, salida);
-                if (noches <= 0) noches = 1;
-
-                ingreso = precioNoche * noches;
-
-                ingresosTotal += ingreso;
-
-                if (r.getFechaEntrada().startsWith(mesActual) ||
-                    r.getFechaSalida().startsWith(mesActual)) {
-                    ingresosMes += ingreso;
+            if (r.getEstado().equals("Finalizada") && r.getTotalPagar() > 0) {
+                // Usar el total calculado por CobroService
+                ingreso = r.getTotalPagar();
+            } else {
+                // Recalcular para estados no finalizados (Activa)
+                double precioNoche = preciosPorId.getOrDefault(r.getIdHabitacion(), 0.0);
+                try {
+                    LocalDate entrada = LocalDate.parse(r.getFechaEntrada());
+                    LocalDate salida  = LocalDate.parse(r.getFechaSalida());
+                    long noches = ChronoUnit.DAYS.between(entrada, salida);
+                    if (noches <= 0) noches = 1;
+                    ingreso = precioNoche * noches;
+                } catch (Exception e) {
+                    ingreso = r.getAnticipo();
                 }
+            }
 
-                LocalDate hoyDate = LocalDate.now();
-                if (!hoyDate.isBefore(entrada) && hoyDate.isBefore(salida)) {
-                    ingresosHoy += precioNoche;
-                }
+            ingresosTotal += ingreso;
 
-            } catch (Exception e) {
-                ingreso = r.getAnticipo();
-                ingresosTotal += ingreso;
+            if (r.getFechaEntrada().startsWith(mesActual) ||
+                r.getFechaSalida().startsWith(mesActual)) {
+                ingresosMes += ingreso;
+            }
+
+            if (r.getEstado().equals("Finalizada") || r.getEstado().equals("Activa")) {
+                try {
+                    LocalDate entrada = LocalDate.parse(r.getFechaEntrada());
+                    LocalDate salida  = LocalDate.parse(r.getFechaSalida());
+                    LocalDate hoyDate = LocalDate.now();
+                    if (!hoyDate.isBefore(entrada) && hoyDate.isBefore(salida)) {
+                        ingresosHoy += ingreso;
+                    }
+                } catch (Exception ignored) {}
             }
         }
 

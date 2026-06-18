@@ -22,22 +22,22 @@ public class SeedData {
                 "('---- Recepcion', 'recepcion', '" + hashRecep + "', 'Recepcionista',  '3000000001', 'recepcion@hotelsantaana.com')");
 
             // Habitaciones
-            stmt.executeUpdate("INSERT INTO habitaciones (numero, tipo, precio, estado) VALUES " +
-                "('101', 'Simple', 120000, 'Disponible')," +
-                "('102', 'Simple', 120000, 'Disponible')," +
-                "('103', 'Simple', 120000, 'Disponible')," +
-                "('104', 'Simple', 120000, 'Disponible')," +
-                "('105', 'Simple', 120000, 'Disponible')," +
-                "('106', 'Simple', 120000, 'Disponible')," +
-                "('207', 'Doble',  200000, 'Disponible')," +
-                "('208', 'Doble',  200000, 'Disponible')," +
-                "('209', 'Doble',  200000, 'Disponible')," +
-                "('210', 'Doble',  200000, 'Disponible')," +
-                "('211', 'Doble',  200000, 'Disponible')," +
-                "('212', 'Doble',  200000, 'Disponible')," +
-                "('213', 'Doble',  200000, 'Disponible')," +
-                "('214', 'Doble',  200000, 'Disponible')," +
-                "('215', 'Doble',  200000, 'Disponible')");
+            stmt.executeUpdate("INSERT INTO habitaciones (numero, tipo, precio, precio_bloque, estado) VALUES " +
+                "('101', 'Simple', 120000, 15000, 'Disponible')," +
+                "('102', 'Simple', 120000, 15000, 'Disponible')," +
+                "('103', 'Simple', 120000, 15000, 'Disponible')," +
+                "('104', 'Simple', 120000, 15000, 'Disponible')," +
+                "('105', 'Simple', 120000, 15000, 'Disponible')," +
+                "('106', 'Simple', 120000, 15000, 'Disponible')," +
+                "('207', 'Doble',  200000, 25000, 'Disponible')," +
+                "('208', 'Doble',  200000, 25000, 'Disponible')," +
+                "('209', 'Doble',  200000, 25000, 'Disponible')," +
+                "('210', 'Doble',  200000, 25000, 'Disponible')," +
+                "('211', 'Doble',  200000, 25000, 'Disponible')," +
+                "('212', 'Doble',  200000, 25000, 'Disponible')," +
+                "('213', 'Doble',  200000, 25000, 'Disponible')," +
+                "('214', 'Doble',  200000, 25000, 'Disponible')," +
+                "('215', 'Doble',  200000, 25000, 'Disponible')");
 
             System.out.println("Datos iniciales insertados con éxito.");
 
