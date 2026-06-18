@@ -905,6 +905,8 @@ public class ReservaPanel extends JPanel {
 
         // Mostrar total estimado antes de finalizar
         com.santaana.model.Reserva reservaFull = reservaDAO.buscarPorId(idReserva);
+        double[] totalRef = { -1 };
+
         if (reservaFull != null) {
             try {
                 java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -921,6 +923,7 @@ public class ReservaPanel extends JPanel {
                 for (com.santaana.model.Habitacion h : habitacionDAO.listarTodas()) {
                     if (("Hab " + h.getNumero()).equals(r.habitacion)) {
                         double total = CobroService.calcularTotal(entrada, salida, h);
+                        totalRef[0] = total;
                         double saldo = total - reservaFull.getAnticipo();
                         String msg = String.format(
                             "<html><b>Resumen de cobro</b><br><br>" +
@@ -946,7 +949,7 @@ public class ReservaPanel extends JPanel {
             }
         }
 
-        CobroService.finalizarReserva(idReserva);
+        CobroService.finalizarReserva(idReserva, totalRef[0]);
 
         for (com.santaana.model.Habitacion h : habitacionDAO.listarTodas()) {
             if (("Hab " + h.getNumero()).equals(r.habitacion)) {

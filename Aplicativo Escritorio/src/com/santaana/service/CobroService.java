@@ -20,6 +20,10 @@ public class CobroService {
     //  Punto de entrada
     // ─────────────────────────────────────────────────────────────────────
     public static void finalizarReserva(int idReserva) {
+        finalizarReserva(idReserva, -1);
+    }
+
+    public static void finalizarReserva(int idReserva, double total) {
         ReservaDAO reservaDAO = new ReservaDAO();
         HabitacionDAO habitacionDAO = new HabitacionDAO();
 
@@ -32,30 +36,36 @@ public class CobroService {
                 "La reserva no esta activa (estado: " + reserva.getEstado() + ")");
         }
 
-        Habitacion habitacion = habitacionDAO.buscarPorId(reserva.getIdHabitacion());
-        if (habitacion == null) {
-            throw new IllegalArgumentException("Habitacion no encontrada para la reserva");
+        // Si no se pasó un total precalculado, se recalcula
+        if (total < 0) {
+            Habitacion habitacion = habitacionDAO.buscarPorId(reserva.getIdHabitacion());
+            if (habitacion == null) {
+                throw new IllegalArgumentException("Habitacion no encontrada para la reserva");
+            }
+
+            LocalDateTime entrada = parseDateTime(reserva.getFechaEntrada(), reserva.getHoraEntrada());
+
+            boolean esIndefinido = "Indefinido".equals(reserva.getTipoEstadia());
+            LocalDateTime salida;
+            if (esIndefinido) {
+                salida = LocalDateTime.now();
+            } else {
+                String fechaSalidaStr = reserva.getFechaSalida();
+                String horaSalidaStr = reserva.getHoraSalida();
+                if (fechaSalidaStr == null || fechaSalidaStr.isEmpty()) {
+                    salida = LocalDateTime.now();
+                } else {
+                    salida = parseDateTime(fechaSalidaStr, horaSalidaStr);
+                }
+            }
+
+            if (!salida.isAfter(entrada)) {
+                throw new IllegalStateException("La fecha de salida debe ser posterior a la de entrada");
+            }
+
+            total = calcularTotal(entrada, salida, habitacion);
         }
 
-        LocalDateTime entrada = parseDateTime(reserva.getFechaEntrada(), reserva.getHoraEntrada());
-
-        boolean esIndefinido = "Indefinido".equals(reserva.getTipoEstadia());
-        String fechaSalidaStr = reserva.getFechaSalida();
-        String horaSalidaStr = reserva.getHoraSalida();
-        LocalDateTime salida;
-        if (esIndefinido) {
-            salida = LocalDateTime.now();
-        } else if (fechaSalidaStr == null || fechaSalidaStr.isEmpty()) {
-            salida = LocalDateTime.now();
-        } else {
-            salida = parseDateTime(fechaSalidaStr, horaSalidaStr);
-        }
-
-        if (!salida.isAfter(entrada)) {
-            throw new IllegalStateException("La fecha de salida debe ser posterior a la de entrada");
-        }
-
-        double total = calcularTotal(entrada, salida, habitacion);
         reservaDAO.finalizar(idReserva, total);
     }
 

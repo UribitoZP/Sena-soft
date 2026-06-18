@@ -917,7 +917,7 @@ public class TableroPanel extends JPanel {
         }
 
         // Finalizar: calcula total con CobroService y persiste en BD
-        CobroService.finalizarReserva(reservaActiva.getId());
+        CobroService.finalizarReserva(reservaActiva.getId(), total);
 
         habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
         HistorialDAO.registrar("Checkout", "Check-out completado",
