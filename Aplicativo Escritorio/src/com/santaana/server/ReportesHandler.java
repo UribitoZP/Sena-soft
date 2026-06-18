@@ -29,7 +29,7 @@ public class ReportesHandler implements HttpHandler {
         Map<String, Integer> reservasMes = dao.getReservasPorMes();
         Map<String, Integer> topHabs     = dao.getTopHabitaciones();
 
-        int completadas = porEstado.getOrDefault("Completada", 0);
+        int completadas = porEstado.getOrDefault("Finalizada", 0);
         int canceladas  = porEstado.getOrDefault("Cancelada",  0);
         int activas     = porEstado.getOrDefault("Activa",     0);
 

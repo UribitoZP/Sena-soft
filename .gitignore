@@ -23,7 +23,7 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 .project
-pubspec.lock
+# Nota: Se removió pubspec.lock para asegurar consistencia de versiones en el equipo
 *.lock
 
 # --- Entornos de Desarrollo (IDEs) ---

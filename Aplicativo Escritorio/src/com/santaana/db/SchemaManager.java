@@ -177,6 +177,51 @@ public class SchemaManager {
                 System.out.println("Migración v6e: columnas telefono y correo añadidas a usuarios.");
             }
 
+            // v9: precio_bloque en habitaciones
+            boolean tienePrecioBloque = false;
+            ResultSet cpb = stmt.executeQuery("PRAGMA table_info(habitaciones)");
+            while (cpb.next()) if ("precio_bloque".equals(cpb.getString("name"))) tienePrecioBloque = true;
+            cpb.close();
+            if (!tienePrecioBloque) {
+                stmt.executeUpdate("ALTER TABLE habitaciones ADD COLUMN precio_bloque REAL NOT NULL DEFAULT 0");
+                stmt.executeUpdate("UPDATE habitaciones SET precio_bloque = ROUND(precio / 8.0, 0) WHERE precio_bloque = 0");
+                System.out.println("Migración v9: columna precio_bloque añadida a habitaciones.");
+            }
+
+            // v9: total_pagar en reservas y CHECK con 'Finalizada'
+            boolean tieneTotalPagar = false;
+            ResultSet ctp = stmt.executeQuery("PRAGMA table_info(reservas)");
+            while (ctp.next()) if ("total_pagar".equals(ctp.getString("name"))) tieneTotalPagar = true;
+            ctp.close();
+            if (!tieneTotalPagar) {
+                stmt.executeUpdate("CREATE TABLE reservas_v3 (" +
+                    "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "  id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id)," +
+                    "  id_usuario      INTEGER NOT NULL REFERENCES usuarios(id)," +
+                    "  id_cliente      INTEGER NOT NULL REFERENCES clientes(id)," +
+                    "  fecha_entrada   TEXT    NOT NULL," +
+                    "  hora_entrada    TEXT    DEFAULT '12:00'," +
+                    "  fecha_salida    TEXT," +
+                    "  hora_salida     TEXT    DEFAULT '12:00'," +
+                    "  tipo_estadia    TEXT    DEFAULT 'Noche'," +
+                    "  anticipo        REAL    DEFAULT 0," +
+                    "  total_pagar     REAL    DEFAULT 0," +
+                    "  estado          TEXT    NOT NULL DEFAULT 'Activa' " +
+                    "       CHECK(estado IN ('Activa','Completada','Cancelada','Finalizada'))" +
+                    ")"
+                );
+                stmt.executeUpdate(
+                    "INSERT INTO reservas_v3 " +
+                    "SELECT id, id_habitacion, id_usuario, id_cliente, " +
+                    "       fecha_entrada, hora_entrada, fecha_salida, hora_salida, " +
+                    "       tipo_estadia, anticipo, 0, estado " +
+                    "FROM reservas"
+                );
+                stmt.executeUpdate("DROP TABLE reservas");
+                stmt.executeUpdate("ALTER TABLE reservas_v3 RENAME TO reservas");
+                System.out.println("Migración v9: columna total_pagar añadida y CHECK actualizado en reservas.");
+            }
+
             System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
         } catch (SQLException e) {

@@ -3,6 +3,9 @@ package com.santaana.view;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.model.Reserva;
+import com.santaana.service.CobroService;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -50,16 +53,21 @@ public class InfoHabitacionFrame extends JDialog {
 
     private String calcularSaldo() {
         if (reservaActiva == null) return "—";
-        if ("Noche".equals(reservaActiva.getTipoEstadia())) {
-            try {
-                long dias = java.time.LocalDate.parse(reservaActiva.getFechaSalida()).toEpochDay()
-                          - java.time.LocalDate.parse(reservaActiva.getFechaEntrada()).toEpochDay();
-                if (dias < 1) dias = 1;
-                double total = dias * habitacion.getPrecio();
-                double saldo = total - reservaActiva.getAnticipo();
-                return String.format("$ %,.0f", saldo);
-            } catch (Exception ignored) {}
-        }
+        try {
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime entrada = LocalDateTime.parse(
+                reservaActiva.getFechaEntrada() + " " + reservaActiva.getHoraEntrada(), fmt);
+            LocalDateTime salida;
+            if ("Indefinido".equals(reservaActiva.getTipoEstadia())) {
+                salida = LocalDateTime.now();
+            } else {
+                salida = LocalDateTime.parse(
+                    reservaActiva.getFechaSalida() + " " + (reservaActiva.getHoraSalida() != null ? reservaActiva.getHoraSalida() : "12:00"), fmt);
+            }
+            double total = CobroService.calcularTotal(entrada, salida, habitacion);
+            double saldo = total - reservaActiva.getAnticipo();
+            return String.format("$ %,.0f", saldo);
+        } catch (Exception ignored) {}
         return "Indefinido";
     }
 

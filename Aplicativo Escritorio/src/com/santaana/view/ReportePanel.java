@@ -154,7 +154,7 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
             reservasMes = new java.util.LinkedHashMap<>(); topHabs = new java.util.LinkedHashMap<>();
         }
 
-        int completadas = porEstado.getOrDefault("Completada", 0);
+        int completadas = porEstado.getOrDefault("Finalizada", 0);
         int canceladas  = porEstado.getOrDefault("Cancelada",  0);
         int activas     = porEstado.getOrDefault("Activa",     0);
 
@@ -172,11 +172,11 @@ public class ReportePanel extends JPanel implements ThemeManager.ThemeListener {
         kpiRow.setAlignmentX(LEFT_ALIGNMENT);
 
         kpiRow.add(kpiCard("Ingresos Confirmados", "$ " + FMT_MONEDA.format(totalIngresos),
-                new Color(0x22C55E), "De reservas completadas"));
+                new Color(0x22C55E), "De reservas finalizadas"));
         kpiRow.add(kpiCard("Anticipos Totales", "$ " + FMT_MONEDA.format(totalAnticipos),
                 new Color(0x3A7BD5), "Suma de todos los anticipos"));
         kpiRow.add(kpiCard("Total Reservas", String.valueOf(totalReservas),
-                new Color(0xF59E0B), activas + " activas · " + completadas + " completadas"));
+                new Color(0xF59E0B), activas + " activas · " + completadas + " finalizadas"));
         kpiRow.add(kpiCard("Cancelaciones", String.valueOf(canceladas),
                 new Color(0xEF4444), totalReservas > 0
                         ? String.format("%.1f%% tasa de cancelación", 100.0 * canceladas / totalReservas)
