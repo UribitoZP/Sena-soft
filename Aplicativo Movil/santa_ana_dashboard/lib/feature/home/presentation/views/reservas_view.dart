@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/services/api_service.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
@@ -63,22 +62,12 @@ class _ReservationsViewState extends State<ReservationsView> {
   final _filters = ['Todas', 'Activas', 'Completadas', 'Canceladas'];
   final _searchController = TextEditingController();
   String _search = '';
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
     _loadReservas();
     _searchController.addListener(() {
       setState(() => _search = _searchController.text.toLowerCase());
-    });
-
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (mounted) {
-        setState(() {
-          _loadReservas();
-        });
-      }
     });
   }
 
@@ -111,10 +100,9 @@ class _ReservationsViewState extends State<ReservationsView> {
 
   @override
   void dispose() {
-    _timer?.cancel();
     _searchController.dispose();
     super.dispose();
-}
+  }
 
   @override
   Widget build(BuildContext context) {

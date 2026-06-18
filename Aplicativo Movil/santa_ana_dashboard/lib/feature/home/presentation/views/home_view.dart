@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:santa_ana_dashboard/core/services/api_service.dart';
 import 'package:santa_ana_dashboard/core/theme/app_theme.dart';
@@ -20,21 +18,10 @@ class _HomeViewState extends State<HomeView> {
   final _api = ApiService();
   late Future<Map<String, dynamic>> _statsFuture;
   late Future<List<dynamic>> _reservasFuture;
-  Timer? _timer;
-
   @override
   void initState() {
     super.initState();
     _load();
-    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
-      if (mounted) setState(() => _load());
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 
   void _load() {

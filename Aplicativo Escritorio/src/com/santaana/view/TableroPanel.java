@@ -425,7 +425,6 @@ public class TableroPanel extends JPanel {
             SwingUtilities.getWindowAncestor(this) instanceof javax.swing.JFrame
                 ? (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this) : null,
             "Habitación " + h.getNumero(), true);
-        dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
         // Header
@@ -624,6 +623,7 @@ public class TableroPanel extends JPanel {
         // Ajustar tamaño según contenido
         dialog.setSize(h.getEstado().equals("Ocupada") ? 360 : 320,
                        h.getEstado().equals("Ocupada") ? 470 : 260);
+        dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
     }
 

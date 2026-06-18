@@ -285,9 +285,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
 
         side.add(Box.createVerticalGlue());
         
-        // Opciones de sistema (Temporales)
-        side.add(crearBotonSidebar("Cambiar Rol (" + userRole + ")"));
-        side.add(Box.createVerticalStrut(8));
+        // Opciones de sistema
         side.add(crearBotonSidebar("Cerrar Sesión"));
         side.add(Box.createVerticalStrut(20));
 
@@ -329,13 +327,6 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
         p.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (text.startsWith("Cambiar Rol")) {
-                    userRole = userRole.equalsIgnoreCase("Administrador") ? "Recepcionista" : "Administrador";
-                    initUI();
-                    cardLayout.show(contentPanel, currentView);
-                    return;
-                }
-                
                 if (text.equals("Cerrar Sesión")) {
                     dispose();
                     new LoginFrame().setVisible(true);
@@ -400,8 +391,6 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
             sidebarPanel.add(Box.createVerticalStrut(8));
         }
         sidebarPanel.add(Box.createVerticalGlue());
-        sidebarPanel.add(crearBotonSidebar("Cambiar Rol (" + userRole + ")"));
-        sidebarPanel.add(Box.createVerticalStrut(8));
         sidebarPanel.add(crearBotonSidebar("Cerrar Sesión"));
         sidebarPanel.add(Box.createVerticalStrut(20));
         
