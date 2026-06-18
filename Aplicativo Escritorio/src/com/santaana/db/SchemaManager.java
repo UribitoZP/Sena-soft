@@ -10,7 +10,7 @@ import com.santaana.util.PasswordUtil;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 8;
+    private static final int SCHEMA_VERSION = 9;
 
     public static void inicializar() {
         Connection conn = null;
@@ -106,6 +106,14 @@ public class SchemaManager {
                 "  id_producto INTEGER NOT NULL REFERENCES productos(id)," +
                 "  cantidad INTEGER NOT NULL DEFAULT 1," +
                 "  precio REAL NOT NULL" +
+                ")"
+            );
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS reserva_clientes (" +
+                "  id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  id_reserva INTEGER NOT NULL REFERENCES reservas(id)," +
+                "  id_cliente INTEGER NOT NULL REFERENCES clientes(id)," +
+                "  tipo_persona TEXT NOT NULL" +
                 ")"
             );
 

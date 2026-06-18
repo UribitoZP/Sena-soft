@@ -212,6 +212,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
         cargarYMostrar(texto, desde, hasta);
     }
 
+
     // ── Renderizado principal ─────────────────────────────────────────────────
     public void cargarYMostrar(String texto, String desde, String hasta) {
         if (listaContainer == null) return;
@@ -219,7 +220,7 @@ public class HistorialPanel extends JPanel implements ThemeManager.ThemeListener
 
         List<Actividad> actividades;
         try {
-            actividades = historialDAO.buscar(texto, desde, hasta);
+            actividades = historialDAO.buscarConClientes(texto, desde, hasta);
         } catch (DatabaseException e) {
             ErrorUtil.mostrarError(this, "buscar en historial", e);
             return;

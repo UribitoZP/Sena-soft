@@ -100,4 +100,48 @@ public class ReservaProductoDAO {
 
         return lista;
     }
+    public int obtenerUltimaReserva() {
+        String sql = """
+            SELECT id
+            FROM reservas
+            ORDER BY id DESC
+            LIMIT 1
+        """;
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    public double obtenerTotalProductos(int idReserva) {
+        String sql = """
+            SELECT COALESCE(SUM(cantidad * precio),0)
+            FROM reserva_productos
+            WHERE id_reserva = ?
+        """;
+
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setInt(1, idReserva);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
 }

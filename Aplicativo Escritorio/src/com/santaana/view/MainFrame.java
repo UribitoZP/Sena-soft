@@ -348,6 +348,7 @@ public class MainFrame extends JFrame implements ThemeManager.ThemeListener {
                         || text.equals("Historial") || text.equals("Reporte")) {
                     currentView = text;
                     if (text.equals("Reporte") && reportePanel != null) reportePanel.refreshUI();
+                    if (text.equals("Producto") && productoPanel != null) productoPanel.cargarProductos();
                     cardLayout.show(contentPanel, text);
                     refreshSidebar();
                     repaint();

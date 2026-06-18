@@ -1,4 +1,4 @@
-    package com.santaana.dao;
+package com.santaana.dao;
 
     import java.sql.Connection;
     import java.sql.PreparedStatement;
@@ -94,7 +94,7 @@ public class ReservaDAO {
         String sql = "INSERT INTO reservas (id_habitacion, id_usuario, id_cliente, fecha_entrada, hora_entrada, fecha_salida, hora_salida, tipo_estadia, anticipo) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, idHabitacion);
             ps.setInt(2, idUsuario);
             ps.setInt(3, idCliente);
@@ -104,7 +104,26 @@ public class ReservaDAO {
             ps.setString(7, horaSalida);
             ps.setString(8, tipoEstadia);
             ps.setDouble(9, anticipo);
-            return ps.executeUpdate() > 0;
+            int filas = ps.executeUpdate();
+            if (filas > 0) {
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) {
+                    int idReserva = rs.getInt(1);
+                    String sqlRelacion =
+                        "INSERT INTO reserva_clientes " +
+                        "(id_reserva, id_cliente, tipo_persona) " +
+                        "VALUES (?, ?, ?)";
+                    try (PreparedStatement rel = conn.prepareStatement(sqlRelacion)) {       
+                            rel.setInt(1, idReserva);
+                            rel.setInt(2, idCliente);
+                            rel.setString(3, "Titular");
+                            rel.executeUpdate();
+                        }
+                }
+                return true;
+            }
+
+            return false;
         } catch (SQLException e) {
             throw new DatabaseException("crear reserva", e);
         }
@@ -228,7 +247,7 @@ public class ReservaDAO {
             anticipo
         );
     }
-   public List<Object[]> obtenerHistorialClientes() {
+    public List<Object[]> obtenerHistorialClientes() {
         List<Object[]> lista = new ArrayList<>();
         String sql = """
             SELECT
@@ -236,21 +255,36 @@ public class ReservaDAO {
                 c.documento,
                 c.telefono,
                 c.correo,
-                r.id_habitacion,
-                r.fecha_entrada,
-                r.fecha_salida,
-                r.tipo_estadia
-            FROM reservas r
+                MAX(r.id_habitacion),
+                MAX(r.fecha_entrada),
+                MAX(r.fecha_salida),
+                rc.tipo_persona,
+                (
+                    SELECT ct.nombre
+                    FROM reserva_clientes rct
+                    INNER JOIN clientes ct
+                        ON ct.id = rct.id_cliente
+                    WHERE rct.id_reserva = r.id
+                    AND rct.tipo_persona = 'Titular'
+                    LIMIT 1
+                ) AS nombre_titular
+            FROM reserva_clientes rc
             INNER JOIN clientes c
-                ON r.id_cliente = c.id
-            ORDER BY r.id DESC
+                ON c.id = rc.id_cliente
+            INNER JOIN reservas r
+                ON r.id = rc.id_reserva
+            GROUP BY c.id
+            ORDER BY MAX(r.id) DESC
         """;
+
         try (
             Connection conn = DatabaseConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery()
         ) {
+
             while (rs.next()) {
+
                 Object[] fila = new Object[] {
                     rs.getString(1),
                     rs.getString(2),
@@ -259,14 +293,39 @@ public class ReservaDAO {
                     rs.getInt(5),
                     rs.getString(6),
                     rs.getString(7),
-                    rs.getString(8)
+                    rs.getString(8),
+                    rs.getString(9)
                 };
+
                 lista.add(fila);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            }
+        }
+
         return lista;
+    }
+    public int obtenerUltimaReserva() {
+        String sql = """
+            SELECT id
+            FROM reservas
+            ORDER BY id DESC
+            LIMIT 1
+        """;
+        try (
+            Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()
+        ) {
+
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }

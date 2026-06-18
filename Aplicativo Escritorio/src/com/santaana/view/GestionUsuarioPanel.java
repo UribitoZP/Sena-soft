@@ -474,6 +474,16 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         JLabel fechas = new JLabel(
             "Estadía: " + datos[5] + " → " + datos[6]
         );
+        JLabel relacion = null;
+        if (datos[7].toString().equalsIgnoreCase("Acompañante")) {
+
+            relacion = new JLabel(
+                "Acompañante de " + datos[8]
+            );
+
+            relacion.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+            relacion.setForeground(new Color(255, 193, 7));
+        }
 
         fechas.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         fechas.setForeground(getLabelCol());
@@ -502,6 +512,10 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
         info.add(Box.createVerticalStrut(8));
 
         info.add(fechas);
+        if (relacion != null) {
+            info.add(Box.createVerticalStrut(6));
+            info.add(relacion);
+        }
         info.add(Box.createVerticalGlue());
 
         info.add(Box.createVerticalStrut(14));
