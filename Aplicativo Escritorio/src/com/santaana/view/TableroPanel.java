@@ -11,10 +11,10 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.awt.Window;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -32,7 +32,9 @@ import javax.swing.border.MatteBorder;
 import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
 import com.santaana.dao.ReservaDAO;
+import com.santaana.dao.ReservaProductoDAO;
 import com.santaana.model.Habitacion;
+import com.santaana.model.ReservaProducto;
 import com.santaana.service.CobroService;
 import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
@@ -48,6 +50,7 @@ public class TableroPanel extends JPanel {
     private final String PLACEHOLDER = " Buscar habitación...";
     private final HabitacionDAO habitacionDAO = new HabitacionDAO();
     private final ReservaDAO    reservaDAO    = new ReservaDAO();
+    private final ReservaProductoDAO reservaProductoDAO = new ReservaProductoDAO();
     private JPanel roomsGrid;
     
 
@@ -451,6 +454,12 @@ public class TableroPanel extends JPanel {
         if (h.getEstado().equals("Ocupada")) {
             com.santaana.model.Reserva rActiva = reservaDAO.buscarActivaPorHabitacion(h.getId());
             if (rActiva != null) {
+                // Monto de productos pedidos a esta reserva
+                double montoProductos = 0;
+                for (ReservaProducto rp : reservaProductoDAO.listarPorReserva(rActiva.getId())) {
+                    montoProductos += rp.getCantidad() * rp.getPrecio();
+                }
+
                 // Calcular total y saldo para estadía por noches
                 String totalStr = "—", saldoStr = "—";
                 if ("Noche".equals(rActiva.getTipoEstadia())) {
@@ -458,17 +467,21 @@ public class TableroPanel extends JPanel {
                         long dias = java.time.LocalDate.parse(rActiva.getFechaSalida()).toEpochDay()
                                   - java.time.LocalDate.parse(rActiva.getFechaEntrada()).toEpochDay();
                         if (dias < 1) dias = 1;
-                        double total = dias * h.getPrecio();
+                        double total = dias * h.getPrecio() + montoProductos;
                         double saldo = total - rActiva.getAnticipo();
                         totalStr = String.format("$%,.0f", total);
                         saldoStr = String.format("$%,.0f", saldo);
                     } catch (Exception ignored) {}
-                    saldoStr = rActiva.getAnticipo() > 0
-                        ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "—";
                 } else {
-                    totalStr = "Cobro por al salir";
-                    saldoStr = rActiva.getAnticipo() > 0
-                        ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "Pendiente checkout";
+                    double total = montoProductos;
+                    double saldo = total - rActiva.getAnticipo();
+                    totalStr = montoProductos > 0
+                        ? String.format("$%,.0f (al salir)", total)
+                        : "Cobro por al salir";
+                    saldoStr = montoProductos > 0
+                        ? String.format("$%,.0f", saldo)
+                        : (rActiva.getAnticipo() > 0
+                            ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "Pendiente checkout");
                 }
 
                 String salida = "Indefinido".equals(rActiva.getTipoEstadia()) ? "Sin determinar"
@@ -487,6 +500,10 @@ public class TableroPanel extends JPanel {
                 info.add(Box.createVerticalStrut(5));
                 info.add(filaInfo("Salida:", salida));
                 info.add(Box.createVerticalStrut(5));
+                if (montoProductos > 0) {
+                    info.add(filaInfo("Productos:", String.format("$%,.0f", montoProductos)));
+                    info.add(Box.createVerticalStrut(5));
+                }
                 info.add(filaInfo("Total:", totalStr));
                 info.add(Box.createVerticalStrut(5));
                 info.add(filaInfo("Anticipo:", String.format("$%,.0f", rActiva.getAnticipo())));
@@ -520,6 +537,8 @@ public class TableroPanel extends JPanel {
 
                     PedidoHabitacionDialog pedidoDialog = new PedidoHabitacionDialog(dialog, rActiva);
                     pedidoDialog.setVisible(true);
+                    dialog.dispose();
+                    abrirAcciones(h, proximaReserva);
                 });
                 acciones.add(btnPedido);
                 acciones.add(Box.createVerticalStrut(8));

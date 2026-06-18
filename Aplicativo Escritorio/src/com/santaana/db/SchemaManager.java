@@ -108,6 +108,14 @@ public class SchemaManager {
                 "  precio REAL NOT NULL" +
                 ")"
             );
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS reserva_clientes (" +
+                "  id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "  id_reserva INTEGER NOT NULL REFERENCES reservas(id)," +
+                "  id_cliente INTEGER NOT NULL REFERENCES clientes(id)," +
+                "  tipo_persona TEXT NOT NULL" +
+                ")"
+            );
 
             // v6d: migrar reservas del esquema antiguo (cliente_nombre/cliente_doc) al nuevo (id_cliente)
             boolean tieneClienteNombre = false;

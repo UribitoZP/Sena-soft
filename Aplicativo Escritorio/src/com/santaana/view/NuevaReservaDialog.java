@@ -16,11 +16,14 @@ import javax.swing.text.DocumentFilter;
 import com.toedter.calendar.JDateChooser;
 import com.santaana.dao.HabitacionDAO;
 import com.santaana.dao.HistorialDAO;
+import com.santaana.dao.ReservaClienteDAO;
 import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
 import com.santaana.util.EmailService;
+import com.santaana.dao.ClienteDAO;
+import com.santaana.model.Cliente;
 
 public class NuevaReservaDialog extends JDialog {
 
@@ -32,6 +35,12 @@ public class NuevaReservaDialog extends JDialog {
     private JTextField campoNombre;
     private JTextField campoCorreo;
     private JTextField campoTelefono;
+
+    // Campos de acompañante
+    private JTextField campoNombreAcomp;
+    private JTextField campoDocAcomp;
+    private JTextField campoTelefonoAcomp;
+    private JTextField campoCorreoAcomp;
 
     // Campos de reserva
     private JDateChooser fechaEntrada;
@@ -53,7 +62,14 @@ public class NuevaReservaDialog extends JDialog {
     // Habitación seleccionada
     private List<Habitacion> habitacionesSeleccionadas = new java.util.ArrayList<>();
     private JPanel panelAcompanantes;
+    private JPanel panelHabitacionesAcomp;
     private JPanel panelHabitaciones;
+    private JLabel tituloAcompanante;
+    private JPanel filaAcompanante;
+
+    //habitaciones
+    private Habitacion habitacionPrincipal;
+    private Habitacion habitacionAcompanante;
 
     private int idUsuario;
 
@@ -136,13 +152,32 @@ public class NuevaReservaDialog extends JDialog {
 
         cont.add(fila2);
 
-        // PANEL ACOMPAÑANTES
+        // FILA 3: Acompañante (izq) + Habitación del acompañante (der)
         cont.add(Box.createVerticalStrut(20));
 
-        panelAcompanantes = crearPanelAcompanantes();
-        panelAcompanantes.setVisible(false);
+        JPanel fila3 = new JPanel(new GridBagLayout());
+        fila3.setOpaque(false);
 
-        cont.add(panelAcompanantes);
+        GridBagConstraints g3 = new GridBagConstraints();
+        g3.fill = GridBagConstraints.BOTH;
+        g3.gridy = 0;
+        g3.gridx = 0;
+        g3.weightx = 0.35;
+        g3.insets = new Insets(0, 0, 0, 20);
+
+        panelAcompanantes = crearPanelAcompanantes();
+        fila3.add(panelAcompanantes, g3);
+
+        g3.gridx = 1;
+        g3.weightx = 0.65;
+        g3.insets = new Insets(0, 0, 0, 0);
+
+        panelHabitacionesAcomp = crearPanelHabitacionesAcomp();
+        fila3.add(panelHabitacionesAcomp, g3);
+
+        fila3.setVisible(false);
+        cont.add(fila3);
+        this.filaAcompanante = fila3;
 
         cont.add(Box.createVerticalStrut(20));
 
@@ -155,7 +190,7 @@ public class NuevaReservaDialog extends JDialog {
         return scroll;
     }
 
-    // ── Panel huésped ────────────────────────────────────────────────────────
+    // ── Panel huésped ───────────────────────────────────────────────────
     private JPanel crearPanelHuesped() {
         JPanel p = tarjeta();
         p.add(titulo("Datos del huésped"));
@@ -214,19 +249,49 @@ public class NuevaReservaDialog extends JDialog {
             });
         }
     }
+
     private JPanel crearPanelAcompanantes() {
         JPanel p = tarjeta();
 
-        p.add(titulo("Acompañante"));
+        tituloAcompanante = titulo("Acompañante");
+        p.add(tituloAcompanante);
 
-        JTextField campoNombreAcomp = textField("Nombre del acompañante");
-        JTextField campoDocAcomp = textField("Documento");
+        campoNombreAcomp = textField("Nombre del acompañante");
+        campoDocAcomp = textField("Documento");
+        campoTelefonoAcomp = textField("Teléfono");
+        campoCorreoAcomp = textField("Correo");
 
-        p.add(caja("Nombre completo", campoNombreAcomp));
+        // Nombre y documento en una fila
+        JPanel fila1 = new JPanel(new GridLayout(1, 2, 10, 0));
+        fila1.setOpaque(false);
+        fila1.add(caja("Nombre completo", campoNombreAcomp));
+        fila1.add(caja("Documento", campoDocAcomp));
+
+        // Teléfono y correo en otra fila
+        JPanel fila2 = new JPanel(new GridLayout(1, 2, 10, 0));
+        fila2.setOpaque(false);
+        fila2.add(caja("Teléfono", campoTelefonoAcomp));
+        fila2.add(caja("Correo", campoCorreoAcomp));
+
+        p.add(fila1);
         p.add(Box.createVerticalStrut(12));
-        p.add(caja("Documento", campoDocAcomp));
+        p.add(fila2);
 
         return p;
+    }
+
+    private void actualizarTituloAcompanante() {
+        if (tituloAcompanante == null) return;
+        if (habitacionPrincipal != null && habitacionPrincipal.getTipo() != null
+                && habitacionPrincipal.getTipo().toLowerCase().contains("doble")) {
+            tituloAcompanante.setText(
+                "Acompañante (comparte la Habitación " + habitacionPrincipal.getNumero() + ")");
+        } else if (habitacionAcompanante != null) {
+            tituloAcompanante.setText(
+                "Acompañante (Habitación " + habitacionAcompanante.getNumero() + " asignada)");
+        } else {
+            tituloAcompanante.setText("Acompañante");
+        }
     }
 
     // ── Panel reserva ────────────────────────────────────────────────────────
@@ -543,6 +608,26 @@ public class NuevaReservaDialog extends JDialog {
         return p;
     }
 
+    private JPanel crearPanelHabitacionesAcomp() {
+        JPanel p = tarjeta();
+
+        JLabel lblHabAcomp = titulo("Habitación del acompañante");
+        p.add(lblHabAcomp);
+
+        JLabel ayuda = new JLabel("Elige una habitación distinta a la del titular");
+        ayuda.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        ayuda.setForeground(ThemeManager.getTextSecondary());
+        ayuda.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        p.add(ayuda);
+
+        JPanel gridContainer = new JPanel(new BorderLayout());
+        gridContainer.setOpaque(false);
+        p.add(gridContainer);
+        p.putClientProperty("gridContainer", gridContainer);
+
+        return p;
+    }
+
     private void reconstruirGridHabitaciones(JPanel container, List<Habitacion> lista, String filtro, JPanel contenedorPadre) {
         JPanel grid = new JPanel(new GridLayout(0, 2, 10, 10));
         grid.setOpaque(false);
@@ -561,6 +646,110 @@ public class NuevaReservaDialog extends JDialog {
         container.add(scroll, BorderLayout.CENTER);
         container.revalidate();
         container.repaint();
+    }
+
+    // ── Grid de selección de habitación del acompañante ──────────────────────
+    private void reconstruirGridHabitacionesAcomp(List<Habitacion> lista, String filtro) {
+        if (panelHabitacionesAcomp == null) return;
+        JPanel gridContainer = (JPanel) panelHabitacionesAcomp.getClientProperty("gridContainer");
+        if (gridContainer == null) return;
+
+        JPanel grid = new JPanel(new GridLayout(0, 2, 10, 10));
+        grid.setOpaque(false);
+
+        for (Habitacion h : lista) {
+            boolean esLaDelTitular = habitacionPrincipal != null && habitacionPrincipal.getId() == h.getId();
+            if (esLaDelTitular) continue;
+            if (filtro.equals("Todas") || filtro.equals(h.getTipo())) {
+                grid.add(cardHabitacionAcomp(h));
+            }
+        }
+
+        JScrollPane scroll = new JScrollPane(grid);
+        scroll.setBorder(null);
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.getVerticalScrollBar().setUnitIncrement(12);
+        scroll.setPreferredSize(new Dimension(0, 220));
+        scroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 220));
+
+        gridContainer.removeAll();
+        gridContainer.add(scroll, BorderLayout.CENTER);
+        gridContainer.revalidate();
+        gridContainer.repaint();
+    }
+
+    private JPanel cardHabitacionAcomp(Habitacion h) {
+        JPanel c = new JPanel() {
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                boolean sel = habitacionAcompanante != null && habitacionAcompanante.getId() == h.getId();
+                g2.setColor(sel ? ThemeManager.getPrimary() : ThemeManager.getBorder());
+                g2.setStroke(new BasicStroke(sel ? 2f : 1f));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 12, 12);
+                g2.dispose();
+            }
+        };
+        c.setLayout(new BoxLayout(c, BoxLayout.Y_AXIS));
+        c.setOpaque(false);
+        c.setBackground(ThemeManager.getPanelBackground());
+        c.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        c.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        c.setPreferredSize(new Dimension(0, 64));
+        c.setMaximumSize(new Dimension(Integer.MAX_VALUE, 64));
+
+        JLabel nLbl = new JLabel("Hab. " + h.getNumero(), SwingConstants.CENTER);
+        nLbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        nLbl.setForeground(ThemeManager.getPrimary());
+        nLbl.setAlignmentX(0.5f);
+
+        JLabel tipoLbl = new JLabel(h.getTipo(), SwingConstants.CENTER);
+        tipoLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        tipoLbl.setForeground(ThemeManager.getTextSecondary());
+        tipoLbl.setAlignmentX(0.5f);
+
+        c.add(nLbl);
+        c.add(Box.createVerticalStrut(2));
+        c.add(tipoLbl);
+
+        c.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                boolean yaEsta = habitacionAcompanante != null && habitacionAcompanante.getId() == h.getId();
+                if (yaEsta) {
+                    habitacionAcompanante = null;
+                    habitacionesSeleccionadas.removeIf(hab -> hab.getId() == h.getId());
+                } else {
+                    if (habitacionAcompanante != null) {
+                        habitacionesSeleccionadas.removeIf(hab -> hab.getId() == habitacionAcompanante.getId());
+                    }
+                    habitacionAcompanante = h;
+                    habitacionesSeleccionadas.add(h);
+                }
+                actualizarTotal();
+                actualizarTituloAcompanante();
+                List<Habitacion> lista = habitacionDAO.listarDisponibles();
+                reconstruirGridHabitacionesAcomp(lista, "Todas");
+                panelAcompanantes.setVisible(habitacionAcompanante != null
+                        || (habitacionPrincipal != null && habitacionPrincipal.getTipo() != null
+                            && habitacionPrincipal.getTipo().toLowerCase().contains("doble")));
+                panelAcompanantes.revalidate();
+                panelAcompanantes.repaint();
+            }
+            public void mouseEntered(MouseEvent e) {
+                c.setBackground(ThemeManager.getCurrentTheme() == ThemeManager.Theme.LIGHT
+                        ? new Color(0xF1F5F9) : new Color(0x334155));
+                c.repaint();
+            }
+            public void mouseExited(MouseEvent e) {
+                c.setBackground(ThemeManager.getPanelBackground());
+                c.repaint();
+            }
+        });
+
+        return c;
     }
 
     private JPanel cardHabitacion(Habitacion h, JPanel contenedor) {
@@ -618,22 +807,56 @@ public class NuevaReservaDialog extends JDialog {
         c.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
 
-                boolean yaSeleccionada = habitacionesSeleccionadas.stream()
-                        .anyMatch(hab -> hab.getId() == h.getId());
-
-                if (yaSeleccionada) {
-
+                // Quitar principal
+                if (habitacionPrincipal != null && habitacionPrincipal.getId() == h.getId()) {
+                    habitacionPrincipal = null;
+                    habitacionAcompanante = null;
+                    habitacionesSeleccionadas.clear();
+                }
+                // Quitar acompañante (si se hace clic en su tarjeta dentro del grid principal)
+                else if (habitacionAcompanante != null && habitacionAcompanante.getId() == h.getId()) {
+                    habitacionAcompanante = null;
                     habitacionesSeleccionadas.removeIf(hab -> hab.getId() == h.getId());
-
-                } else {
-
+                }
+                // Seleccionar principal
+                else if (habitacionPrincipal == null) {
+                    habitacionPrincipal = h;
+                    habitacionesSeleccionadas.clear();
                     habitacionesSeleccionadas.add(h);
-
+                }
+                // Si ya hay principal y es doble, no se permite elegir otra del grid principal
+                else if (habitacionPrincipal.getTipo() != null
+                        && habitacionPrincipal.getTipo().toLowerCase().contains("doble")) {
+                    // No-op: la doble ya cubre al acompañante, no se selecciona nada más aquí
                 }
 
                 actualizarTotal();
-                panelAcompanantes.setVisible(!habitacionesSeleccionadas.isEmpty());
+
+                boolean esDoble = habitacionPrincipal != null && habitacionPrincipal.getTipo() != null
+                        && habitacionPrincipal.getTipo().toLowerCase().contains("doble");
+                boolean mostrarFila = habitacionPrincipal != null;
+                boolean mostrarGridHabAcomp = habitacionPrincipal != null && !esDoble;
+                boolean mostrarDatosAcomp = esDoble || habitacionAcompanante != null;
+
+                if (filaAcompanante != null) {
+                    filaAcompanante.setVisible(mostrarFila);
+                }
+                panelHabitacionesAcomp.setVisible(mostrarGridHabAcomp);
+                if (mostrarGridHabAcomp) {
+                    List<Habitacion> lista = habitacionDAO.listarDisponibles();
+                    reconstruirGridHabitacionesAcomp(lista, "Todas");
+                }
+
+                panelAcompanantes.setVisible(mostrarDatosAcomp);
+                actualizarTituloAcompanante();
+
                 contenedor.repaint();
+                if (filaAcompanante != null) {
+                    filaAcompanante.revalidate();
+                    filaAcompanante.repaint();
+                }
+                panelHabitacionesAcomp.revalidate();
+                panelHabitacionesAcomp.repaint();
                 panelAcompanantes.revalidate();
                 panelAcompanantes.repaint();
             }
@@ -793,10 +1016,12 @@ public class NuevaReservaDialog extends JDialog {
             return;
         GridBagConstraints gbc = ((GridBagLayout) parent.getLayout()).getConstraints(panelHabitaciones);
         parent.remove(panelHabitaciones);
+        habitacionesSeleccionadas.clear();
         panelHabitaciones = crearPanelHabitaciones(desdeDateTime, hastaDateTime);
         parent.add(panelHabitaciones, gbc);
         parent.revalidate();
         parent.repaint();
+        if (filaAcompanante != null) filaAcompanante.setVisible(false);
         actualizarTotal();
     }
 
@@ -836,6 +1061,36 @@ public class NuevaReservaDialog extends JDialog {
         String horaEnt = formatearHora(horaEntrada);
         String telefono = campoTelefono.getText().trim();
         String correo = campoCorreo.getText().trim();
+        String nombreAcomp = campoNombreAcomp.getText().trim();
+        String docAcomp = campoDocAcomp.getText().trim();
+        String telefonoAcomp = campoTelefonoAcomp.getText().trim();
+        String correoAcomp = campoCorreoAcomp.getText().trim();
+
+        ClienteDAO clienteDAO = new ClienteDAO();
+
+        if (!nombreAcomp.isEmpty() && !docAcomp.isEmpty()) {
+            Cliente acompanante = clienteDAO.buscarPorDocumento(docAcomp);
+            if (acompanante == null) {
+                clienteDAO.crear(
+                    new Cliente(
+                        0,
+                        nombreAcomp,
+                        docAcomp,
+                        telefonoAcomp,
+                        correoAcomp
+                    )
+                );
+            }
+        }
+        HistorialDAO.registrar(
+            "RESERVA",
+            "Reserva creada",
+            "Titular: " + nombre + " | Acompañante: " + nombreAcomp,
+            idUsuario,
+            null,
+            null,
+            null
+        );
 
        if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -961,6 +1216,66 @@ public class NuevaReservaDialog extends JDialog {
                 break;
             }
         }
+        ReservaClienteDAO reservaClienteDAO = new ReservaClienteDAO();
+
+        int idReserva = reservaDAO.obtenerUltimaReserva();
+
+        // TITULAR
+        Cliente titular = clienteDAO.buscarPorDocumento(doc);
+
+        if (titular != null) {
+            reservaClienteDAO.guardar(
+                idReserva,
+                titular.getId(),
+                "Titular"
+            );
+        }
+
+        // ACOMPAÑANTE
+        if (!nombreAcomp.isEmpty() && !docAcomp.isEmpty()) {
+
+            Cliente acompanante =
+                clienteDAO.buscarPorDocumento(docAcomp);
+
+            if (acompanante != null) {
+
+                reservaClienteDAO.guardar(
+                    idReserva,
+                    acompanante.getId(),
+                    "Acompañante"
+                );
+            }
+        }
+
+        // GUARDAR ACOMPAÑANTE
+        if (!nombreAcomp.isEmpty() && !docAcomp.isEmpty()) {
+
+            Cliente acompanante = clienteDAO.buscarPorDocumento(docAcomp);
+
+            if (acompanante == null) {
+
+                clienteDAO.crear(
+                    new Cliente(
+                        0,
+                        nombreAcomp,
+                        docAcomp,
+                        "",
+                        ""
+                    )
+                );
+
+                acompanante = clienteDAO.buscarPorDocumento(docAcomp);
+            }
+
+            if (acompanante != null) {
+
+                reservaClienteDAO.guardar(
+                    idReserva,
+                    acompanante.getId(),
+                    "Acompañante"
+                );
+            }
+        }
 
         if (ok) {
             if (!correo.isEmpty()) {
@@ -978,8 +1293,16 @@ public class NuevaReservaDialog extends JDialog {
             if (desde.equals(hoy)) {
                 for (Habitacion habitacion : habitacionesSeleccionadas) {
                     habitacionDAO.actualizarEstado(habitacion.getId(), "Ocupada");
-                    HistorialDAO.registrar("Checkin", "Check-in realizado",
-                        nombre + " realizó check-in en Hab. " + habitacion.getNumero());
+                    HistorialDAO.registrar(
+                        "Checkin",
+                        "Check-in realizado",
+                        nombre + " realizó check-in en Hab. "
+                            + habitacion.getNumero(),
+                        idUsuario,
+                        null,
+                        habitacion.getId(),
+                        null
+                    );
                 }
             }
             String msg = "Reserva creada correctamente.";

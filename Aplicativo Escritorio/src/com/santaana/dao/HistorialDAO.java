@@ -1,12 +1,16 @@
 package com.santaana.dao;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.santaana.db.DatabaseConnection;
 import com.santaana.db.DatabaseException;
 import com.santaana.model.Actividad;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class HistorialDAO {
 
@@ -87,6 +91,62 @@ public class HistorialDAO {
         } catch (SQLException e) {
             throw new DatabaseException("buscar en historial", e);
         }
+        return lista;
+    }
+    public List<Actividad> buscarConClientes(String texto, String desde, String hasta) {
+        List<Actividad> lista = new ArrayList<>();
+
+        String sql =
+            "SELECT h.id, h.tipo, h.titulo, " +
+            "       h.descripcion, h.fecha_hora, " +
+            "       GROUP_CONCAT(c.nombre || ' (' || rc.tipo_persona || ')') AS personas " +
+            "FROM historial h " +
+            "LEFT JOIN reserva_clientes rc ON h.id_reserva = rc.id_reserva " +
+            "LEFT JOIN clientes c ON rc.id_cliente = c.id " +
+            "WHERE 1=1 ";
+
+        boolean hayTexto = texto != null && !texto.isEmpty();
+        boolean hayDesde = desde != null && !desde.isEmpty();
+        boolean hayHasta = hasta != null && !hasta.isEmpty();
+
+        if (hayTexto) sql += " AND (h.titulo LIKE ? OR h.descripcion LIKE ?) ";
+        if (hayDesde) sql += " AND DATE(h.fecha_hora) >= ? ";
+        if (hayHasta) sql += " AND DATE(h.fecha_hora) <= ? ";
+
+        sql += " GROUP BY h.id ORDER BY h.fecha_hora DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            int i = 1;
+
+            if (hayTexto) {
+                String like = "%" + texto + "%";
+                ps.setString(i++, like);
+                ps.setString(i++, like);
+            }
+            if (hayDesde) ps.setString(i++, desde);
+            if (hayHasta) ps.setString(i++, hasta);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                String personas = rs.getString("personas");
+
+                lista.add(new Actividad(
+                    rs.getInt("id"),
+                    rs.getString("tipo"),
+                    rs.getString("titulo"),
+                    rs.getString("descripcion") +
+                    (personas != null ? " | Personas: " + personas : ""),
+                    rs.getString("fecha_hora")
+                ));
+            }
+
+        } catch (SQLException e) {
+            throw new DatabaseException("buscar con clientes", e);
+        }
+
         return lista;
     }
 }
