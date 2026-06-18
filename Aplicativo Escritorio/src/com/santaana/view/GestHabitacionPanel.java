@@ -92,6 +92,15 @@ public class GestHabitacionPanel extends JPanel {
                 double p = Double.parseDouble(precio.getText().trim());
                 double pb = Double.parseDouble(precioBloque.getText().trim());
                 String numStr  = numero.getText().trim();
+                if (!numStr.matches("\\d+")) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "El número de habitación solo puede contener números.",
+                        "Dato inválido",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
                 String tipoStr = (String) tipo.getSelectedItem();
                 try {
                     boolean ok = habitacionDAO.agregar(numStr, tipoStr, p, pb);

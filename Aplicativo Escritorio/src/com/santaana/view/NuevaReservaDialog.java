@@ -20,6 +20,7 @@ import com.santaana.dao.ReservaDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
+import com.santaana.util.EmailService;
 
 public class NuevaReservaDialog extends JDialog {
 
@@ -752,7 +753,7 @@ public class NuevaReservaDialog extends JDialog {
                         (noches > 0 ? "  (" + noches + " noche" + (noches > 1 ? "s" : "") + ")" : ""));
                 break;
             case "Indefinido":
-                infoEstadia.setText("Entrada: " + ent + "  |  Salida sin determinar cobro por horas");
+                infoEstadia.setText("Entrada: " + ent + "  |  Salida sin determinar cobro al salir");
                 break;
         }
     }
@@ -808,7 +809,7 @@ public class NuevaReservaDialog extends JDialog {
                 break;
             }
             case "Indefinido":
-                lblTotal.setText("Cobro por horas");
+                lblTotal.setText("Cobro al salir");
                 break;
         }
     }
@@ -829,9 +830,11 @@ public class NuevaReservaDialog extends JDialog {
         String telefono = campoTelefono.getText().trim();
         String correo = campoCorreo.getText().trim();
 
-        if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Identificación, nombre y teléfono son obligatorios.",
-                    "Campos requeridos", JOptionPane.WARNING_MESSAGE);
+       if (doc.isEmpty() || nombre.isEmpty() || telefono.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+            "Identificación, nombre y teléfono son obligatorios.",
+            "Campos requeridos",
+            JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -953,7 +956,29 @@ public class NuevaReservaDialog extends JDialog {
         }
 
         if (ok) {
-            String msg = "Reserva creada correctamente.\nLa habitación se marcará Ocupada al hacer Check-in.";
+            if (!correo.isEmpty()) {
+                EmailService.enviarReserva(
+                        correo,
+                        nombre,
+                        doc,
+                        telefono,
+                        desde,
+                        horaEnt
+                    );
+                }
+            // Solo marcar Ocupada si el check-in es hoy
+            String hoy = formatearFecha(new Date());
+            if (desde.equals(hoy)) {
+                for (Habitacion habitacion : habitacionesSeleccionadas) {
+                    habitacionDAO.actualizarEstado(habitacion.getId(), "Ocupada");
+                    HistorialDAO.registrar("Checkin", "Check-in realizado",
+                        nombre + " realizó check-in en Hab. " + habitacion.getNumero());
+                }
+            }
+            String msg = "Reserva creada correctamente.";
+            if (!desde.equals(hoy)) {
+                msg += "\nLa habitación se marcará Ocupada al hacer Check-in el " + desde + ".";
+            }
             JOptionPane.showMessageDialog(this, msg, "Reserva confirmada", JOptionPane.INFORMATION_MESSAGE);
             dispose();
         } else {

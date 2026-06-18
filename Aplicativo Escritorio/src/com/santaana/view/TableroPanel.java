@@ -323,11 +323,11 @@ public class TableroPanel extends JPanel {
                 || h.getEstado().toLowerCase().contains(filtro))
             .collect(java.util.stream.Collectors.toList());
 
-        // Cargar próximas reservas (check-in futuro) para mostrar en tarjetas
+        // Cargar próximas reservas (check-in de hoy o futuro) para mostrar en tarjetas
         java.util.Map<Integer, com.santaana.model.Reserva> proximas = new java.util.HashMap<>();
         String hoyStr = DateUtil.formatearFecha(new java.util.Date());
         for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
-            if (r.getFechaEntrada().compareTo(hoyStr) >= 0) {
+            if (r.getFechaEntrada().compareTo(hoyStr) >= 0) { // >= incluye reservas de hoy
                 proximas.putIfAbsent(r.getIdHabitacion(), r);
             }
         }
@@ -466,7 +466,7 @@ public class TableroPanel extends JPanel {
                     saldoStr = rActiva.getAnticipo() > 0
                         ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "—";
                 } else {
-                    totalStr = "Cobro por horas";
+                    totalStr = "Cobro por al salir";
                     saldoStr = rActiva.getAnticipo() > 0
                         ? String.format("(Anticipo: $%,.0f)", rActiva.getAnticipo()) : "Pendiente checkout";
                 }

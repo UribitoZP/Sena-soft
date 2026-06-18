@@ -1,5 +1,7 @@
 package com.santaana.view;
 
+import com.toedter.calendar.JDateChooser;
+import java.util.Date;
 import java.awt.*;
 import javax.swing.*;
 import com.santaana.model.Usuario;
@@ -12,6 +14,7 @@ public class UsuarioDialog extends JDialog {
     private JPasswordField campoClave;
     private JTextField campoTelefono;
     private JTextField campoCorreo;
+    private JDateChooser campoFechaNacimiento;
     private JComboBox<String> comboTipo;
     private boolean acepto = false;
 
@@ -99,9 +102,22 @@ public class UsuarioDialog extends JDialog {
 
         c.gridy = 10;
         c.insets = new Insets(8, 0, 6, 0);
-        form.add(label("Rol"), c);
+        form.add(label("Fecha de nacimiento"), c);
+
         c.insets = new Insets(0, 0, 6, 0);
         c.gridy = 11;
+
+        campoFechaNacimiento = new JDateChooser();
+        campoFechaNacimiento.setDateFormatString("dd/MM/yyyy");
+        campoFechaNacimiento.setPreferredSize(new Dimension(0, 36));
+
+        form.add(campoFechaNacimiento, c);
+
+        c.gridy = 12;
+        c.insets = new Insets(8, 0, 6, 0);
+        form.add(label("Rol"), c);
+        c.insets = new Insets(0, 0, 6, 0);
+        c.gridy = 13;
         comboTipo = new JComboBox<>(new String[]{"Administrador", "Recepcionista"});
         comboTipo.setPreferredSize(new Dimension(0, 36));
         comboTipo.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -144,16 +160,24 @@ public class UsuarioDialog extends JDialog {
         String usuario = campoUsuario.getText().trim();
         String clave = new String(campoClave.getPassword()).trim();
         String rol = (String) comboTipo.getSelectedItem();
+        Date fechaNacimiento = campoFechaNacimiento.getDate();
 
         boolean editando = getTitle().equals("Editar usuario");
         if (editando && clave.isEmpty()) {
             // En edición la contraseña es opcional (se conserva la actual)
-        } else if (nombre.isEmpty() || usuario.isEmpty() || clave.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                    "Nombre, usuario y contraseña son obligatorios.",
-                    "Campos requeridos", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        } else if (nombre.isEmpty()
+        || usuario.isEmpty()
+        || clave.isEmpty()
+        || campoCorreo.getText().trim().isEmpty()
+        || fechaNacimiento == null) {
+
+    JOptionPane.showMessageDialog(this,
+        "Nombre, usuario, contraseña, correo y fecha de nacimiento son obligatorios.",
+        "Campos requeridos",
+        JOptionPane.WARNING_MESSAGE);
+
+    return;
+}
         acepto = true;
         dispose();
     }
@@ -164,6 +188,7 @@ public class UsuarioDialog extends JDialog {
     public String getClaveValue()       { return new String(campoClave.getPassword()).trim(); }
     public String getTelefonoValue()   { return campoTelefono.getText().trim(); }
     public String getCorreoValue()     { return campoCorreo.getText().trim(); }
+    public Date getFechaNacimientoValue() {    return campoFechaNacimiento.getDate();}
     public String getRolValue()         { return (String) comboTipo.getSelectedItem(); }
 
     private JLabel label(String txt) {
