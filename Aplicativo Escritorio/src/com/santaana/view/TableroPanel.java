@@ -856,7 +856,8 @@ public class TableroPanel extends JPanel {
                 HistorialDAO.registrar("Pago", "Abono registrado",
                     r.getClienteNombre() + " abonó $" + String.format("%,.0f", monto) + " en Hab. " + h.getNumero());
                 JOptionPane.showMessageDialog(dlg,
-                    "<html>Pago registrado.<br>Total pagado: <b>$" + String.format("%,.0f", nuevo) + "</b></html>",
+                    "<html>Abono registrado.<br>Monto abonado hoy: <b>$" + String.format("%,.0f", monto) + "</b><br>"
+                    + "Total abonado acumulado: <b>$" + String.format("%,.0f", nuevo) + "</b></html>",
                     "Pago exitoso", JOptionPane.INFORMATION_MESSAGE);
                 dlg.dispose();
                 if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
@@ -938,14 +939,22 @@ public class TableroPanel extends JPanel {
         // Finalizar: calcula total con CobroService y persiste en BD
         CobroService.finalizarReserva(reservaActiva.getId(), total);
 
+        double anticipo = reservaActiva.getAnticipo();
+        double cobradoHoy = Math.max(0, total - anticipo);
+
         habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
         HistorialDAO.registrar("Checkout", "Check-out completado",
             cliente + " realizó check-out de Hab. " + h.getNumero()
-            + " - Total: $" + String.format("%,.0f", total));
+            + " - Total estadía: $" + String.format("%,.0f", total)
+            + " | Abonado: $" + String.format("%,.0f", anticipo)
+            + " | Cobrado hoy: $" + String.format("%,.0f", cobradoHoy));
 
         JOptionPane.showMessageDialog(this,
-            "<html>Checkout realizado.<br>Total cobrado: <b>$" + String.format("%,.0f", total)
-            + "</b><br>Habitación " + h.getNumero() + " en <b>Limpieza</b>.</html>",
+            "<html>Checkout realizado.<br>"
+            + "Total estadía: <b>$" + String.format("%,.0f", total) + "</b><br>"
+            + "Total abonado: <b>$" + String.format("%,.0f", anticipo) + "</b><br>"
+            + "Saldo cobrado hoy: <b>$" + String.format("%,.0f", cobradoHoy) + "</b><br><br>"
+            + "Habitación " + h.getNumero() + " en <b>Limpieza</b>.</html>",
             "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
 
         if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
