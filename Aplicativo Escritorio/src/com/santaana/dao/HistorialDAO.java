@@ -30,6 +30,9 @@ public class HistorialDAO {
     public static void registrar(String tipo, String titulo, String descripcion,
                                   Integer idUsuario, Integer idReserva,
                                   Integer idHabitacion, Integer idProducto) {
+        // 0 no es un idUsuario válido; convertirlo a NULL evita violación de FK
+        if (idUsuario != null && idUsuario == 0) idUsuario = null;
+
         String sql = "INSERT INTO historial (tipo, titulo, descripcion, id_usuario, id_reserva, id_habitacion, id_producto) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.getConnection();
