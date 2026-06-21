@@ -196,13 +196,6 @@ public class SchemaManager {
             if (idxRs.next()) tieneIdxFechaEntrada = true;
             idxRs.close();
             if (!tieneIdxFechaEntrada) {
-                stmt.executeUpdate("CREATE INDEX idx_reservas_fecha_entrada ON reservas(fecha_entrada)");
-                stmt.executeUpdate("CREATE INDEX idx_reservas_id_habitacion ON reservas(id_habitacion)");
-                stmt.executeUpdate("CREATE INDEX idx_reservas_estado ON reservas(estado)");
-                stmt.executeUpdate("CREATE INDEX idx_historial_fecha_hora ON historial(fecha_hora)");
-                stmt.executeUpdate("CREATE INDEX idx_historial_tipo ON historial(tipo)");
-                stmt.executeUpdate("CREATE INDEX idx_reserva_clientes_id_reserva ON reserva_clientes(id_reserva)");
-                stmt.executeUpdate("CREATE INDEX idx_reserva_productos_id_reserva ON reserva_productos(id_reserva)");
                 System.out.println("Migración v10: índices de rendimiento creados.");
             }
 
@@ -376,6 +369,15 @@ public class SchemaManager {
                 stmt.executeUpdate("ALTER TABLE historial_v2 RENAME TO historial");
                 System.out.println("Migración v11: id_usuario DEFAULT 0 cambiado a NULL en historial.");
             }
+
+            // Garantizar que todos los índices existan (idempotente después de recreaciones de tablas)
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_reservas_fecha_entrada ON reservas(fecha_entrada)");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_reservas_id_habitacion ON reservas(id_habitacion)");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_reservas_estado ON reservas(estado)");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_historial_fecha_hora ON historial(fecha_hora)");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_historial_tipo ON historial(tipo)");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_reserva_clientes_id_reserva ON reserva_clientes(id_reserva)");
+            stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_reserva_productos_id_reserva ON reserva_productos(id_reserva)");
 
             // Reactivar validación de FK para el resto de la aplicación
             stmt.executeUpdate("PRAGMA foreign_keys = ON");
