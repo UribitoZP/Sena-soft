@@ -10,7 +10,7 @@ import com.santaana.util.PasswordUtil;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 10;
+    private static final int SCHEMA_VERSION = 11;
 
     public static void inicializar() {
         Connection conn = null;
@@ -18,6 +18,8 @@ public class SchemaManager {
         try {
             conn = DatabaseConnection.getConnection();
             stmt = conn.createStatement();
+            // Desactivar FK temporalmente para permitir DROP TABLE en migraciones
+            stmt.executeUpdate("PRAGMA foreign_keys = OFF");
 
             int version = 0;
             ResultSet rv = stmt.executeQuery("PRAGMA user_version");
@@ -302,7 +304,82 @@ public class SchemaManager {
                 System.out.println("Migración v9: columna total_pagar añadida y CHECK actualizado en reservas.");
             }
 
-            System.out.println("Esquema v10 listo.");
+            // v11: CHECK de fecha ISO en reservas
+            boolean tieneCheckFecha = false;
+            ResultSet v11a = stmt.executeQuery("SELECT sql FROM sqlite_master WHERE type='table' AND name='reservas'");
+            if (v11a.next()) {
+                String ddl = v11a.getString("sql");
+                if (ddl != null && ddl.contains("IS date(fecha_entrada)")) tieneCheckFecha = true;
+            }
+            v11a.close();
+            if (!tieneCheckFecha) {
+                stmt.executeUpdate(
+                    "CREATE TABLE reservas_v4 (" +
+                    "  id              INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "  id_habitacion   INTEGER NOT NULL REFERENCES habitaciones(id)," +
+                    "  id_usuario      INTEGER NOT NULL REFERENCES usuarios(id)," +
+                    "  id_cliente      INTEGER NOT NULL REFERENCES clientes(id)," +
+                    "  fecha_entrada   TEXT    NOT NULL CHECK(fecha_entrada IS date(fecha_entrada))," +
+                    "  hora_entrada    TEXT    DEFAULT '12:00'," +
+                    "  fecha_salida    TEXT    CHECK(fecha_salida IS date(fecha_salida))," +
+                    "  hora_salida     TEXT    DEFAULT '12:00'," +
+                    "  tipo_estadia    TEXT    DEFAULT 'Noche'," +
+                    "  anticipo        REAL    DEFAULT 0," +
+                    "  total_pagar     REAL    DEFAULT 0," +
+                    "  estado          TEXT    NOT NULL DEFAULT 'Activa' " +
+                    "       CHECK(estado IN ('Activa','Completada','Cancelada','Finalizada'))" +
+                    ")"
+                );
+                stmt.executeUpdate(
+                    "INSERT INTO reservas_v4 " +
+                    "SELECT id, id_habitacion, id_usuario, id_cliente, " +
+                    "       fecha_entrada, hora_entrada, fecha_salida, hora_salida, " +
+                    "       tipo_estadia, anticipo, total_pagar, estado " +
+                    "FROM reservas"
+                );
+                stmt.executeUpdate("DROP TABLE reservas");
+                stmt.executeUpdate("ALTER TABLE reservas_v4 RENAME TO reservas");
+                System.out.println("Migración v11: CHECK de formato ISO añadido a fechas en reservas.");
+            }
+
+            // v11: id_usuario DEFAULT 0 → NULL en historial
+            boolean tieneDefaultNull = true;
+            ResultSet v11b = stmt.executeQuery("PRAGMA table_info(historial)");
+            while (v11b.next()) if ("id_usuario".equals(v11b.getString("name"))) {
+                String dflt = v11b.getString("dflt_value");
+                if ("0".equals(dflt) || "0".equals(dflt != null ? dflt.trim() : "")) {
+                    tieneDefaultNull = false;
+                }
+            }
+            v11b.close();
+            if (!tieneDefaultNull) {
+                stmt.executeUpdate(
+                    "CREATE TABLE historial_v2 (" +
+                    "  id            INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "  tipo          TEXT    NOT NULL," +
+                    "  titulo        TEXT    NOT NULL," +
+                    "  descripcion   TEXT    NOT NULL," +
+                    "  fecha_hora    TEXT    NOT NULL DEFAULT (datetime('now','localtime'))," +
+                    "  id_usuario    INTEGER DEFAULT NULL REFERENCES usuarios(id)," +
+                    "  id_reserva    INTEGER DEFAULT NULL REFERENCES reservas(id)," +
+                    "  id_habitacion INTEGER DEFAULT NULL REFERENCES habitaciones(id)," +
+                    "  id_producto   INTEGER DEFAULT NULL REFERENCES productos(id)" +
+                    ")"
+                );
+                stmt.executeUpdate(
+                    "INSERT INTO historial_v2 " +
+                    "SELECT id, tipo, titulo, descripcion, fecha_hora, " +
+                    "       NULLIF(id_usuario, 0), id_reserva, id_habitacion, id_producto " +
+                    "FROM historial"
+                );
+                stmt.executeUpdate("DROP TABLE historial");
+                stmt.executeUpdate("ALTER TABLE historial_v2 RENAME TO historial");
+                System.out.println("Migración v11: id_usuario DEFAULT 0 cambiado a NULL en historial.");
+            }
+
+            // Reactivar validación de FK para el resto de la aplicación
+            stmt.executeUpdate("PRAGMA foreign_keys = ON");
+            System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
 
         } catch (SQLException e) {
             System.err.println("Error inicializando esquema: " + e.getMessage());

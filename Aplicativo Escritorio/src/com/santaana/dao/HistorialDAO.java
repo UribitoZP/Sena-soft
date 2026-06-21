@@ -20,15 +20,15 @@ public class HistorialDAO {
     public static void resetPendingCount() { pendingCount = 0; }
 
     public static void registrar(String tipo, String titulo, String descripcion) {
-        registrar(tipo, titulo, descripcion, 0, null, null, null);
+        registrar(tipo, titulo, descripcion, null, null, null, null);
     }
 
-    public static void registrar(String tipo, String titulo, String descripcion, int idUsuario) {
+    public static void registrar(String tipo, String titulo, String descripcion, Integer idUsuario) {
         registrar(tipo, titulo, descripcion, idUsuario, null, null, null);
     }
 
     public static void registrar(String tipo, String titulo, String descripcion,
-                                  int idUsuario, Integer idReserva,
+                                  Integer idUsuario, Integer idReserva,
                                   Integer idHabitacion, Integer idProducto) {
         String sql = "INSERT INTO historial (tipo, titulo, descripcion, id_usuario, id_reserva, id_habitacion, id_producto) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -37,7 +37,7 @@ public class HistorialDAO {
             ps.setString(1, tipo);
             ps.setString(2, titulo);
             ps.setString(3, descripcion);
-            ps.setInt   (4, idUsuario);
+            if (idUsuario != null)     ps.setInt(4, idUsuario);     else ps.setNull(4, Types.INTEGER);
             if (idReserva != null)     ps.setInt(5, idReserva);     else ps.setNull(5, Types.INTEGER);
             if (idHabitacion != null)  ps.setInt(6, idHabitacion);  else ps.setNull(6, Types.INTEGER);
             if (idProducto != null)    ps.setInt(7, idProducto);    else ps.setNull(7, Types.INTEGER);
