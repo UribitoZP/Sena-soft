@@ -54,6 +54,15 @@ No se modificó por ser un cambio que requiere ajustes en la capa de UI/validaci
 ### 11. Falta `UNIQUE(id_reserva, id_cliente)` en `reserva_clientes`
 **Fix:** Migración v10 recrea la tabla con `UNIQUE(id_reserva, id_cliente)`.
 
+### 12. Fechas sin validación de formato ISO
+**Fix:** Migración v11 agrega `CHECK(fecha_entrada IS date(fecha_entrada))` y `CHECK(fecha_salida IS date(fecha_salida))` en `reservas`. Usa el operador `IS` de SQLite que valida correctamente incluso con NULLs.
+
+### 13. `historial.id_usuario` con `DEFAULT 0` en vez de NULL
+**Fix:** Migración v11 recrea `historial` con `DEFAULT NULL`. Además `HistorialDAO` cambió el parámetro `int idUsuario` a `Integer` para pasar `NULL` en vez de `0` cuando no hay usuario.
+
+### 14. Migraciones fallarían con `PRAGMA foreign_keys = ON`
+**Fix:** Se agregó `PRAGMA foreign_keys = OFF` al inicio de `SchemaManager.inicializar()` y `ON` al final, para que los `DROP TABLE` en migraciones existentes (v6d, v9) no fallen.
+
 ### 💡 Recomendaciones adicionales
 
 ### `ReservaDAO.crear()` sin transacción
