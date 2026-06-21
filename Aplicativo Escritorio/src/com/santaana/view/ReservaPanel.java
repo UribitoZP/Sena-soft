@@ -5,6 +5,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -77,8 +78,12 @@ public class ReservaPanel extends JPanel {
         for (com.santaana.model.Reserva r : reservaDAO.listarTodas()) {
             try {
                 LocalDate entrada = LocalDate.parse(r.getFechaEntrada());
-                LocalDate salida  = LocalDate.parse(r.getFechaSalida());
-                String hab        = numHab.getOrDefault(r.getIdHabitacion(), "Hab ?");
+                String fechaSalidaStr = r.getFechaSalida();
+                boolean esIndefinido = "Indefinido".equals(r.getTipoEstadia());
+                LocalDate salida = (fechaSalidaStr != null && !fechaSalidaStr.isEmpty())
+                    ? LocalDate.parse(fechaSalidaStr)
+                    : (esIndefinido ? entrada.plusYears(10) : entrada);
+                String hab = numHab.getOrDefault(r.getIdHabitacion(), "Hab ?");
 
                 Color color;
                 switch (r.getEstado()) {
@@ -878,10 +883,42 @@ public class ReservaPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Formato de fecha inválido. Use yyyy-MM-dd.", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            reservaDAO.actualizar(idReserva, fechaEnt, txtHoraEnt.getText().trim(),
-                fechaSal, txtHoraSal.getText().trim(),
-                (String) cbEstado.getSelectedItem(),
-                Double.parseDouble(txtAnticipo.getText().trim()));
+
+            double nuevoAnticipo = Double.parseDouble(txtAnticipo.getText().trim());
+            String nuevaHoraEnt = txtHoraEnt.getText().trim();
+            String nuevaHoraSal = txtHoraSal.getText().trim();
+            String nuevoEstado = (String) cbEstado.getSelectedItem();
+
+            // Validar que el anticipo no supere el total estimado de la estadía
+            try {
+                com.santaana.model.Reserva full = reservaDAO.buscarPorId(idReserva);
+                if (full != null && "Activa".equals(nuevoEstado)) {
+                    Habitacion hab = habitacionDAO.buscarPorId(full.getIdHabitacion());
+                    if (hab != null && hab.getPrecio() > 0) {
+                        LocalDateTime entradaDT = LocalDateTime.parse(
+                            fechaEnt + " " + (nuevaHoraEnt.isEmpty() ? "12:00" : nuevaHoraEnt),
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                        LocalDateTime salidaDT = "Indefinido".equals(full.getTipoEstadia())
+                            ? LocalDateTime.now()
+                            : LocalDateTime.parse(
+                                fechaSal + " " + (nuevaHoraSal.isEmpty() ? "12:00" : nuevaHoraSal),
+                                java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                        // Si la salida estimada es antes de la entrada, la estadía aún no inicia
+                        if (salidaDT.isBefore(entradaDT)) salidaDT = entradaDT;
+                        double estimado = CobroService.calcularTotal(entradaDT, salidaDT, hab);
+                        if (estimado > 0 && nuevoAnticipo > estimado) {
+                            JOptionPane.showMessageDialog(this,
+                                "El anticipo ($" + String.format("%,.0f", nuevoAnticipo)
+                                + ") supera el total estimado ($" + String.format("%,.0f", estimado) + ").",
+                                "Anticipo inválido", JOptionPane.WARNING_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+
+            reservaDAO.actualizar(idReserva, fechaEnt, nuevaHoraEnt,
+                fechaSal, nuevaHoraSal, nuevoEstado, nuevoAnticipo);
 
             HistorialDAO.registrar("Actualizacion", "Reserva actualizada",
                 "Reserva #" + r.id + " de " + r.huesped + " fue actualizada",
