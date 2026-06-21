@@ -78,8 +78,12 @@ public class ReservaPanel extends JPanel {
         for (com.santaana.model.Reserva r : reservaDAO.listarTodas()) {
             try {
                 LocalDate entrada = LocalDate.parse(r.getFechaEntrada());
-                LocalDate salida  = LocalDate.parse(r.getFechaSalida());
-                String hab        = numHab.getOrDefault(r.getIdHabitacion(), "Hab ?");
+                String fechaSalidaStr = r.getFechaSalida();
+                boolean esIndefinido = "Indefinido".equals(r.getTipoEstadia());
+                LocalDate salida = (fechaSalidaStr != null && !fechaSalidaStr.isEmpty())
+                    ? LocalDate.parse(fechaSalidaStr)
+                    : (esIndefinido ? entrada.plusYears(10) : entrada);
+                String hab = numHab.getOrDefault(r.getIdHabitacion(), "Hab ?");
 
                 Color color;
                 switch (r.getEstado()) {
