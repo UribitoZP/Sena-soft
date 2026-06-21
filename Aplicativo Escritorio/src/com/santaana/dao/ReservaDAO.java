@@ -40,7 +40,7 @@ public class ReservaDAO {
             FROM reservas r
             JOIN habitaciones h ON r.id_habitacion = h.id
             JOIN clientes c ON r.id_cliente = c.id
-            WHERE r.estado = 'ACTIVA'
+            WHERE r.estado = 'Activa'
         """;
         try (Connection conn = DatabaseConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
@@ -93,37 +93,43 @@ public class ReservaDAO {
 
         String sql = "INSERT INTO reservas (id_habitacion, id_usuario, id_cliente, fecha_entrada, hora_entrada, fecha_salida, hora_salida, tipo_estadia, anticipo) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, idHabitacion);
-            ps.setInt(2, idUsuario);
-            ps.setInt(3, idCliente);
-            ps.setString(4, fechaEntrada);
-            ps.setString(5, horaEntrada);
-            ps.setString(6, fechaSalida);
-            ps.setString(7, horaSalida);
-            ps.setString(8, tipoEstadia);
-            ps.setDouble(9, anticipo);
-            int filas = ps.executeUpdate();
-            if (filas > 0) {
-                ResultSet rs = ps.getGeneratedKeys();
-                if (rs.next()) {
-                    int idReserva = rs.getInt(1);
-                    String sqlRelacion =
-                        "INSERT INTO reserva_clientes " +
-                        "(id_reserva, id_cliente, tipo_persona) " +
-                        "VALUES (?, ?, ?)";
-                    try (PreparedStatement rel = conn.prepareStatement(sqlRelacion)) {       
-                            rel.setInt(1, idReserva);
-                            rel.setInt(2, idCliente);
-                            rel.setString(3, "Titular");
-                            rel.executeUpdate();
-                        }
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setInt(1, idHabitacion);
+                ps.setInt(2, idUsuario);
+                ps.setInt(3, idCliente);
+                ps.setString(4, fechaEntrada);
+                ps.setString(5, horaEntrada);
+                ps.setString(6, fechaSalida);
+                ps.setString(7, horaSalida);
+                ps.setString(8, tipoEstadia);
+                ps.setDouble(9, anticipo);
+                int filas = ps.executeUpdate();
+                if (filas > 0) {
+                    ResultSet rs = ps.getGeneratedKeys();
+                    if (rs.next()) {
+                        int idReserva = rs.getInt(1);
+                        String sqlRelacion =
+                            "INSERT INTO reserva_clientes " +
+                            "(id_reserva, id_cliente, tipo_persona) " +
+                            "VALUES (?, ?, ?)";
+                        try (PreparedStatement rel = conn.prepareStatement(sqlRelacion)) {       
+                                rel.setInt(1, idReserva);
+                                rel.setInt(2, idCliente);
+                                rel.setString(3, "Titular");
+                                rel.executeUpdate();
+                            }
+                    }
+                    conn.commit();
+                    return true;
                 }
-                return true;
+                conn.rollback();
+                return false;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw new DatabaseException("crear reserva", e);
             }
-
-            return false;
         } catch (SQLException e) {
             throw new DatabaseException("crear reserva", e);
         }

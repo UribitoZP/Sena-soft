@@ -44,6 +44,7 @@ public class DatabaseConnection {
             try {
                 Class.forName("org.sqlite.JDBC");
                 instance = DriverManager.getConnection(DB_URL);
+                instance.createStatement().execute("PRAGMA foreign_keys = ON");
                 instance.setAutoCommit(true);
             } catch (ClassNotFoundException e) {
                 throw new SQLException("Driver SQLite no encontrado", e);

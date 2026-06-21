@@ -10,7 +10,7 @@ import com.santaana.util.PasswordUtil;
 
 public class SchemaManager {
 
-    private static final int SCHEMA_VERSION = 9;
+    private static final int SCHEMA_VERSION = 10;
 
     public static void inicializar() {
         Connection conn = null;
@@ -188,6 +188,86 @@ public class SchemaManager {
                 System.out.println("Migración v9: columna precio_bloque añadida a habitaciones.");
             }
 
+            // v10: índices de rendimiento
+            boolean tieneIdxFechaEntrada = false;
+            ResultSet idxRs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='index' AND name='idx_reservas_fecha_entrada'");
+            if (idxRs.next()) tieneIdxFechaEntrada = true;
+            idxRs.close();
+            if (!tieneIdxFechaEntrada) {
+                stmt.executeUpdate("CREATE INDEX idx_reservas_fecha_entrada ON reservas(fecha_entrada)");
+                stmt.executeUpdate("CREATE INDEX idx_reservas_id_habitacion ON reservas(id_habitacion)");
+                stmt.executeUpdate("CREATE INDEX idx_reservas_estado ON reservas(estado)");
+                stmt.executeUpdate("CREATE INDEX idx_historial_fecha_hora ON historial(fecha_hora)");
+                stmt.executeUpdate("CREATE INDEX idx_historial_tipo ON historial(tipo)");
+                stmt.executeUpdate("CREATE INDEX idx_reserva_clientes_id_reserva ON reserva_clientes(id_reserva)");
+                stmt.executeUpdate("CREATE INDEX idx_reserva_productos_id_reserva ON reserva_productos(id_reserva)");
+                System.out.println("Migración v10: índices de rendimiento creados.");
+            }
+
+            // v10: CHECK en reserva_clientes.tipo_persona y UNIQUE(id_reserva, id_cliente)
+            boolean tieneCheckTipoPersona = false;
+            ResultSet crc = stmt.executeQuery("PRAGMA table_info(reserva_clientes)");
+            while (crc.next()) if ("tipo_persona".equals(crc.getString("name"))) {
+                String dflt = crc.getString("dflt_value");
+                String colType = crc.getString("type");
+                if ("TEXT".equalsIgnoreCase(colType != null ? colType : "")) {
+                    tieneCheckTipoPersona = true;
+                }
+            }
+            crc.close();
+
+            if (!tieneCheckTipoPersona || !tieneIdxFechaEntrada) {
+                // Recrear reserva_clientes con CHECK y UNIQUE
+                stmt.executeUpdate(
+                    "CREATE TABLE reserva_clientes_v2 (" +
+                    "  id           INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "  id_reserva   INTEGER NOT NULL REFERENCES reservas(id) ON DELETE CASCADE," +
+                    "  id_cliente   INTEGER NOT NULL REFERENCES clientes(id) ON DELETE CASCADE," +
+                    "  tipo_persona TEXT NOT NULL CHECK(tipo_persona IN ('Titular','Acompanante'))," +
+                    "  UNIQUE(id_reserva, id_cliente)" +
+                    ")"
+                );
+                stmt.executeUpdate(
+                    "INSERT INTO reserva_clientes_v2 " +
+                    "SELECT id, id_reserva, id_cliente, tipo_persona FROM reserva_clientes"
+                );
+                stmt.executeUpdate("DROP TABLE reserva_clientes");
+                stmt.executeUpdate("ALTER TABLE reserva_clientes_v2 RENAME TO reserva_clientes");
+                System.out.println("Migración v10: CHECK y UNIQUE añadidos a reserva_clientes.");
+            }
+
+            // v10: CHECK en habitaciones.tipo
+            boolean tieneCheckTipoHabitacion = false;
+            ResultSet cht = stmt.executeQuery("PRAGMA table_info(habitaciones)");
+            while (cht.next()) if ("tipo".equals(cht.getString("name"))) {
+                String dflt = cht.getString("dflt_value");
+                if (dflt == null || !dflt.contains("'Simple'")) {
+                    tieneCheckTipoHabitacion = true;
+                }
+            }
+            cht.close();
+
+            if (!tieneCheckTipoHabitacion) {
+                stmt.executeUpdate(
+                    "CREATE TABLE habitaciones_v2 (" +
+                    "  id            INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "  numero        TEXT    NOT NULL UNIQUE," +
+                    "  tipo          TEXT    NOT NULL CHECK(tipo IN ('Simple','Doble','Suite'))," +
+                    "  precio        REAL    NOT NULL," +
+                    "  precio_bloque REAL    NOT NULL DEFAULT 0," +
+                    "  estado        TEXT    NOT NULL DEFAULT 'Disponible'" +
+                    "       CHECK(estado IN ('Disponible','Ocupada','Mantenimiento','Limpieza'))" +
+                    ")"
+                );
+                stmt.executeUpdate(
+                    "INSERT INTO habitaciones_v2 " +
+                    "SELECT id, numero, tipo, precio, COALESCE(precio_bloque, 0), estado FROM habitaciones"
+                );
+                stmt.executeUpdate("DROP TABLE habitaciones");
+                stmt.executeUpdate("ALTER TABLE habitaciones_v2 RENAME TO habitaciones");
+                System.out.println("Migración v10: CHECK en tipo añadido a habitaciones.");
+            }
+
             // v9: total_pagar en reservas y CHECK con 'Finalizada'
             boolean tieneTotalPagar = false;
             ResultSet ctp = stmt.executeQuery("PRAGMA table_info(reservas)");
@@ -222,7 +302,7 @@ public class SchemaManager {
                 System.out.println("Migración v9: columna total_pagar añadida y CHECK actualizado en reservas.");
             }
 
-            System.out.println("Esquema v" + SCHEMA_VERSION + " listo.");
+            System.out.println("Esquema v10 listo.");
 
         } catch (SQLException e) {
             System.err.println("Error inicializando esquema: " + e.getMessage());
