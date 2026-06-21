@@ -899,8 +899,10 @@ public class ReservaPanel extends JPanel {
                             : LocalDateTime.parse(
                                 fechaSal + " " + (nuevaHoraSal.isEmpty() ? "12:00" : nuevaHoraSal),
                                 java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                        // Si la salida estimada es antes de la entrada, la estadía aún no inicia
+                        if (salidaDT.isBefore(entradaDT)) salidaDT = entradaDT;
                         double estimado = CobroService.calcularTotal(entradaDT, salidaDT, hab);
-                        if (nuevoAnticipo > estimado) {
+                        if (estimado > 0 && nuevoAnticipo > estimado) {
                             JOptionPane.showMessageDialog(this,
                                 "El anticipo ($" + String.format("%,.0f", nuevoAnticipo)
                                 + ") supera el total estimado ($" + String.format("%,.0f", estimado) + ").",
