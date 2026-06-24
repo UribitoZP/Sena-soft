@@ -33,6 +33,7 @@ import com.santaana.dao.ReservaDAO;
 import com.santaana.dao.ReservaProductoDAO;
 import com.santaana.model.Habitacion;
 import com.santaana.model.ReservaProducto;
+import com.santaana.service.CobroService;
 import com.santaana.util.DateUtil;
 import com.santaana.util.ThemeManager;
 
@@ -495,10 +496,36 @@ public class TableroPanel extends JPanel {
                 info.add(Box.createVerticalStrut(5));
                 info.add(filaInfo("Salida:", salida));
                 info.add(Box.createVerticalStrut(5));
+
+                // Valor habitación
+                double valorHabitacion = 0;
+
+                if ("Noche".equals(rActiva.getTipoEstadia())) {
+                    valorHabitacion = totalStr.equals("—")
+                        ? h.getPrecio()
+                        : Double.parseDouble(
+                            totalStr.replace("$", "")
+                                    .replace(".", "")
+                                    .replace(",", "")
+                        );
+                    valorHabitacion -= montoProductos;
+                }
+
+                info.add(filaInfo(
+                    "Habitación:",
+                    String.format("$%,.0f", valorHabitacion)
+                ));
+                info.add(Box.createVerticalStrut(5));
+
+                // Productos
                 if (montoProductos > 0) {
-                    info.add(filaInfo("Productos:", String.format("$%,.0f", montoProductos)));
+                    info.add(filaInfo(
+                        "Productos:",
+                        String.format("$%,.0f", montoProductos)
+                    ));
                     info.add(Box.createVerticalStrut(5));
                 }
+
                 info.add(filaInfo("Total:", totalStr));
                 info.add(Box.createVerticalStrut(5));
                 info.add(filaInfo("Anticipo:", String.format("$%,.0f", rActiva.getAnticipo())));
@@ -610,6 +637,8 @@ public class TableroPanel extends JPanel {
         // Ajustar tamaño según contenido
         dialog.setSize(h.getEstado().equals("Ocupada") ? 360 : 320,
                        h.getEstado().equals("Ocupada") ? 470 : 260);
+
+        dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
 
@@ -898,11 +927,33 @@ public class TableroPanel extends JPanel {
         String infoSaldo = "";
         if (reservaActiva != null && "Noche".equals(reservaActiva.getTipoEstadia())) {
             try {
-                long dias = java.time.LocalDate.parse(reservaActiva.getFechaSalida()).toEpochDay()
-                          - java.time.LocalDate.parse(reservaActiva.getFechaEntrada()).toEpochDay();
-                if (dias < 1) dias = 1;
-                double total  = dias * h.getPrecio();
-                double saldo  = total - reservaActiva.getAnticipo();
+                java.time.LocalDateTime entrada = java.time.LocalDateTime.parse(
+                    reservaActiva.getFechaEntrada() + " " + reservaActiva.getHoraEntrada(),
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                );
+                java.time.LocalDateTime salida;
+                if ("Indefinido".equals(reservaActiva.getTipoEstadia())) {
+                    salida = java.time.LocalDateTime.now();
+                } else {
+                    salida = java.time.LocalDateTime.parse(
+                        reservaActiva.getFechaSalida() + " " + reservaActiva.getHoraSalida(),
+                        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                    );
+                }
+                double totalHabitacion = CobroService.calcularTotal(
+                    entrada,
+                    salida,
+                    h
+                );
+                double totalProductos = 0;
+                for (ReservaProducto rp : reservaProductoDAO.listarPorReserva(reservaActiva.getId())) {
+                    totalProductos += rp.getCantidad() * rp.getPrecio();
+                }
+                double total = totalHabitacion + totalProductos;
+                double saldo = Math.max(
+                    0,
+                    total - reservaActiva.getAnticipo()
+                );
                 infoSaldo = String.format(
                     "<br><b>Total:</b> $%,.0f  |  <b>Anticipo:</b> $%,.0f  |  <b>Saldo:</b> $%,.0f",
                     total, reservaActiva.getAnticipo(), saldo);
