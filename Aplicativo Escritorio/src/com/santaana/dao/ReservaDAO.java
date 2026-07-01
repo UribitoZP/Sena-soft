@@ -203,10 +203,12 @@ public class ReservaDAO {
 
     public Reserva buscarActivaPorHabitacion(int idHabitacion) {
         String sql = "SELECT r.*, c.nombre AS cliente_nombre, c.documento AS cliente_doc " +
-                     "FROM reservas r " +
-                     "LEFT JOIN clientes c ON r.id_cliente = c.id " +
-                     "WHERE r.id_habitacion = ? AND r.estado = 'Activa'" +
-                     " AND r.fecha_entrada <= date('now') LIMIT 1";
+             "FROM reservas r " +
+             "LEFT JOIN clientes c ON r.id_cliente = c.id " +
+             "WHERE r.id_habitacion = ? " +
+             "AND r.estado = 'Activa' " +
+             "ORDER BY r.id DESC " +
+             "LIMIT 1";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idHabitacion);
@@ -285,9 +287,9 @@ public class ReservaDAO {
                 c.documento,
                 c.telefono,
                 c.correo,
-                MAX(r.id_habitacion),
-                MAX(r.fecha_entrada),
-                MAX(r.fecha_salida),
+                r.id_habitacion,
+                r.fecha_entrada,
+                r.fecha_salida,
                 rc.tipo_persona,
                 (
                     SELECT ct.nombre
@@ -303,8 +305,7 @@ public class ReservaDAO {
                 ON c.id = rc.id_cliente
             INNER JOIN reservas r
                 ON r.id = rc.id_reserva
-            GROUP BY c.id
-            ORDER BY MAX(r.id) DESC
+            ORDER BY r.id DESC
         """;
 
         try (

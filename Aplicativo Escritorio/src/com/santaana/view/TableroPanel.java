@@ -13,8 +13,6 @@ import java.awt.RenderingHints;
 import java.awt.Window;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -117,8 +115,6 @@ public class TableroPanel extends JPanel {
         java.util.List<com.santaana.model.Reserva> vencidas = new java.util.ArrayList<>();
         for (com.santaana.model.Reserva r : reservaDAO.listarActivas()) {
             if ("Indefinido".equals(r.getTipoEstadia())) continue;
-            // Saltar reservas que aun no han iniciado (futuras)
-            if (r.getFechaEntrada().compareTo(java.time.LocalDate.now().toString()) > 0) continue;
             if ((r.getFechaSalida() + " " + r.getHoraSalida()).compareTo(ahora) < 0) vencidas.add(r);
         }
         if (vencidas.isEmpty()) return null;
@@ -425,6 +421,7 @@ public class TableroPanel extends JPanel {
             SwingUtilities.getWindowAncestor(this) instanceof javax.swing.JFrame
                 ? (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this) : null,
             "Habitación " + h.getNumero(), true);
+        dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
         // Header
@@ -499,10 +496,36 @@ public class TableroPanel extends JPanel {
                 info.add(Box.createVerticalStrut(5));
                 info.add(filaInfo("Salida:", salida));
                 info.add(Box.createVerticalStrut(5));
+
+                // Valor habitación
+                double valorHabitacion = 0;
+
+                if ("Noche".equals(rActiva.getTipoEstadia())) {
+                    valorHabitacion = totalStr.equals("—")
+                        ? h.getPrecio()
+                        : Double.parseDouble(
+                            totalStr.replace("$", "")
+                                    .replace(".", "")
+                                    .replace(",", "")
+                        );
+                    valorHabitacion -= montoProductos;
+                }
+
+                info.add(filaInfo(
+                    "Habitación:",
+                    String.format("$%,.0f", valorHabitacion)
+                ));
+                info.add(Box.createVerticalStrut(5));
+
+                // Productos
                 if (montoProductos > 0) {
-                    info.add(filaInfo("Productos:", String.format("$%,.0f", montoProductos)));
+                    info.add(filaInfo(
+                        "Productos:",
+                        String.format("$%,.0f", montoProductos)
+                    ));
                     info.add(Box.createVerticalStrut(5));
                 }
+
                 info.add(filaInfo("Total:", totalStr));
                 info.add(Box.createVerticalStrut(5));
                 info.add(filaInfo("Anticipo:", String.format("$%,.0f", rActiva.getAnticipo())));
@@ -543,12 +566,10 @@ public class TableroPanel extends JPanel {
                 acciones.add(Box.createVerticalStrut(8));
             }
 
-            if (rActiva != null) {
-                JButton btn = crearBoton("Hacer Checkout", new Color(0xE74C3C));
-                btn.addActionListener(e -> { dialog.dispose(); hacerCheckout(h, null); });
-                acciones.add(btn);
-                acciones.add(Box.createVerticalStrut(10));
-            }
+            JButton btn = crearBoton("Hacer Checkout", new Color(0xE74C3C));
+            btn.addActionListener(e -> { dialog.dispose(); hacerCheckout(h, null); });
+            acciones.add(btn);
+            acciones.add(Box.createVerticalStrut(10));
         }
 
         if (h.getEstado().equals("Limpieza")) {
@@ -569,13 +590,6 @@ public class TableroPanel extends JPanel {
                 JButton btnCI = crearBoton("Check-in: " + proximaReserva.getClienteNombre(),
                     new Color(0x27AE60));
                 btnCI.addActionListener(e -> {
-                    // Actualizar fecha de entrada al dia de hoy para que buscarActivaPorHabitacion() lo encuentre
-                    String hoy = DateUtil.formatearFecha(new java.util.Date());
-                    String ahora = DateUtil.formatearHora(new java.util.Date());
-                    reservaDAO.actualizar(proximaReserva.getId(),
-                        hoy, ahora,
-                        proximaReserva.getFechaSalida(), proximaReserva.getHoraSalida(),
-                        proximaReserva.getEstado(), proximaReserva.getAnticipo());
                     habitacionDAO.actualizarEstado(h.getId(), "Ocupada");
                     HistorialDAO.registrar("Checkin", "Check-in realizado",
                         proximaReserva.getClienteNombre() + " realizó check-in en Hab. " + h.getNumero());
@@ -623,7 +637,8 @@ public class TableroPanel extends JPanel {
         // Ajustar tamaño según contenido
         dialog.setSize(h.getEstado().equals("Ocupada") ? 360 : 320,
                        h.getEstado().equals("Ocupada") ? 470 : 260);
-        dialog.setLocationRelativeTo(null);
+
+        dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
 
@@ -760,33 +775,33 @@ public class TableroPanel extends JPanel {
     }
 
     private void mostrarDialogoPago(Habitacion h, com.santaana.model.Reserva r) {
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        double total = 0;
-        boolean totalValido = false;
-        try {
-            LocalDateTime entrada = LocalDateTime.parse(r.getFechaEntrada() + " " + r.getHoraEntrada(), fmt);
-            boolean esIndefinido = "Indefinido".equals(r.getTipoEstadia());
-            LocalDateTime salida;
-            if (esIndefinido) {
-                salida = LocalDateTime.now();
-            } else {
-                String fechaSalida = r.getFechaSalida();
-                String horaSalida = r.getHoraSalida();
-                salida = (fechaSalida != null && !fechaSalida.isEmpty())
-                    ? LocalDateTime.parse(fechaSalida + " " + (horaSalida != null ? horaSalida : "12:00"), fmt)
-                    : LocalDateTime.now();
-            }
-            total = CobroService.calcularTotal(entrada, salida, h);
-            totalValido = true;
-        } catch (Exception ignored) {}
-        double saldo = totalValido ? Math.max(0, total - r.getAnticipo()) : 0;
+        boolean esNoche = "Noche".equals(r.getTipoEstadia());
+
+        double montoProductos = 0;
+        for (ReservaProducto rp : reservaProductoDAO.listarPorReserva(r.getId())) {
+            montoProductos += rp.getCantidad() * rp.getPrecio();
+        }
+
+        double total = montoProductos;
+        if (esNoche) {
+            try {
+                long dias = java.time.LocalDate.parse(r.getFechaSalida()).toEpochDay()
+                          - java.time.LocalDate.parse(r.getFechaEntrada()).toEpochDay();
+                if (dias < 1) dias = 1;
+                total = dias * h.getPrecio() + montoProductos;
+            } catch (Exception ignored) { esNoche = false; }
+        }
+        double saldo = esNoche ? Math.max(0, total - r.getAnticipo()) : Math.max(0, montoProductos - r.getAnticipo());
         double totalFinal = total;
+        boolean esNocheFinal = esNoche;
+        double montoProductosFinal = montoProductos;
 
         javax.swing.JDialog dlg = new javax.swing.JDialog(
             SwingUtilities.getWindowAncestor(this) instanceof javax.swing.JFrame
                 ? (javax.swing.JFrame) SwingUtilities.getWindowAncestor(this) : null,
             "Registrar Pago — Hab. " + h.getNumero(), true);
-        dlg.setSize(360, 310);
+        int altoExtra = montoProductosFinal > 0 ? 30 : 0;
+        dlg.setSize(360, (esNoche ? 310 : 260) + altoExtra);
         dlg.setLocationRelativeTo(this);
         dlg.setLayout(new BorderLayout());
 
@@ -806,11 +821,23 @@ public class TableroPanel extends JPanel {
 
         body.add(filaInfo("Huésped:", r.getClienteNombre()));
         body.add(Box.createVerticalStrut(5));
-        body.add(filaInfo("Total:", String.format("$%,.0f", totalFinal)));
-        body.add(Box.createVerticalStrut(4));
-        body.add(filaInfo("Pagado:", String.format("$%,.0f", r.getAnticipo())));
-        body.add(Box.createVerticalStrut(4));
-        body.add(filaInfo("Saldo:", String.format("$%,.0f", saldo)));
+        if (montoProductosFinal > 0) {
+            body.add(filaInfo("Productos:", String.format("$%,.0f", montoProductosFinal)));
+            body.add(Box.createVerticalStrut(4));
+        }
+        if (esNocheFinal) {
+            body.add(filaInfo("Total:", String.format("$%,.0f", totalFinal)));
+            body.add(Box.createVerticalStrut(4));
+            body.add(filaInfo("Pagado:", String.format("$%,.0f", r.getAnticipo())));
+            body.add(Box.createVerticalStrut(4));
+            body.add(filaInfo("Saldo:", String.format("$%,.0f", saldo)));
+        } else {
+            body.add(filaInfo("Pagado:", String.format("$%,.0f", r.getAnticipo())));
+            if (montoProductosFinal > 0) {
+                body.add(Box.createVerticalStrut(4));
+                body.add(filaInfo("Saldo:", String.format("$%,.0f", saldo)));
+            }
+        }
         body.add(Box.createVerticalStrut(12));
 
         JPanel inputRow = new JPanel(new BorderLayout(8, 0));
@@ -830,7 +857,7 @@ public class TableroPanel extends JPanel {
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
         footer.setBackground(getPanelCol());
 
-        if (saldo > 0) {
+        if (esNocheFinal && saldo > 0) {
             double saldoFinal = saldo;
             JButton btnFull = crearBoton("Pago completo", new Color(0x27AE60));
             btnFull.setPreferredSize(new Dimension(120, 28));
@@ -848,7 +875,7 @@ public class TableroPanel extends JPanel {
                     return;
                 }
                 double nuevo = r.getAnticipo() + monto;
-                if (nuevo > totalFinal) {
+                if (esNocheFinal && nuevo > totalFinal) {
                     JOptionPane.showMessageDialog(dlg, "El monto supera el saldo pendiente.", "Aviso", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
@@ -877,75 +904,89 @@ public class TableroPanel extends JPanel {
 
     private void hacerCheckout(Habitacion h, JPanel card) {
         com.santaana.model.Reserva reservaActiva = reservaDAO.buscarActivaPorHabitacion(h.getId());
-        if (reservaActiva == null) return;
 
-        String cliente = reservaActiva.getClienteNombre();
-        boolean esIndefinido = "Indefinido".equals(reservaActiva.getTipoEstadia());
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String cliente = reservaActiva != null ? reservaActiva.getClienteNombre() : "desconocido";
 
-        // Determinar fecha/hora de entrada y salida
-        LocalDateTime entrada = LocalDateTime.parse(
-            reservaActiva.getFechaEntrada() + " " + reservaActiva.getHoraEntrada(), fmt);
-
-        String horaSalidaStr = reservaActiva.getHoraSalida();
-        LocalDateTime salida;
-        if (esIndefinido) {
-            salida = LocalDateTime.now();
-        } else {
-            salida = LocalDateTime.parse(
-                reservaActiva.getFechaSalida() + " " + (horaSalidaStr != null ? horaSalidaStr : "12:00"), fmt);
+        String infoBilling = "";
+        if (reservaActiva != null && "Indefinido".equals(reservaActiva.getTipoEstadia())) {
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
+                java.util.Date entrada = sdf.parse(
+                    reservaActiva.getFechaEntrada() + " " + reservaActiva.getHoraEntrada());
+                long minutos = (System.currentTimeMillis() - entrada.getTime()) / (1000 * 60);
+                long horas   = minutos / 60;
+                long mins    = minutos % 60;
+                String bloque = horas < 3 ? "3 horas (mínimo)"
+                              : horas < 6 ? "6 horas"
+                              : horas < 12 ? "12 horas"
+                              : "1 noche";
+                infoBilling = "<br><b>Estadía indefinida:</b> " + horas + "h " + mins + "min  →  cobro: " + bloque;
+            } catch (Exception ignored) {}
         }
 
-        // Calcular total con la logica de 3 tramos
-        double total = CobroService.calcularTotal(entrada, salida, h);
-        double saldo = total - reservaActiva.getAnticipo();
-
-        String infoBilling = String.format(
-            "<br><b>Total a pagar:</b> $%,.0f  |  <b>Anticipo:</b> $%,.0f  |  <b>Saldo:</b> $%,.0f",
-            total, reservaActiva.getAnticipo(), saldo);
-
-        // Si hay saldo pendiente, preguntar si desea registrar pago
-        if (saldo > 0) {
-            int opt = JOptionPane.showConfirmDialog(this,
-                "<html>El cliente <b>" + cliente + "</b> tiene un saldo pendiente de "
-                + "<b>$" + String.format("%,.0f", saldo) + "</b>.<br>"
-                + "Debe registrar el pago antes de hacer checkout.<br><br>"
-                + "¿Desea registrar el pago ahora?</html>",
-                "Saldo pendiente", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-            if (opt == JOptionPane.YES_OPTION) {
-                mostrarDialogoPago(h, reservaActiva);
-                return;
-            }
+        String infoSaldo = "";
+        if (reservaActiva != null && "Noche".equals(reservaActiva.getTipoEstadia())) {
+            try {
+                java.time.LocalDateTime entrada = java.time.LocalDateTime.parse(
+                    reservaActiva.getFechaEntrada() + " " + reservaActiva.getHoraEntrada(),
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                );
+                java.time.LocalDateTime salida;
+                if ("Indefinido".equals(reservaActiva.getTipoEstadia())) {
+                    salida = java.time.LocalDateTime.now();
+                } else {
+                    salida = java.time.LocalDateTime.parse(
+                        reservaActiva.getFechaSalida() + " " + reservaActiva.getHoraSalida(),
+                        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                    );
+                }
+                double totalHabitacion = CobroService.calcularTotal(
+                    entrada,
+                    salida,
+                    h
+                );
+                double totalProductos = 0;
+                for (ReservaProducto rp : reservaProductoDAO.listarPorReserva(reservaActiva.getId())) {
+                    totalProductos += rp.getCantidad() * rp.getPrecio();
+                }
+                double total = totalHabitacion + totalProductos;
+                double saldo = Math.max(
+                    0,
+                    total - reservaActiva.getAnticipo()
+                );
+                infoSaldo = String.format(
+                    "<br><b>Total:</b> $%,.0f  |  <b>Anticipo:</b> $%,.0f  |  <b>Saldo:</b> $%,.0f",
+                    total, reservaActiva.getAnticipo(), saldo);
+                if (saldo > 0) {
+                    int opt = JOptionPane.showConfirmDialog(this,
+                        "<html>El cliente <b>" + cliente + "</b> tiene un saldo pendiente de "
+                        + "<b>$" + String.format("%,.0f", saldo) + "</b>.<br>"
+                        + "Debe registrar el pago antes de hacer checkout.<br><br>"
+                        + "¿Desea registrar el pago ahora?</html>",
+                        "Saldo pendiente", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (opt == JOptionPane.YES_OPTION) mostrarDialogoPago(h, reservaActiva);
+                    return;
+                }
+            } catch (Exception ignored) {}
         }
 
         int confirm = JOptionPane.showConfirmDialog(this,
             "<html>¿Confirmar checkout de <b>" + cliente + "</b>?<br>"
             + "Habitación " + h.getNumero() + " pasará a <b>Limpieza</b>."
-            + infoBilling + "</html>",
+            + infoBilling + infoSaldo + "</html>",
             "Confirmar Checkout", JOptionPane.YES_NO_OPTION);
 
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        // Para estadias indefinidas: fijar la fecha de salida actual antes de finalizar
-        if (esIndefinido) {
-            String ahoraStr = salida.format(fmt);
-            String[] partes = ahoraStr.split(" ");
-            reservaDAO.actualizar(reservaActiva.getId(),
-                reservaActiva.getFechaEntrada(), reservaActiva.getHoraEntrada(),
-                partes[0], partes[1], reservaActiva.getEstado(), reservaActiva.getAnticipo());
+        if (reservaActiva != null) {
+            reservaDAO.actualizarEstado(reservaActiva.getId(), "Completada");
         }
-
-        // Finalizar: calcula total con CobroService y persiste en BD
-        CobroService.finalizarReserva(reservaActiva.getId(), total);
-
         habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
         HistorialDAO.registrar("Checkout", "Check-out completado",
-            cliente + " realizó check-out de Hab. " + h.getNumero()
-            + " - Total: $" + String.format("%,.0f", total));
+            cliente + " realizó check-out de Hab. " + h.getNumero());
 
         JOptionPane.showMessageDialog(this,
-            "<html>Checkout realizado.<br>Total cobrado: <b>$" + String.format("%,.0f", total)
-            + "</b><br>Habitación " + h.getNumero() + " en <b>Limpieza</b>.</html>",
+            "<html>Checkout realizado.<br>Habitación " + h.getNumero() + " en <b>Limpieza</b>.</html>",
             "Checkout exitoso", JOptionPane.INFORMATION_MESSAGE);
 
         if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);

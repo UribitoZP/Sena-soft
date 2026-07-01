@@ -1221,31 +1221,6 @@ public class NuevaReservaDialog extends JDialog {
         int idReserva = reservaDAO.obtenerUltimaReserva();
 
         // TITULAR
-        Cliente titular = clienteDAO.buscarPorDocumento(doc);
-
-        if (titular != null) {
-            reservaClienteDAO.guardar(
-                idReserva,
-                titular.getId(),
-                "Titular"
-            );
-        }
-
-        // ACOMPAÑANTE
-        if (!nombreAcomp.isEmpty() && !docAcomp.isEmpty()) {
-
-            Cliente acompanante =
-                clienteDAO.buscarPorDocumento(docAcomp);
-
-            if (acompanante != null) {
-
-                reservaClienteDAO.guardar(
-                    idReserva,
-                    acompanante.getId(),
-                    "Acompañante"
-                );
-            }
-        }
 
         // GUARDAR ACOMPAÑANTE
         if (!nombreAcomp.isEmpty() && !docAcomp.isEmpty()) {

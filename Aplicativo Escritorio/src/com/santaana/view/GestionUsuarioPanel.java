@@ -197,6 +197,11 @@ public class GestionUsuarioPanel extends JPanel implements ThemeManager.ThemeLis
             contenedorLista.add(gridClientes);
         }
     }
+    public void refrescarHistorialClientes() {
+        cargarUsuarios();
+        revalidate();
+        repaint();
+    }
 
     private JPanel userCard(Usuario u) {
         JPanel card = new JPanel(new BorderLayout(10, 10));
