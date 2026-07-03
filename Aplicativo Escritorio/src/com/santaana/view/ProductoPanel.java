@@ -411,10 +411,10 @@ public class ProductoPanel extends JPanel {
     }
 
     private double parsePrecio(String texto) {
-        if (texto == null || texto.isEmpty()) {
-            return 0;
-        }
-        String limpio = texto.replaceAll("[^0-9.,-]", "").replace(',', '.');
+        if (texto == null || texto.isEmpty()) return 0;
+        String limpio = texto
+            .replaceAll("[^0-9,]", "")
+            .replace(',', '.');
         try {
             return Double.parseDouble(limpio);
         } catch (NumberFormatException e) { 
