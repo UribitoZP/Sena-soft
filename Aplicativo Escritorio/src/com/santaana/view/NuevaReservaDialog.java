@@ -1021,7 +1021,27 @@ public class NuevaReservaDialog extends JDialog {
         parent.add(panelHabitaciones, gbc);
         parent.revalidate();
         parent.repaint();
-        if (filaAcompanante != null) filaAcompanante.setVisible(false);
+        if (filaAcompanante != null) {
+
+            boolean mostrar = habitacionPrincipal != null;
+
+            filaAcompanante.setVisible(mostrar);
+
+            panelHabitacionesAcomp.setVisible(
+                mostrar &&
+                (habitacionPrincipal == null ||
+                !habitacionPrincipal.getTipo().toLowerCase().contains("doble"))
+            );
+
+            panelAcompanantes.setVisible(
+                mostrar &&
+                (
+                    habitacionAcompanante != null ||
+                    (habitacionPrincipal != null &&
+                    habitacionPrincipal.getTipo().toLowerCase().contains("doble"))
+                )
+            );
+        }
         actualizarTotal();
     }
 

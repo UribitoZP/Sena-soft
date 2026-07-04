@@ -776,6 +776,7 @@ public class TableroPanel extends JPanel {
 
     private void mostrarDialogoPago(Habitacion h, com.santaana.model.Reserva r) {
         boolean esNoche = "Noche".equals(r.getTipoEstadia());
+        boolean esIndefinido = "Indefinido".equals(r.getTipoEstadia());
 
         double montoProductos = 0;
         for (ReservaProducto rp : reservaProductoDAO.listarPorReserva(r.getId())) {
@@ -783,15 +784,23 @@ public class TableroPanel extends JPanel {
         }
 
         double total = montoProductos;
+
         if (esNoche) {
             try {
                 long dias = java.time.LocalDate.parse(r.getFechaSalida()).toEpochDay()
-                          - java.time.LocalDate.parse(r.getFechaEntrada()).toEpochDay();
+                        - java.time.LocalDate.parse(r.getFechaEntrada()).toEpochDay();
                 if (dias < 1) dias = 1;
                 total = dias * h.getPrecio() + montoProductos;
-            } catch (Exception ignored) { esNoche = false; }
+            } catch (Exception ignored) {
+                esNoche = false;
+            }
         }
-        double saldo = esNoche ? Math.max(0, total - r.getAnticipo()) : Math.max(0, montoProductos - r.getAnticipo());
+
+        // Si la reserva es indefinida cobrar habitación + productos
+        if (esIndefinido) {
+            total = 40000 + montoProductos;
+}
+        double saldo = Math.max(0, total - r.getAnticipo());
         double totalFinal = total;
         boolean esNocheFinal = esNoche;
         double montoProductosFinal = montoProductos;
@@ -825,7 +834,7 @@ public class TableroPanel extends JPanel {
             body.add(filaInfo("Productos:", String.format("$%,.0f", montoProductosFinal)));
             body.add(Box.createVerticalStrut(4));
         }
-        if (esNocheFinal) {
+        if (esNocheFinal || esIndefinido) {
             body.add(filaInfo("Total:", String.format("$%,.0f", totalFinal)));
             body.add(Box.createVerticalStrut(4));
             body.add(filaInfo("Pagado:", String.format("$%,.0f", r.getAnticipo())));
@@ -857,7 +866,7 @@ public class TableroPanel extends JPanel {
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 8));
         footer.setBackground(getPanelCol());
 
-        if (esNocheFinal && saldo > 0) {
+        if ((esNocheFinal || esIndefinido) && saldo > 0) {
             double saldoFinal = saldo;
             JButton btnFull = crearBoton("Pago completo", new Color(0x27AE60));
             btnFull.setPreferredSize(new Dimension(120, 28));
@@ -875,18 +884,51 @@ public class TableroPanel extends JPanel {
                     return;
                 }
                 double nuevo = r.getAnticipo() + monto;
-                if (esNocheFinal && nuevo > totalFinal) {
+                if ((esNocheFinal || esIndefinido) && nuevo > totalFinal) {
                     JOptionPane.showMessageDialog(dlg, "El monto supera el saldo pendiente.", "Aviso", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
                 reservaDAO.actualizarAnticipo(r.getId(), nuevo);
+
                 HistorialDAO.registrar("Pago", "Abono registrado",
                     r.getClienteNombre() + " abonó $" + String.format("%,.0f", monto) + " en Hab. " + h.getNumero());
-                JOptionPane.showMessageDialog(dlg,
-                    "<html>Pago registrado.<br>Total pagado: <b>$" + String.format("%,.0f", nuevo) + "</b></html>",
-                    "Pago exitoso", JOptionPane.INFORMATION_MESSAGE);
+
+                if (esIndefinido && nuevo >= totalFinal) {
+
+                    reservaDAO.actualizarEstado(r.getId(), "Completada");
+                    habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
+
+                    HistorialDAO.registrar(
+                        "Checkout",
+                        "Check-out completado",
+                        r.getClienteNombre() + " realizó check-out de Hab. " + h.getNumero()
+                    );
+
+                    JOptionPane.showMessageDialog(
+                        dlg,
+                        "<html>Pago registrado.<br><br>"
+                        + "El checkout fue realizado correctamente.</html>",
+                        "Checkout completado",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                } else {
+
+                    JOptionPane.showMessageDialog(
+                        dlg,
+                        "<html>Pago registrado.<br>Total pagado: <b>$"
+                        + String.format("%,.0f", nuevo)
+                        + "</b></html>",
+                        "Pago exitoso",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                }
+
                 dlg.dispose();
-                if (onEstadoCambiado != null) SwingUtilities.invokeLater(onEstadoCambiado);
+
+                if (onEstadoCambiado != null) {
+                    SwingUtilities.invokeLater(onEstadoCambiado);
+                }
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(dlg, "Ingrese un monto válido.", "Error", JOptionPane.WARNING_MESSAGE);
             }
@@ -976,11 +1018,18 @@ public class TableroPanel extends JPanel {
             + infoBilling + infoSaldo + "</html>",
             "Confirmar Checkout", JOptionPane.YES_NO_OPTION);
 
-        if (confirm != JOptionPane.YES_OPTION) return;
+       if (confirm != JOptionPane.YES_OPTION) return;
+        // Si la reserva es indefinida, primero abrir la ventana de cobro
+        if (reservaActiva != null &&
+            "Indefinido".equals(reservaActiva.getTipoEstadia())) {
+
+            mostrarDialogoPago(h, reservaActiva);
+            return;
+        }
 
         if (reservaActiva != null) {
             reservaDAO.actualizarEstado(reservaActiva.getId(), "Completada");
-        }
+}
         habitacionDAO.actualizarEstado(h.getId(), "Limpieza");
         HistorialDAO.registrar("Checkout", "Check-out completado",
             cliente + " realizó check-out de Hab. " + h.getNumero());
